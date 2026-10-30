@@ -1,4 +1,4 @@
-# Cuentas
+# Kuadrix
 
 Sistema de diseño de la app de finanzas personales. La idea central: **el mes es una cuenta**. Ingresos menos gastos, igual a lo que ahorras, escrito como se haría a mano en una hoja: cifras alineadas a la derecha, operadores a la izquierda y doble raya bajo el total.
 

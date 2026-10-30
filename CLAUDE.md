@@ -1,4 +1,4 @@
-# Cuentas — app de finanzas personales
+# Kuadrix — app de finanzas personales
 
 Web personal de presupuesto mensual para Jose y su pareja (cada uno con sus datos). El mes se genera solo copiando el anterior; se editan solo los cambios.
 
@@ -6,7 +6,7 @@ Web personal de presupuesto mensual para Jose y su pareja (cada uno con sus dato
 
 - Spec: `docs/superpowers/specs/2026-10-30-finanzas-personales-design.md`
 - Plan en curso: `docs/superpowers/plans/2026-10-30-plan-1-base-nucleo-mes.md`
-- Sistema de diseño «Cuentas»: `docs/design/README.md` y `docs/design/tokens.json`
+- Sistema de diseño «Kuadrix»: `docs/design/README.md` y `docs/design/tokens.json`
 
 ## Cómo trabajar
 
