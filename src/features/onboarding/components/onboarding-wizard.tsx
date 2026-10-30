@@ -2,7 +2,7 @@
 
 import { useForm } from '@tanstack/react-form';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BASE_ITEMS, onboardingSchema, type OnboardingInput } from '@/features/onboarding/domain/onboarding';
 import { completeOnboardingAction } from '@/features/onboarding/server/actions';
 import { parseEuros } from '@/lib/money';
@@ -32,6 +32,10 @@ export type WizardForm = ReturnType<typeof useWizardForm>;
 const TITLES = { 1: 'Tus cuentas', 2: 'Tu nómina', 3: 'Gastos de cada mes' } as const;
 
 function buildInput(values: WizardValues, skipSalary: boolean): OnboardingInput {
+  const index = (value: string) => {
+    const n = Number(value);
+    return Number.isInteger(n) && n >= 0 && n < values.accounts.length ? n : 0;
+  };
   const salaryCents = parseEuros(values.salary.amount);
   return {
     accounts: values.accounts.map((a) => ({
@@ -42,10 +46,10 @@ function buildInput(values: WizardValues, skipSalary: boolean): OnboardingInput 
     })),
     salary: skipSalary || salaryCents === null
       ? null
-      : { amountCents: salaryCents, accountIndex: Number(values.salary.accountIndex), paydayDay: Number(values.salary.paydayDay) },
+      : { amountCents: salaryCents, accountIndex: index(values.salary.accountIndex), paydayDay: Number(values.salary.paydayDay) },
     items: values.items.flatMap((i) => {
       const cents = parseEuros(i.amount);
-      return cents === null ? [] : [{ name: i.name, category: i.category as OnboardingInput['items'][number]['category'], amountCents: cents, accountIndex: Number(i.accountIndex) }];
+      return cents === null ? [] : [{ name: i.name, category: i.category as OnboardingInput['items'][number]['category'], amountCents: cents, accountIndex: index(i.accountIndex) }];
     }),
   };
 }
@@ -57,6 +61,13 @@ export function OnboardingWizard() {
   const [skipSalary, setSkipSalary] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const previousStep = useRef(step);
+
+  useEffect(() => {
+    if (previousStep.current !== step) headingRef.current?.focus();
+    previousStep.current = step;
+  }, [step]);
 
   async function stepIsValid(): Promise<boolean> {
     const names: string[] = [];
@@ -112,11 +123,11 @@ export function OnboardingWizard() {
         <p className="text-[28px] leading-8 font-semibold tracking-[-0.03em] text-ink">Kuadrix</p>
         <div aria-hidden className="mt-2 h-1 w-full border-y border-ink" />
         <h1 className="mt-4 text-[24px] leading-8 font-semibold text-ink">Te damos la bienvenida</h1>
-        <p className="mt-1 text-[13px] text-ink-muted">Paso {step} de 3</p>
+        <p aria-live="polite" className="mt-1 text-[13px] text-ink-muted">Paso {step} de 3</p>
       </header>
 
       <section aria-labelledby="paso-titulo" className="flex flex-col gap-4">
-        <h2 id="paso-titulo" className="text-[19px] font-semibold text-ink">{TITLES[step]}</h2>
+        <h2 id="paso-titulo" ref={headingRef} tabIndex={-1} className="text-[19px] font-semibold text-ink outline-none focus-visible:ring-2 focus-visible:ring-ring">{TITLES[step]}</h2>
         {step === 1 && <AccountsStep form={form} />}
         {step === 2 && <SalaryStep form={form} />}
         {step === 3 && <ItemsStep form={form} />}

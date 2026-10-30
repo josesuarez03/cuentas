@@ -9,6 +9,18 @@ import type { WizardForm } from './onboarding-wizard';
 export const MAX_ACCOUNTS = 8;
 const TYPE_OPTIONS = Object.entries(ACCOUNT_TYPE_LABEL).map(([value, label]) => ({ value, label }));
 
+/** Quita la cuenta i y reasigna los índices guardados (nómina y partidas). */
+export function removeAccount(form: WizardForm, i: number) {
+  const remap = (value: string) => {
+    const n = Number(value);
+    if (n === i) return '0';
+    return n > i ? String(n - 1) : value;
+  };
+  void form.removeFieldValue('accounts', i);
+  form.setFieldValue('salary.accountIndex', remap(form.state.values.salary.accountIndex));
+  form.state.values.items.forEach((item, n) => form.setFieldValue(`items[${n}].accountIndex`, remap(item.accountIndex)));
+}
+
 export function AccountsStep({ form }: { form: WizardForm }) {
   return (
     <div className="flex flex-col gap-5">
@@ -33,20 +45,24 @@ export function AccountsStep({ form }: { form: WizardForm }) {
                 <form.Field name={`accounts[${i}].type`}>
                   {(field) => <SelectField field={field} label="Tipo" options={TYPE_OPTIONS} emptyText="Sin tipos" />}
                 </form.Field>
-                <form.Field
-                  name={`accounts[${i}].balance`}
-                  validators={{ onChange: ({ value }) => (value.trim() === '' || parseEuros(value) !== null ? undefined : 'Escribe un importe, por ejemplo 2.300,00.') }}
-                >
-                  {(field) => (
-                    <TextField
-                      field={field}
-                      inputMode="decimal"
-                      label={account.type === 'credit_card' ? 'Lo que debes (€)' : 'Saldo de hoy (€)'}
-                    />
+                <form.Subscribe selector={(state) => state.values.accounts[i]?.type}>
+                  {(type) => (
+                    <form.Field
+                      name={`accounts[${i}].balance`}
+                      validators={{ onChange: ({ value }) => (value.trim() === '' || parseEuros(value) !== null ? undefined : 'Escribe un importe, por ejemplo 2.300,00.') }}
+                    >
+                      {(field) => (
+                        <TextField
+                          field={field}
+                          inputMode="decimal"
+                          label={type === 'credit_card' ? 'Lo que debes (€)' : 'Saldo de hoy (€)'}
+                        />
+                      )}
+                    </form.Field>
                   )}
-                </form.Field>
+                </form.Subscribe>
                 {accounts.state.value.length > 1 && (
-                  <Button type="button" variant="ghost" className="min-h-11 self-start" onClick={() => accounts.removeValue(i)}>
+                  <Button type="button" variant="ghost" className="min-h-11 self-start" onClick={() => removeAccount(form, i)}>
                     Quitar cuenta
                   </Button>
                 )}
