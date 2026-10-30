@@ -8,8 +8,13 @@ afterEach(() => { cleanup(); vi.unstubAllEnvs(); Reflect.deleteProperty(navigato
 
 function fakeSw(controller: { postMessage: ReturnType<typeof vi.fn> } | null) {
   const register = vi.fn().mockResolvedValue({});
-  Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: { register, controller } });
+  const sw = Object.assign(new EventTarget(), { register, controller });
+  Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: sw });
   return register;
+}
+
+function swContainer() {
+  return navigator.serviceWorker as unknown as EventTarget & { controller: { postMessage: ReturnType<typeof vi.fn> } | null };
 }
 
 it('en producción registra /serwist/sw.js con ámbito /', () => {
@@ -31,4 +36,24 @@ it('pide al service worker guardar la pantalla visitada', () => {
   fakeSw(controller);
   render(<ServiceWorkerRegistrar />);
   expect(controller.postMessage).toHaveBeenCalledWith({ type: 'CACHE_URLS', payload: { urlsToCache: [window.location.pathname + window.location.search] } });
+});
+
+it('al tomar el control un service worker nuevo, le pide guardar la pantalla actual', () => {
+  fakeSw(null);
+  render(<ServiceWorkerRegistrar />);
+  const controller = { postMessage: vi.fn() };
+  swContainer().controller = controller;
+  swContainer().dispatchEvent(new Event('controllerchange'));
+  expect(controller.postMessage).toHaveBeenCalledTimes(1);
+  expect(controller.postMessage).toHaveBeenCalledWith({ type: 'CACHE_URLS', payload: { urlsToCache: [window.location.pathname + window.location.search] } });
+});
+
+it('al desmontarse deja de escuchar controllerchange', () => {
+  fakeSw(null);
+  const { unmount } = render(<ServiceWorkerRegistrar />);
+  unmount();
+  const controller = { postMessage: vi.fn() };
+  swContainer().controller = controller;
+  swContainer().dispatchEvent(new Event('controllerchange'));
+  expect(controller.postMessage).not.toHaveBeenCalled();
 });

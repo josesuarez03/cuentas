@@ -21,7 +21,7 @@ const serwist = new Serwist({
   navigationPreload: false,
   runtimeCaching: [
     { matcher: is('api-read'), handler: new NetworkFirst({ cacheName: CACHE.api, plugins: [onlyOk, new ExpirationPlugin({ maxEntries: 40, maxAgeSeconds: 30 * 24 * 60 * 60 })] }) },
-    { matcher: is('page'), handler: new NetworkFirst({ cacheName: CACHE.pages, networkTimeoutSeconds: 4, plugins: [onlyOk, new ExpirationPlugin({ maxEntries: 20 })] }) },
+    { matcher: is('page'), handler: new NetworkFirst({ cacheName: CACHE.pages, networkTimeoutSeconds: 10, plugins: [onlyOk, new ExpirationPlugin({ maxEntries: 20 })] }) },
     { matcher: is('static'), handler: new CacheFirst({ cacheName: CACHE.static, plugins: [new CacheableResponsePlugin({ statuses: [200] }), new ExpirationPlugin({ maxEntries: 200 })] }) },
   ],
   fallbacks: { entries: [{ url: '/sin-conexion', matcher: ({ request }) => request.destination === 'document' }] },

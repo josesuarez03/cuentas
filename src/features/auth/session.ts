@@ -7,6 +7,7 @@ import { auth } from '@/features/auth/auth';
 import { safeNext } from '@/features/auth/safe-next';
 
 // Una sola lectura de la sesión por petición (layout y página llaman a requireUser).
+// La caché es por petición: un login/logout dentro de la misma petición seguiría viendo la sesión anterior.
 export const getSessionState = cache(async () => {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return { user: null, denied: false };

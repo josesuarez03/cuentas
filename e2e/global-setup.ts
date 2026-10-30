@@ -9,15 +9,13 @@ import type { Db } from '@/db/types';
 import { completeOnboarding } from '@/features/onboarding/server/onboarding';
 import { rollMonth } from '@/features/month/server/lifecycle';
 import { currentYearMonth } from '@/lib/year-month';
+import { assertLocalE2eDatabase } from './support/local-db';
 import { seedSession, signSessionCookie, storageStateFor } from './support/session';
 
 const BASE_URL = 'http://localhost:3100';
 
 export default async function globalSetup() {
-  const host = new URL(process.env.DATABASE_URL!).hostname;
-  if (host !== 'localhost' && host !== '127.0.0.1') {
-    throw new Error('Las E2E solo corren contra el Postgres local (pnpm e2e:db).');
-  }
+  assertLocalE2eDatabase(process.env.DATABASE_URL);
 
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   try {
