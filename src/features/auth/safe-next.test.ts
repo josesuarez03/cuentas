@@ -10,4 +10,8 @@ describe('safeNext', () => {
       expect(safeNext(bad)).toBe('/inicio');
     }
   });
+  it('un valor repetido (array) o no string cae al fallback', () => {
+    expect(safeNext(['/a', '/b'])).toBe('/inicio');
+    expect(safeNext(42)).toBe('/inicio');
+  });
 });

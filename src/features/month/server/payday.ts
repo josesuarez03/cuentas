@@ -22,7 +22,7 @@ export interface PendingPayday {
   paydayDate: IsoDate;
 }
 
-export async function pendingPaydays(db: Db, userId: string, ym: YearMonth, region: string): Promise<PendingPayday[]> {
+export async function pendingPaydays(db: Db, userId: string, ym: YearMonth, region: string, opts: { includeClosed?: boolean } = {}): Promise<PendingPayday[]> {
   const rows = await db.select({
     entryId: s.entries.id,
     recurringItemId: s.recurringItems.id,
@@ -37,7 +37,7 @@ export async function pendingPaydays(db: Db, userId: string, ym: YearMonth, regi
     .where(and(
       eq(s.months.userId, userId),
       eq(s.months.yearMonth, ym),
-      eq(s.months.status, 'open'),
+      ...(opts.includeClosed ? [] : [eq(s.months.status, 'open')]),
       eq(s.entries.kind, 'income'),
       eq(s.entries.status, 'pending'),
       isNotNull(s.recurringItems.paydayDay),

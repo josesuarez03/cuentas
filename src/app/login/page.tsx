@@ -7,7 +7,7 @@ const LEDGER_ROWS = [
   { op: '−', label: 'Bolsas y huchas' },
 ] as const;
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string | string[] }> }) {
   const { error, next } = await searchParams;
   return (
     <main className="flex min-h-dvh justify-center bg-paper px-4 pt-16 pb-10 sm:items-center sm:px-6 sm:py-10">
