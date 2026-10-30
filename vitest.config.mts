@@ -6,7 +6,7 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts', 'e2e/**/*.test.ts'],
     passWithNoTests: true,
     testTimeout: 60_000,
     // PGlite arranca una base nueva por test; con carga (agentes en paralelo, CI) tarda más de 10 s.
