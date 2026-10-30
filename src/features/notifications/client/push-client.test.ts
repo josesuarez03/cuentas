@@ -32,10 +32,10 @@ describe('push-client', () => {
     expect(await subscribeThisDevice('B'.padEnd(87, 'A'))).toBe('denied');
     expect((navigator.serviceWorker.register as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
   });
-  it('permiso concedido: registra /sw.js y se suscribe con userVisibleOnly', async () => {
+  it('permiso concedido: registra /serwist/sw.js y se suscribe con userVisibleOnly', async () => {
     const { pushManager } = fakeBrowser('granted');
     expect(await subscribeThisDevice('B'.padEnd(87, 'A'))).toEqual({ endpoint: 'https://push.example/1', keys: { p256dh: 'p', auth: 'a' } });
-    expect(navigator.serviceWorker.register).toHaveBeenCalledWith('/sw.js', { scope: '/' });
+    expect(navigator.serviceWorker.register).toHaveBeenCalledWith('/serwist/sw.js', { scope: '/' });
     expect(pushManager.subscribe.mock.calls[0][0].userVisibleOnly).toBe(true);
   });
   it('baja: devuelve el endpoint', async () => {

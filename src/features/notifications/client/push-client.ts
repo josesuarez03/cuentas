@@ -1,3 +1,5 @@
+import { registerServiceWorker } from '@/lib/service-worker';
+
 export function pushSupport(): 'supported' | 'unsupported' {
   return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window ? 'supported' : 'unsupported';
 }
@@ -22,7 +24,7 @@ export async function subscribeThisDevice(
 ): Promise<{ endpoint: string; keys: { p256dh: string; auth: string } } | 'denied'> {
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') return 'denied';
-  await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+  await registerServiceWorker();
   const registration = await navigator.serviceWorker.ready;
   const subscription =
     (await registration.pushManager.getSubscription()) ??
