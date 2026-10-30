@@ -13,6 +13,7 @@ import { useMonthStore } from '@/features/month/store/month-store';
 import { UpdateBalanceSheet } from '@/features/wealth/components/update-balance-sheet';
 import type { AccountBalance } from '@/features/wealth/domain/types';
 import { useAddSnapshot, useWealth } from '@/features/wealth/hooks/use-wealth';
+import { todayIso } from '@/lib/iso-date';
 import { cn } from '@/lib/utils';
 import { currentYearMonth, formatMonthName, formatWeekdayDay } from '@/lib/year-month';
 import { EmptyState } from '@/shared/components/empty-state';
@@ -41,7 +42,7 @@ export function HomeScreen() {
   const data = query.data;
   const view = data?.view;
   const empty = view ? isMonthEmpty(view) : false;
-  const todos = view ? todoItems(view, wealth.data ?? null) : [];
+  const todos = view ? todoItems(view, wealth.data ?? null, todayIso()) : [];
   const pockets = view && !empty ? view.pockets : [];
   const upcoming = data?.upcoming && data.upcoming.items.length > 0 ? data.upcoming : null;
   const later = data?.upcomingLater && data.upcomingLater.items.length > 0 ? data.upcomingLater : null;
