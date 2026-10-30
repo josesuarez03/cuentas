@@ -61,6 +61,16 @@
   }
 }
 
+/* Alto de la barra inferior (AppNav). En ≥ md la navegación es un raíl lateral y no ocupa abajo. */
+:root {
+  --app-nav-h: calc(3.75rem + env(safe-area-inset-bottom));
+}
+@media (width >= 48rem) {
+  :root {
+    --app-nav-h: 0px;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

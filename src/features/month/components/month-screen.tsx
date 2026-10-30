@@ -23,7 +23,7 @@ export function MonthScreen() {
   const isEmpty = data && data.view.categories.length === 0 && data.view.pockets.length === 0 && data.view.funds.length === 0;
 
   return (
-    <>
+    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col md:max-w-2xl">
       <MonthHeader />
       {query.isPending && <MonthSkeleton />}
       {query.isError && (
@@ -36,7 +36,7 @@ export function MonthScreen() {
       )}
       {data && (
         <>
-          <main className="flex-1 px-4 pb-4">
+          <main className="flex-1 px-4 pb-4 md:px-6">
             {isEmpty && <p className="py-8 text-center text-[15px] text-ink-muted">Aún no hay partidas este mes. Añade la primera.</p>}
             <CategoryList view={data.view} onAmountChange={(entryId, amountCents) => update.mutate({ entryId, amountCents })} />
             {data.view.status === 'open' ? (
@@ -59,6 +59,6 @@ export function MonthScreen() {
           <AddEntrySheet open={addOpen} onOpenChange={setAddOpen} ym={ym} catalog={data.catalog} />
         </>
       )}
-    </>
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+import { AppNav } from '@/shared/components/app-nav';
 import { Providers } from '@/shared/components/providers';
 import { requireUser } from '@/features/auth/session';
 
@@ -5,7 +6,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   await requireUser();
   return (
     <Providers>
-      <div className="mx-auto flex min-h-dvh max-w-xl flex-col bg-paper">{children}</div>
+      <AppNav />
+      <div className="flex min-h-dvh flex-col bg-paper pb-(--app-nav-h) md:pl-60">{children}</div>
     </Providers>
   );
 }
