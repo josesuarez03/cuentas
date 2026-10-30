@@ -10,6 +10,7 @@ import { NotificationsSection } from './notifications-section';
 import { PocketsFundsSection } from './pockets-funds-section';
 import { RecurringSection } from './recurring-section';
 import { SettingsSection } from './settings-section';
+import { SignOutSection } from './sign-out-section';
 import { SplitSection } from './split-section';
 import { ThemeControl } from './theme-control';
 
@@ -46,6 +47,7 @@ export function SettingsScreen({ vapidPublicKey }: { vapidPublicKey: string | nu
           <SettingsSection id="ajustes-tema" title="Tema">
             <div className="py-3"><ThemeControl /></div>
           </SettingsSection>
+          <SignOutSection />
         </>
       )}
     </main>
