@@ -46,7 +46,7 @@ export const seedData = {
     { name: 'Nómina', kind: 'income', category: 'Ingresos', account: 'principal', euros: 1870, frequency: 'monthly', paydayDay: 28, paydayRule: 'after' },
     { name: 'Alquiler', kind: 'expense', category: 'Piso', account: 'principal', euros: 450, frequency: 'monthly' },
     { name: 'Internet', kind: 'expense', category: 'Piso', account: 'principal', euros: 69.95, frequency: 'monthly' },
-    { name: 'Luz', kind: 'expense', category: 'Piso', account: 'principal', euros: , frequency: 'monthly' },
+    { name: 'Luz', kind: 'expense', category: 'Piso', account: 'principal', euros: 28, frequency: 'monthly' },
     { name: 'Trastero', kind: 'expense', category: 'Piso', account: 'principal', euros: 43.5, frequency: 'monthly' },
     { name: 'Gas', kind: 'expense', category: 'Piso', account: 'principal', euros: 40, frequency: 'bimonthly', startMonth: '' },
     { name: 'Aportación comida', kind: 'expense', category: 'Comida', account: 'revolut', euros: 150, frequency: 'monthly' },
