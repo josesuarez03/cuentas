@@ -1,0 +1,15 @@
+name: kuadrix-e2e
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: kuadrix
+      POSTGRES_PASSWORD: kuadrix
+      POSTGRES_DB: kuadrix_e2e
+    ports: ['5543:5432']
+    tmpfs: [/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U kuadrix -d kuadrix_e2e']
+      interval: 2s
+      timeout: 3s
+      retries: 20

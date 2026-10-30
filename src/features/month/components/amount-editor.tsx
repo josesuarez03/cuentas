@@ -76,6 +76,7 @@ export function AmountEditor({ cents, label, sign, onSave }: Props) {
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
+            e.preventDefault();
             restoreFocus.current = true;
             commit();
           }
