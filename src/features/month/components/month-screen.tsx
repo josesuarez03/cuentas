@@ -2,7 +2,8 @@
 
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import { AddEntrySheet } from '@/features/month/components/add-entry-sheet';
+import { AddEntrySheet, type AddMode } from '@/features/month/components/add-entry-sheet';
+import { FundSpendDialog } from '@/features/month/components/fund-spend-dialog';
 import { AvailableBar } from '@/features/month/components/available-bar';
 import { CategoryList } from '@/features/month/components/category-list';
 import { MonthHeader } from '@/features/month/components/month-header';
@@ -20,6 +21,8 @@ export function MonthScreen() {
   const update = useUpdateAmount(ym);
   const [splitOpen, setSplitOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [addMode, setAddMode] = useState<AddMode>('expense');
+  const [fundId, setFundId] = useState<string | null>(null);
 
   const data = query.data;
   const open = data?.view.status === 'open';
@@ -55,9 +58,24 @@ export function MonthScreen() {
       ) : (
         <>
           <main className="flex-1 px-4 pb-4 md:px-6">
-            <CategoryList view={data.view} onAmountChange={(entryId, amountCents) => update.mutate({ entryId, amountCents })} />
+            <CategoryList
+              view={data.view}
+              onAmountChange={(entryId, amountCents) => update.mutate({ entryId, amountCents })}
+              onAddPocketExpense={() => {
+                setAddMode('pocket');
+                setAddOpen(true);
+              }}
+              onSpendFund={setFundId}
+            />
             {open ? (
-              <Button variant="link" className="mt-2 min-h-11 px-0 text-[15px] text-tinta" onClick={() => setAddOpen(true)}>
+              <Button
+                variant="link"
+                className="mt-2 min-h-11 px-0 text-[15px] text-tinta"
+                onClick={() => {
+                  setAddMode('expense');
+                  setAddOpen(true);
+                }}
+              >
                 <Plus className="size-[18px]" aria-hidden />
                 Añadir
               </Button>
@@ -77,7 +95,22 @@ export function MonthScreen() {
             view={data.view}
             accounts={data.catalog.accounts.filter((a) => a.type !== 'credit_card' && a.type !== 'joint')}
           />
-          <AddEntrySheet open={addOpen} onOpenChange={setAddOpen} ym={ym} catalog={data.catalog} />
+          <AddEntrySheet
+            open={addOpen}
+            onOpenChange={setAddOpen}
+            ym={ym}
+            catalog={data.catalog}
+            pockets={data.view.pockets}
+            initialMode={addMode}
+          />
+          <FundSpendDialog
+            open={fundId !== null}
+            onOpenChange={(next) => {
+              if (!next) setFundId(null);
+            }}
+            ym={ym}
+            fund={data.view.funds.find((x) => x.id === fundId) ?? null}
+          />
         </>
       )}
     </div>

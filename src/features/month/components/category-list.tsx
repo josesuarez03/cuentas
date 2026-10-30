@@ -4,6 +4,7 @@ import { pocketProgress, signOf, type CategoryGroup, type MonthView, type Pocket
 import { formatEuros } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/shared/components/ui/accordion';
+import { Button } from '@/shared/components/ui/button';
 import { Progress } from '@/shared/components/ui/progress';
 import { AmountEditor } from './amount-editor';
 
@@ -57,9 +58,11 @@ function PocketRow({ pocket }: { pocket: PocketView }) {
   );
 }
 
-export function CategoryList({ view, onAmountChange }: {
+export function CategoryList({ view, onAmountChange, onAddPocketExpense, onSpendFund }: {
   view: MonthView;
   onAmountChange: (entryId: string, amountCents: number) => void;
+  onAddPocketExpense?: () => void;
+  onSpendFund?: (fundId: string) => void;
 }) {
   const editable = view.status === 'open';
   const pocketsLeft = view.pockets.reduce((acc, p) => acc + p.limitCents - p.spentCents, 0);
@@ -100,6 +103,9 @@ export function CategoryList({ view, onAmountChange }: {
           />
           <AccordionContent className="pb-0">
             {view.pockets.map((p) => <PocketRow key={p.id} pocket={p} />)}
+            {editable && onAddPocketExpense && (
+              <Button variant="link" className="min-h-11 px-0 text-tinta" onClick={onAddPocketExpense}>Apuntar gasto</Button>
+            )}
           </AccordionContent>
         </AccordionItem>
       )}
@@ -109,6 +115,16 @@ export function CategoryList({ view, onAmountChange }: {
           <Summary title={f.name} note={`Hucha: ${formatEuros(f.balanceCents)}`} amount={-f.allocatedCents} />
           <AccordionContent className="pb-0">
             <p className="border-t border-line py-3 text-[15px]">Este mes apartas {formatEuros(f.allocatedCents)}.</p>
+            {editable && f.balanceCents > 0 && onSpendFund && (
+              <Button
+                variant="link"
+                className="min-h-11 px-0 text-tinta"
+                aria-label={`Gastar de la hucha ${f.name}`}
+                onClick={() => onSpendFund(f.id)}
+              >
+                Gastar de la hucha
+              </Button>
+            )}
           </AccordionContent>
         </AccordionItem>
       ))}
