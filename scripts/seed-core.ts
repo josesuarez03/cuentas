@@ -78,10 +78,10 @@ export async function seedOwner(db: Db, ownerId: string, data: SeedData, ym: str
       paydayRule: i.paydayRule ?? 'before',
     })));
 
-    await tx.insert(s.pockets).values(data.pockets.map((p) => ({
+    if (data.pockets.length > 0) await tx.insert(s.pockets).values(data.pockets.map((p) => ({
       userId: ownerId, name: p.name, accountId: accountId(p.account), monthlyLimitCents: Math.round(p.euros * 100),
     })));
-    await tx.insert(s.funds).values(data.funds.map((f) => ({
+    if (data.funds.length > 0) await tx.insert(s.funds).values(data.funds.map((f) => ({
       userId: ownerId, name: f.name, accountId: accountId(f.account), monthlyAllocationCents: Math.round(f.euros * 100),
     })));
   });

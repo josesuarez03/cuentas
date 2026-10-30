@@ -51,6 +51,12 @@ describe('seedOwner', () => {
     ]);
   });
 
+  it('siembra sin bolsas ni fondos', async () => {
+    await seedOwner(db, 'u1', { ...filled, pockets: [], funds: [] }, '2026-10');
+    expect(await db.select().from(s.pockets)).toHaveLength(0);
+    expect(await db.select().from(s.recurringItems)).toHaveLength(filled.items.length);
+  });
+
   it('no siembra dos veces', async () => {
     await seedOwner(db, 'u1', filled, '2026-10');
     await expect(seedOwner(db, 'u1', filled, '2026-10')).rejects.toThrow('ya tiene datos');

@@ -58,9 +58,7 @@ export const seedData = {
     { name: 'Corte de pelo', kind: 'expense', category: 'Otros', account: 'principal', euros: 0, frequency: 'monthly' },
     { name: 'Proteína en polvo', kind: 'expense', category: 'Otros', account: 'principal', euros: 0, frequency: 'monthly' },
   ] satisfies SeedItem[] as SeedItem[],
-  pockets: [
-    { name: 'Ocio', account: 'principal' as AccountKey, euros: 0 },
-    { name: 'Compras', account: 'principal' as AccountKey, euros: 0 },
-  ],
+  // Sin bolsas: lo que sobra del mes va a BBVA ahorro; de ahí se pasa a Trade el mes siguiente.
+  pockets: [] as { name: string; account: AccountKey; euros: number }[],
   funds: [{ name: 'Regalos', account: 'ahorro' as AccountKey, euros: 50 }],
 };
