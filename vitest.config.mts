@@ -8,6 +8,8 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
     passWithNoTests: true,
-    testTimeout: 20_000,
+    testTimeout: 60_000,
+    // PGlite arranca una base nueva por test; con carga (agentes en paralelo, CI) tarda más de 10 s.
+    hookTimeout: 60_000,
   },
 });
