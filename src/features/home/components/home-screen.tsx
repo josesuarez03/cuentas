@@ -120,8 +120,8 @@ export function HomeScreen() {
             onOpenChange={(o) => { if (!o) setConfirmFor(null); }}
             returnFocusTo={() => document.getElementById('inicio-disponible')}
             onConfirm={(c) => {
-              confirm.mutate({ entryId: confirmFor!.id, amountCents: c });
-              toast.success(`${confirmFor!.name} confirmada.`);
+              const name = confirmFor!.name;
+              confirm.mutate({ entryId: confirmFor!.id, amountCents: c }, { onSuccess: () => toast.success(`${name} confirmada.`) });
             }}
           />
           <UpdateBalanceSheet

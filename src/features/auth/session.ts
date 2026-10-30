@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { isAllowedEmail } from '@/features/auth/allowlist';
 import { auth } from '@/features/auth/auth';
+import { safeNext } from '@/features/auth/safe-next';
 
 async function readSession() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -17,6 +18,10 @@ export async function getUserOrNull() {
 
 export async function requireUser() {
   const { user, denied } = await readSession();
-  if (!user) redirect(denied ? '/login?error=acceso' : '/login');
+  if (!user) {
+    if (denied) redirect('/login?error=acceso');
+    const next = safeNext((await headers()).get('x-next-path'));   // lo fija el middleware
+    redirect(next === '/inicio' ? '/login' : `/login?next=${encodeURIComponent(next)}`);
+  }
   return user;
 }

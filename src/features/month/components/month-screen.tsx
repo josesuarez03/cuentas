@@ -169,8 +169,8 @@ export function MonthScreen({ initialYm, confirmEntryId }: { initialYm?: YearMon
               }
             }}
             onConfirm={(c) => {
-              confirm.mutate({ entryId: confirmFor!.id, amountCents: c });
-              toast.success(`${confirmFor!.name} confirmada.`);
+              const name = confirmFor!.name;
+              confirm.mutate({ entryId: confirmFor!.id, amountCents: c }, { onSuccess: () => toast.success(`${name} confirmada.`) });
             }}
           />
         </>

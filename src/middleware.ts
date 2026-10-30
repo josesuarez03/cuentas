@@ -3,7 +3,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 // Comprobación rápida de cookie; la validación real está en requireUser/getUserOrNull.
 export function middleware(request: NextRequest) {
-  if (getSessionCookie(request)) return NextResponse.next();
+  if (getSessionCookie(request)) {
+    // Ruta actual para que requireUser conserve el destino si la cookie existe pero la sesión no vale.
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-next-path', request.nextUrl.pathname + request.nextUrl.search);
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
   if (request.nextUrl.pathname.startsWith('/api/')) {
     return NextResponse.json({ error: 'Inicia sesión para continuar.' }, { status: 401 });
   }

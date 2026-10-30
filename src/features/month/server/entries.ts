@@ -39,7 +39,7 @@ export async function confirmIncome(db: Db, userId: string, entryId: string, amo
   if (!row || row.kind !== 'income') throw new NotFoundError('Ingreso no encontrado');
   if (row.monthStatus === 'closed') throw new ClosedMonthError('El mes está cerrado');
   if (row.status === 'confirmed') return;
-  await db.update(s.entries).set({ status: 'confirmed', confirmedAt: new Date(), ...(amountCents !== undefined && { amountCents }) }).where(eq(s.entries.id, entryId));
+  await db.update(s.entries).set({ status: 'confirmed', confirmedAt: new Date(), ...(amountCents !== undefined && { amountCents }) }).where(and(eq(s.entries.id, entryId), eq(s.entries.status, 'pending')));
 }
 
 export interface NewOneOffEntry {

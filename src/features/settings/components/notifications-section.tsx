@@ -83,7 +83,7 @@ export function NotificationsSection({
 
   const note =
     support === 'unsupported'
-      ? 'En iPhone, añade Kuadrix a la pantalla de inicio para recibir avisos push (iOS 16.4+).'
+      ? 'En iPhone, los avisos push llegarán cuando Kuadrix se pueda instalar en la pantalla de inicio. Mientras tanto, te avisamos por correo.'
       : !vapidPublicKey
         ? 'Los avisos push no están configurados todavía.'
         : error

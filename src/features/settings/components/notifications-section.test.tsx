@@ -38,7 +38,7 @@ it('sin soporte: push desactivado con la explicación de iPhone', async () => {
   client.pushSupport.mockReturnValue('unsupported');
   ui();
   await waitFor(() => expect((screen.getByRole('switch', { name: 'Avisos push' }) as HTMLButtonElement).disabled).toBe(true));
-  expect(screen.getByText('En iPhone, añade Kuadrix a la pantalla de inicio para recibir avisos push (iOS 16.4+).')).toBeTruthy();
+  expect(screen.getByText('En iPhone, los avisos push llegarán cuando Kuadrix se pueda instalar en la pantalla de inicio. Mientras tanto, te avisamos por correo.')).toBeTruthy();
 });
 
 it('sin clave VAPID: desactivado y lo dice', async () => {
