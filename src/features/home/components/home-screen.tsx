@@ -3,10 +3,14 @@
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { todoItems } from '@/features/home/domain/todo';
-import { AddEntrySheet } from '@/features/month/components/add-entry-sheet';
+import { AddEntrySheet, type AddMode } from '@/features/month/components/add-entry-sheet';
 import { isMonthEmpty } from '@/features/month/domain/month-view';
 import { MonthFetchError, useConfirmIncome, useMonth } from '@/features/month/hooks/use-month';
+import { useMarkLoanRepaid } from '@/features/month/hooks/use-loans';
 import { useMonthStore } from '@/features/month/store/month-store';
+import { UpdateBalanceSheet } from '@/features/wealth/components/update-balance-sheet';
+import type { AccountBalance } from '@/features/wealth/domain/types';
+import { useAddSnapshot, useWealth } from '@/features/wealth/hooks/use-wealth';
 import { cn } from '@/lib/utils';
 import { currentYearMonth, formatMonthName, formatWeekdayDay } from '@/lib/year-month';
 import { EmptyState } from '@/shared/components/empty-state';
@@ -16,22 +20,34 @@ import { HomeSkeleton } from './home-skeleton';
 import { PocketsCard } from './pockets-card';
 import { TodoCard } from './todo-card';
 import { UpcomingCard } from './upcoming-card';
+import { WealthCard } from './wealth-card';
 
 export function HomeScreen() {
   const ym = currentYearMonth();
   const query = useMonth(ym);
   const confirm = useConfirmIncome(ym);
   const resetMonth = useMonthStore((s) => s.reset);
+  const wealth = useWealth();
+  const repay = useMarkLoanRepaid();
+  const addSnapshot = useAddSnapshot();
   const [addOpen, setAddOpen] = useState(false);
+  const [addMode, setAddMode] = useState<AddMode>('expense');
+  const [balanceFor, setBalanceFor] = useState<AccountBalance | null>(null);
 
   const data = query.data;
   const view = data?.view;
   const empty = view ? isMonthEmpty(view) : false;
-  const todos = view ? todoItems(view, null) : [];
+  const todos = view ? todoItems(view, wealth.data ?? null) : [];
   const pockets = view && !empty ? view.pockets : [];
   const upcoming = data?.upcoming && data.upcoming.items.length > 0 ? data.upcoming : null;
   const later = data?.upcomingLater && data.upcomingLater.items.length > 0 ? data.upcomingLater : null;
-  const hasAside = pockets.length > 0 || upcoming !== null || later !== null;
+  const wealthData = wealth.data && wealth.data.accounts.some((a) => a.estimatedCents !== null) ? wealth.data : null;
+  const hasAside = pockets.length > 0 || wealthData !== null || upcoming !== null || later !== null;
+
+  function openAdd(mode: AddMode) {
+    setAddMode(mode);
+    setAddOpen(true);
+  }
 
   return (
     <main
@@ -62,7 +78,7 @@ export function HomeScreen() {
               <EmptyState
                 title="Empieza por tu primera partida"
                 action={view.status === 'open' && (
-                  <Button className="min-h-12 w-full gap-2 text-base font-semibold" onClick={() => setAddOpen(true)}>
+                  <Button className="min-h-12 w-full gap-2 text-base font-semibold" onClick={() => openAdd('expense')}>
                     <Plus className="size-5" aria-hidden />
                     Añadir al mes
                   </Button>
@@ -71,17 +87,28 @@ export function HomeScreen() {
                 Aquí verás lo que te queda para ahorrar este mes. Apunta un ingreso o un gasto para empezar; lo que se repite se copiará solo cada mes.
               </EmptyState>
             ) : (
-              <AvailableSummary view={view} onAdd={() => setAddOpen(true)} onOpenMonth={resetMonth} />
+              <AvailableSummary view={view} onAdd={() => openAdd('expense')} onOpenMonth={resetMonth} />
             )}
-            <TodoCard items={todos} onAction={(t) => { if (t.kind === 'income') confirm.mutate(t.targetId); }} />
+            <TodoCard items={todos} onAction={(t) => {
+              if (t.kind === 'income') confirm.mutate(t.targetId);
+              else if (t.kind === 'loan') repay.mutate(t.targetId);
+              else setBalanceFor(wealth.data?.accounts.find((a) => a.accountId === t.targetId) ?? null);
+            }} />
           </div>
           {hasAside && (
             <div className="flex flex-col gap-4">
-              {pockets.length > 0 && <PocketsCard pockets={pockets} />}
+              {pockets.length > 0 && <PocketsCard pockets={pockets} onAddExpense={() => openAdd('pocket')} />}
+              {wealthData && <WealthCard wealth={wealthData} />}
               {(upcoming || later) && <UpcomingCard upcoming={upcoming} later={later} />}
             </div>
           )}
-          <AddEntrySheet open={addOpen} onOpenChange={setAddOpen} ym={ym} catalog={data.catalog} />
+          <AddEntrySheet open={addOpen} onOpenChange={setAddOpen} ym={ym} catalog={data.catalog} pockets={view.pockets} initialMode={addMode} />
+          <UpdateBalanceSheet
+            account={balanceFor}
+            open={balanceFor !== null}
+            onOpenChange={(o) => { if (!o) setBalanceFor(null); }}
+            onSave={(c) => { if (balanceFor) addSnapshot.mutate({ accountId: balanceFor.accountId, balanceCents: c }); }}
+          />
         </>
       )}
     </main>
