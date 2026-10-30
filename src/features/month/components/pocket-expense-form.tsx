@@ -35,7 +35,7 @@ export function PocketExpenseForm({ ym, pockets, defaultPocketId, onDone }: {
         {(field) => <SelectField field={field} label="Bolsa" emptyText="Aún no tienes bolsas" options={pockets.map((p) => ({ value: p.id, label: p.name }))} />}
       </form.Field>
 
-      <form.Field name="amount" validators={{ onSubmit: ({ value }) => (parseEuros(value) === null ? 'Escribe un importe, por ejemplo 52,00.' : undefined) }}>
+      <form.Field name="amount" validators={{ onSubmit: ({ value }) => (parseEuros(value) === null ? 'Escribe un importe, por ejemplo 52,00.' : parseEuros(value)! <= 0 ? 'Escribe un importe mayor que 0.' : undefined) }}>
         {(field) => <TextField field={field} label="Importe (€)" inputMode="decimal" />}
       </form.Field>
 

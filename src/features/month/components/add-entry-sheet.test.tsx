@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import type { ComponentProps } from 'react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { Catalog } from '@/features/catalog/server/catalog';
+import { addPocketExpenseAction } from '@/features/month/server/pocket-actions';
 import { AddEntrySheet } from './add-entry-sheet';
 
 vi.mock('@/features/month/server/actions', () => ({ addOneOffEntryAction: vi.fn() }));
@@ -82,5 +83,28 @@ describe('AddEntrySheet modos', () => {
     expect(screen.getByRole('radio', { name: 'Gasto de bolsa' }).getAttribute('aria-checked')).toBe('true');
     expect(screen.getByRole('combobox', { name: 'Bolsa' }).textContent).toContain('Ropa');
     expect(screen.getByRole('button', { name: 'Apuntar gasto' })).toBeTruthy();
+  });
+
+  it('con modo «bolsa» pero sin bolsas muestra el formulario de gasto', () => {
+    renderSheet(fullCatalog, { pockets: [], initialMode: 'pocket' });
+    expect(screen.queryByText('Aún no tienes bolsas')).toBeNull();
+    expect(screen.getByRole('radio', { name: 'Gasto' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Añadir' })).toBeTruthy();
+  });
+
+  it('rechaza un gasto de bolsa de 0 €', async () => {
+    renderSheet(fullCatalog, { pockets, initialMode: 'pocket' });
+    await userEvent.type(screen.getByLabelText('Importe (€)'), '0');
+    await userEvent.click(screen.getByRole('button', { name: 'Apuntar gasto' }));
+    expect(await screen.findByText('Escribe un importe mayor que 0.')).toBeTruthy();
+    expect(addPocketExpenseAction).not.toHaveBeenCalled();
+  });
+
+  it('«Préstamo» sin cuentas deshabilita Prestar y lo explica', async () => {
+    renderSheet({ categories: [], accounts: [] });
+    await userEvent.click(screen.getByRole('radio', { name: 'Préstamo' }));
+    expect(screen.getByText('Aún no tienes cuentas')).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toBe('Para prestar necesitas al menos una cuenta.');
+    expect((screen.getByRole('button', { name: 'Prestar' }) as HTMLButtonElement).disabled).toBe(true);
   });
 });
