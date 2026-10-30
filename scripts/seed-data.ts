@@ -43,7 +43,7 @@ export const seedData = {
     { name: 'Otros', kind: 'expense' },
   ] as const,
   items: [
-    { name: 'Nómina', kind: 'income', category: 'Ingresos', account: 'principal', euros: 1870, frequency: 'monthly', paydayDay: 28, paydayRule: 'after' },
+    { name: 'Nómina', kind: 'income', category: 'Ingresos', account: 'principal', euros: 1870, frequency: 'monthly', paydayDay: 28, paydayRule: 'before' },
     { name: 'Alquiler', kind: 'expense', category: 'Piso', account: 'principal', euros: 450, frequency: 'monthly' },
     { name: 'Internet', kind: 'expense', category: 'Piso', account: 'principal', euros: 69.95, frequency: 'monthly' },
     { name: 'Luz', kind: 'expense', category: 'Piso', account: 'principal', euros: 28, frequency: 'monthly' },
@@ -52,11 +52,11 @@ export const seedData = {
     { name: 'Aportación comida', kind: 'expense', category: 'Comida', account: 'revolut', euros: 150, frequency: 'monthly' },
     { name: 'Gym', kind: 'expense', category: 'Suscripciones', account: 'principal', euros: 41.10, frequency: 'monthly' },
     { name: 'Spotify', kind: 'expense', category: 'Suscripciones', account: 'principal', euros: 5.20, frequency: 'monthly' },
-    { name: 'Prime', kind: 'expense', category: 'Suscripciones', account: 'principal', euros: 24.95, frequency: 'annual', anchorMonth: 0 },
-    { name: 'Google One', kind: 'expense', category: 'Suscripciones', account: 'principal', euros: 19.99, frequency: 'annual', anchorMonth: 0 },
+    { name: 'Prime', kind: 'expense', category: 'Suscripciones', account: 'principal', euros: 24.95, frequency: 'annual', anchorMonth: 11 },
+    { name: 'Google One', kind: 'expense', category: 'Suscripciones', account: 'principal', euros: 19.99, frequency: 'annual', anchorMonth: 5 },
     { name: 'Abono transporte', kind: 'expense', category: 'Otros', account: 'principal', euros: 10, frequency: 'monthly' },
     { name: 'Corte de pelo', kind: 'expense', category: 'Otros', account: 'principal', euros: 15, frequency: 'monthly' },
-    { name: 'Proteína en polvo', kind: 'expense', category: 'Otros', account: 'principal', euros: 0, frequency: 'monthly' },
+    { name: 'Proteína en polvo', kind: 'expense', category: 'Otros', account: 'principal', euros: 24.95, frequency: 'monthly' },
   ] satisfies SeedItem[] as SeedItem[],
   pockets: [
     { name: 'Ocio', account: 'principal' as AccountKey, euros: 0 },
