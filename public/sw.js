@@ -15,8 +15,9 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = new URL(event.notification.data?.url || '/inicio', self.location.origin);
-  if (url.origin !== self.location.origin) return;
+  let url = new URL(event.notification.data?.url || '/inicio', self.location.origin);
+  // Nunca navegar a otro origen: se abre la misma ruta en el origen propio del service worker.
+  if (url.origin !== self.location.origin) url = new URL(url.pathname + url.search, self.location.origin);
   event.waitUntil((async () => {
     const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const client of windows) {

@@ -23,7 +23,7 @@ export async function sendPush(target: PushTarget, payload: PushPayload): Promis
   } catch (e) {
     const status = (e as { statusCode?: number }).statusCode;
     if (status === 404 || status === 410) return 'gone';
-    console.error(e);
+    console.error('Push fallido', status ?? 'sin código');
     return 'failed';
   }
 }

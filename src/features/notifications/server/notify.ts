@@ -4,7 +4,7 @@ import type { Db } from '@/db/types';
 import { pendingPaydays } from '@/features/month/server/payday';
 import { getPreferences } from '@/features/settings/server/settings';
 import type { IsoDate } from '@/lib/iso-date';
-import type { YearMonth } from '@/lib/year-month';
+import { addMonths, type YearMonth } from '@/lib/year-month';
 import { duePaydayReminders } from '../domain/due';
 import { confirmUrl, paydayEmail, paydayPush, type EmailMessage, type PushPayload } from '../domain/messages';
 import type { PushOutcome, PushTarget } from './push';
@@ -21,7 +21,15 @@ export async function notifyUser(db: Db, user: { id: string; email: string }, to
   const result = { sent: 0, skipped: 0, failed: 0 };
   const prefs = await getPreferences(db, user.id);
   if (!prefs.emailNotifications && !prefs.pushNotifications) return result;
-  const due = duePaydayReminders(await pendingPaydays(db, user.id, ym, opts.region), today);
+  // Mes anterior aunque ya esté cerrado (rollMonth lo cierra el día 1): cobros del último día del mes
+  // (intento 2 el día 1) y cobros desplazados al mes siguiente por la regla «después» (intento 1).
+  // No cubierto: regla «antes» que adelanta el cobro 2 o más días al mes anterior (p. ej. día 1 → 30/11 el
+  // mes aún no existe); el aviso de ese caso no se envía.
+  const candidates = [
+    ...await pendingPaydays(db, user.id, addMonths(ym, -1), opts.region, { includeClosed: true }),
+    ...await pendingPaydays(db, user.id, ym, opts.region),
+  ];
+  const due = duePaydayReminders(candidates, today);
   for (const r of due) {
     const [claim] = await db.insert(s.notificationsLog).values({ userId: user.id, kind: r.kind, refKey: r.refKey })
       .onConflictDoNothing().returning({ id: s.notificationsLog.id });
@@ -39,7 +47,7 @@ export async function notifyUser(db: Db, user: { id: string; email: string }, to
         }
       }
     } catch (error) {
-      await release();   // un fallo inesperado no deja el aviso «gastado»
+      if (!delivered) await release();   // sin entrega previa, el aviso no queda «gastado»; con ella, evita un duplicado
       throw error;
     }
     if (delivered) result.sent++;

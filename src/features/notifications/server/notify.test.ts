@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as s from '@/db/schema';
 import type { Db } from '@/db/types';
+import { rollMonth } from '@/features/month/server/lifecycle';
 import { ensureMonth } from '@/features/month/server/months';
 import { updatePreferences } from '@/features/settings/server/settings';
 import { createTestDb } from '@/test/db';
@@ -68,5 +69,39 @@ describe('notifyUser', () => {
     expect(await db.select().from(s.notificationsLog)).toEqual([]);
     expect(await run('2026-12-24')).toEqual({ sent: 1, skipped: 0, failed: 0 });
     expect((await db.select().from(s.notificationsLog))[0].refKey).toBe(`payday:${f.items.nomina}:2026-12:1`);
+  });
+  it('si falla un canal tras entregar por otro, no libera el aviso y relanza', async () => {
+    await updatePreferences(db, f.userId, { emailNotifications: true, pushNotifications: true });
+    await saveSubscription(db, f.userId, { endpoint: 'https://push.example/x', p256dh: 'p', auth: 'a' });
+    senders.push.mockRejectedValueOnce(new Error('boom'));
+    await expect(run('2026-12-24')).rejects.toThrow('boom');
+    expect(senders.email).toHaveBeenCalledTimes(1);
+    expect(await db.select().from(s.notificationsLog)).toHaveLength(1);
+  });
+  it('si falla un canal sin haber entregado nada, libera el aviso y relanza', async () => {
+    senders.email.mockRejectedValueOnce(new Error('boom'));
+    await expect(run('2026-12-24')).rejects.toThrow('boom');
+    expect(await db.select().from(s.notificationsLog)).toEqual([]);
+  });
+});
+
+describe('notifyUser en el cambio de mes', () => {
+  const runOn = (today: string, ym: string) => notifyUser(db, user, today, ym, { region: 'ES-MD', baseUrl: 'https://k.test', senders: senders as unknown as Senders });
+  it('cobro el último día del mes: el recordatorio del día 1 sale aunque el mes ya esté cerrado', async () => {
+    await db.update(s.recurringItems).set({ paydayDay: 30 }).where(eq(s.recurringItems.id, f.items.nomina));
+    await ensureMonth(db, f.userId, '2026-11');
+    await rollMonth(db, f.userId, '2026-12');
+    const [nov] = await db.select().from(s.months).where(eq(s.months.yearMonth, '2026-11'));
+    expect(nov.status).toBe('closed');
+    expect(await runOn('2026-12-01', '2026-12')).toEqual({ sent: 1, skipped: 0, failed: 0 });
+    expect((await db.select().from(s.notificationsLog))[0].refKey).toBe(`payday:${f.items.nomina}:2026-11:2`);
+    expect(senders.email.mock.calls[0][1].subject).toBe('Nómina sigue pendiente');
+  });
+  it('regla «después» que pasa el cobro al mes siguiente: el intento 1 sale el día desplazado', async () => {
+    await db.update(s.recurringItems).set({ paydayDay: 31, paydayRule: 'after' }).where(eq(s.recurringItems.id, f.items.nomina));
+    await ensureMonth(db, f.userId, '2026-10');   // 31/10/2026 es sábado; 1/11 domingo y 2/11 festivo sustituto → martes 3/11
+    await rollMonth(db, f.userId, '2026-11');
+    expect(await runOn('2026-11-03', '2026-11')).toEqual({ sent: 1, skipped: 0, failed: 0 });
+    expect((await db.select().from(s.notificationsLog))[0].refKey).toBe(`payday:${f.items.nomina}:2026-10:1`);
   });
 });
