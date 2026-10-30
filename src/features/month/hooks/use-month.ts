@@ -9,7 +9,7 @@ import type { Upcoming } from '@/features/month/domain/upcoming';
 import type { Catalog } from '@/features/catalog/server/catalog';
 import { SAVE_ERROR } from '@/features/month/save-error';
 
-export type MonthResponse = { view: MonthView; catalog: Catalog; upcoming: Upcoming | null };
+export type MonthResponse = { view: MonthView; catalog: Catalog; upcoming: Upcoming | null; upcomingLater: Upcoming | null };
 
 export class MonthFetchError extends Error {
   constructor(public status: number, message: string) {

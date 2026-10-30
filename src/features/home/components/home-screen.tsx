@@ -27,10 +27,11 @@ export function HomeScreen() {
   const data = query.data;
   const view = data?.view;
   const empty = view ? isMonthEmpty(view) : false;
-  const todos = view ? todoItems(view) : [];
+  const todos = view ? todoItems(view, null) : [];
   const pockets = view && !empty ? view.pockets : [];
   const upcoming = data?.upcoming && data.upcoming.items.length > 0 ? data.upcoming : null;
-  const hasAside = pockets.length > 0 || upcoming !== null;
+  const later = data?.upcomingLater && data.upcomingLater.items.length > 0 ? data.upcomingLater : null;
+  const hasAside = pockets.length > 0 || upcoming !== null || later !== null;
 
   return (
     <main
@@ -72,12 +73,12 @@ export function HomeScreen() {
             ) : (
               <AvailableSummary view={view} onAdd={() => setAddOpen(true)} onOpenMonth={resetMonth} />
             )}
-            <TodoCard items={todos} onConfirm={(entryId) => confirm.mutate(entryId)} />
+            <TodoCard items={todos} onAction={(t) => { if (t.kind === 'income') confirm.mutate(t.targetId); }} />
           </div>
           {hasAside && (
             <div className="flex flex-col gap-4">
               {pockets.length > 0 && <PocketsCard pockets={pockets} />}
-              {upcoming && <UpcomingCard upcoming={upcoming} />}
+              {(upcoming || later) && <UpcomingCard upcoming={upcoming} later={later} />}
             </div>
           )}
           <AddEntrySheet open={addOpen} onOpenChange={setAddOpen} ym={ym} catalog={data.catalog} />
