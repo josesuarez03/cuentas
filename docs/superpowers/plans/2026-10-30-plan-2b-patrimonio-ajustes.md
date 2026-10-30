@@ -173,7 +173,7 @@ src/
   - `action-result.ts`: `type ActionResult = { ok: true } | { ok: false; error: string }`, `toResult(error: unknown): ActionResult`, `cents` (Zod `int 0..100_000_000`), `positiveCents` (Zod `int 1..100_000_000`), `optionalNote` (Zod: `string | null`, recorta, máx. 80, `''` → `null`).
   - `use-month.ts` exporta `monthKey(ym)`, `runAction(action)`, `class SaveError`, `useMonthMutation<V>(ym, action, apply, options?: { alsoInvalidate?: readonly (readonly unknown[])[] })`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 En `src/db/schema.test.ts`, añade:
 
@@ -222,12 +222,12 @@ y dentro del `describe` de `addOneOffEntry`:
   });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/db/schema.test.ts src/features/month/server/entries.test.ts`
 Expected: FAIL — `s.balanceSnapshots` es `undefined` (error de tipos/ejecución) y `confirmedAt` indefinido.
 
-- [ ] **Step 3: Esquema**
+- [x] **Step 3: Esquema**
 
 En `src/db/schema.ts`:
 - En `entries`, después de `status`: `confirmedAt: timestamp('confirmed_at'),`
@@ -263,19 +263,19 @@ export const userSettings = pgTable('user_settings', {
 });
 ```
 
-- [ ] **Step 4: Generar la migración**
+- [x] **Step 4: Generar la migración**
 
 Run: `pnpm db:generate`
 Expected: `drizzle/0001_<nombre>.sql` nuevo con `CREATE TABLE "balance_snapshots"`, `CREATE TABLE "loans"`, `CREATE TABLE "user_settings"` y `ALTER TABLE "entries" ADD COLUMN "confirmed_at" timestamp`; `drizzle/meta/_journal.json` con la entrada `idx: 1`. No edites el SQL a mano. (En producción la aplica el workflow «Migrar base de datos (producción)» al hacer push a `main`; en local, `pnpm db:migrate`.)
 
-- [ ] **Step 5: `confirmed_at` y `openMonth`**
+- [x] **Step 5: `confirmed_at` y `openMonth`**
 
 En `src/features/month/server/entries.ts`:
 - `async function openMonth` → `export async function openMonth`.
 - `confirmIncome`: `.set({ status: 'confirmed', confirmedAt: new Date() })`.
 - `addOneOffEntry`: en el `insert`, `confirmedAt: input.kind === 'income' ? new Date() : null`.
 
-- [ ] **Step 6: `action-result.ts` y `use-month.ts`**
+- [x] **Step 6: `action-result.ts` y `use-month.ts`**
 
 `src/features/month/server/action-result.ts`:
 
@@ -318,12 +318,12 @@ export function useMonthMutation<V>(
 }
 ```
 
-- [ ] **Step 7: Ver que pasan**
+- [x] **Step 7: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS (todos, incluidos los de los planes 1 y 2a); sin errores de tipos.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/db drizzle src/features/month/server src/features/month/hooks/use-month.ts && git commit -m "feat: tablas de saldos, préstamos y preferencias; fecha de confirmación"
@@ -372,7 +372,7 @@ export interface WealthView {
 export const wealthKey = ['wealth'] as const;
 ```
 
-- [ ] **Step 1: Instalar**
+- [x] **Step 1: Instalar**
 
 Run:
 ```bash
@@ -382,7 +382,7 @@ git checkout src/app/globals.css 2>/dev/null || true
 ```
 Expected: `@tanstack/react-table` y `recharts` en `dependencies`; tres archivos nuevos en `src/shared/components/ui/`. Aplica la regla post-`add` de Global Constraints (en `switch.tsx` añade a la raíz un área táctil de 44 px: envuélvelo donde se use en una `Label` de `min-h-11`, no cambies el tamaño visual).
 
-- [ ] **Step 2: Test que falla**
+- [x] **Step 2: Test que falla**
 
 En `src/lib/year-month.test.ts`, añade `formatShortDate, startOfMonth` al import y:
 
@@ -398,12 +398,12 @@ En `src/lib/year-month.test.ts`, añade `formatShortDate, startOfMonth` al impor
   });
 ```
 
-- [ ] **Step 3: Ver que falla**
+- [x] **Step 3: Ver que falla**
 
 Run: `pnpm vitest run src/lib/year-month.test.ts`
 Expected: FAIL — `startOfMonth is not a function`.
 
-- [ ] **Step 4: Implementación**
+- [x] **Step 4: Implementación**
 
 Al final de `src/lib/year-month.ts`:
 
@@ -430,12 +430,12 @@ export function formatShortDate(d: Date, timeZone = 'Europe/Madrid'): string {
 
 Crea `src/features/wealth/domain/types.ts` con el contenido de **Interfaces**.
 
-- [ ] **Step 5: Ver que pasa**
+- [x] **Step 5: Ver que pasa**
 
 Run: `pnpm vitest run src/lib && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json pnpm-lock.yaml src/shared/components/ui src/lib src/features/wealth/domain/types.ts && git commit -m "feat: switch, tabla y gráfico de shadcn; inicio de mes en Madrid; tipos de patrimonio"
@@ -459,7 +459,7 @@ git add package.json pnpm-lock.yaml src/shared/components/ui src/lib src/feature
   - `addBalanceSnapshotAction(accountId: string, balanceCents: number): Promise<ActionResult>`
   - `GET /api/wealth` → `WealthView` (401 sin sesión).
 
-- [ ] **Step 1: Tests de dominio que fallan**
+- [x] **Step 1: Tests de dominio que fallan**
 
 `src/features/wealth/domain/estimate.test.ts`:
 
@@ -542,12 +542,12 @@ describe('buildWealth', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/wealth/domain`
 Expected: FAIL — no existe `./estimate`.
 
-- [ ] **Step 3: Implementación de dominio**
+- [x] **Step 3: Implementación de dominio**
 
 `src/features/wealth/domain/estimate.ts`: tipos de **Interfaces** y:
 - `flowOfEntry`: reglas de la Decisión 1.
@@ -592,12 +592,12 @@ export function buildWealth({ accounts, snapshots, flows, loans, now }: BuildInp
 }
 ```
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/features/wealth/domain`
 Expected: PASS.
 
-- [ ] **Step 5: Tests de servidor que fallan**
+- [x] **Step 5: Tests de servidor que fallan**
 
 `src/features/wealth/server/wealth.test.ts` (PGlite + `createFixture`; en `beforeEach`, `ensureMonth(db, f.userId, '2026-10')` y, como las entradas generadas nacen con `createdAt` = hora real del test, `await db.update(s.entries).set({ createdAt: new Date('2026-10-01T00:00:00Z') })`; los tests pasan `now` fijo):
 
@@ -649,12 +649,12 @@ it('rechaza saldos no enteros', async () => {
 });
 ```
 
-- [ ] **Step 6: Ver que fallan**
+- [x] **Step 6: Ver que fallan**
 
 Run: `pnpm vitest run src/features/wealth/server`
 Expected: FAIL — no existe `./wealth`.
 
-- [ ] **Step 7: Servidor, acción y ruta**
+- [x] **Step 7: Servidor, acción y ruta**
 
 `src/features/wealth/server/wealth.ts`:
 - `addBalanceSnapshot`: `Number.isInteger` y `|x| ≤ 100_000_000` o `RangeError('Saldo no válido')`; la cuenta debe ser del usuario (`NotFoundError('Cuenta no encontrada')`); `insert` con `date: now`.
@@ -680,12 +680,12 @@ export async function addBalanceSnapshotAction(accountId: string, balanceCents: 
 
 `src/app/api/wealth/route.ts`: `dynamic = 'force-dynamic'`; `getUserOrNull()` → 401 `{ error: 'Inicia sesión para continuar.' }`; si no, `Response.json(await getWealth(db, user.id))`.
 
-- [ ] **Step 8: Ver que pasan**
+- [x] **Step 8: Ver que pasan**
 
 Run: `pnpm vitest run src/features/wealth && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/features/wealth src/app/api/wealth && git commit -m "feat: saldo real, estimado, total, variación y evolución del patrimonio"
@@ -708,7 +708,7 @@ git add src/features/wealth src/app/api/wealth && git commit -m "feat: saldo rea
   - `lendMoneyAction(input: NewLoan): Promise<ActionResult>`, `markLoanRepaidAction(loanId: string): Promise<ActionResult>`
   - `useMarkLoanRepaid(): UseMutationResult<void, Error, string>` — optimista sobre `wealthKey` (quita el préstamo), invalida `wealthKey` y `monthKey(currentYearMonth())`, toast con «Reintentar» si falla.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `src/features/month/server/loans.test.ts` (`beforeEach`: PGlite, `createFixture`, `ensureMonth(db, f.userId, '2026-10')`):
 
@@ -767,12 +767,12 @@ describe('markLoanRepaid', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/month/server/loans.test.ts`
 Expected: FAIL — no existe `./loans`.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 `src/features/month/server/loans.ts`:
 
@@ -796,12 +796,12 @@ async function loansCategoryId(db: Db, userId: string): Promise<string> {
 
 `src/features/month/hooks/use-loans.ts` (`'use client'`): `useMutation` con `mutationFn: (id) => runAction(() => markLoanRepaidAction(id))`; `onMutate` cancela y guarda `wealthKey`, y pone `{ ...prev, loans: prev.loans.filter((l) => l.id !== id) }`; `onError` restaura y `toast.error(mensaje, { action: { label: 'Reintentar', onClick: () => mutation.mutate(id) } })`; `onSettled` invalida `wealthKey` y `monthKey(currentYearMonth())`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/features/month && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/server/loans.ts src/features/month/server/loans.test.ts src/features/month/server/loan-actions.ts src/features/month/hooks/use-loans.ts && git commit -m "feat: prestar y cobrar préstamos"
@@ -824,7 +824,7 @@ git add src/features/month/server/loans.ts src/features/month/server/loans.test.
   - `withPocketExpense(view: MonthView, pocketId: string, amountCents: number): MonthView`, `withFundSpend(view: MonthView, fundId: string, amountCents: number): MonthView`
   - `useAddPocketExpense(ym)` y `useSpendFromFund(ym)`: `mutate({ pocketId | fundId, amountCents, note })`, optimistas, invalidan también `wealthKey`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 En `src/features/month/domain/month-view.test.ts`, añade `withFundSpend, withPocketExpense` al import y:
 
@@ -897,12 +897,12 @@ describe('spendFromFund', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/month/domain/month-view.test.ts src/features/month/server/pockets.test.ts`
 Expected: FAIL — funciones no exportadas / módulo inexistente.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 En `month-view.ts`:
 
@@ -937,12 +937,12 @@ export function useAddPocketExpense(ym: string) {
 // useSpendFromFund: igual con spendFromFundAction y withFundSpend.
 ```
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/features/month && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/server/pockets.ts src/features/month/server/pockets.test.ts src/features/month/server/pocket-actions.ts src/features/month/hooks/use-pocket-mutations.ts src/features/month/domain && git commit -m "feat: gastos de bolsa y de hucha"
@@ -997,7 +997,7 @@ export const SAVINGS_TARGET = (t: AccountType) => t !== 'credit_card' && t !== '
   - Acciones (`general-actions.ts`): `createAccountAction`, `updateAccountAction(id, input)`, `createCategoryAction`, `renameCategoryAction(id, name)`, `setDefaultSplitAction(split)`, `updatePreferencesAction(patch)` — todas `Promise<ActionResult>`.
   - `GET /api/settings` → `SettingsView`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `installments.test.ts`:
 
@@ -1095,12 +1095,12 @@ describe('setDefaultSplit', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/settings`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `installmentProgress`: si no es `installments` o falta el total → `{ current: null, remaining: null }`; `pos = diffMonths(ym, startMonth) + 1`; `current = pos >= 1 && pos <= total ? pos : null`; `remaining = Math.min(total, Math.max(0, total - Math.max(pos, 0)))`.
 - `getPreferences`: `insert(userSettings).values({ userId }).onConflictDoNothing()` y luego `select emailNotifications, pushNotifications`. `updatePreferences`: `getPreferences` (asegura la fila) y `update … set { ...patch, updatedAt: new Date() }`.
@@ -1111,12 +1111,12 @@ Expected: FAIL — módulos inexistentes.
 - `general-actions.ts` (`'use server'`): un esquema Zod por acción (`name: z.string().trim().min(1).max(40)`, `bank: z.string().trim().max(40)`, `type: z.enum([...])`, `balanceCents: z.number().int().min(-100_000_000).max(100_000_000).nullable()`, `kind: z.enum(['income','expense'])`, `parentId: z.uuid().nullable()`, `split` como `splitSchema` de `month/server/actions.ts`, `patch: z.object({ emailNotifications: z.boolean().optional(), pushNotifications: z.boolean().optional() })`); errores de Zod → `'Revisa los datos.'`.
 - `src/app/api/settings/route.ts`: como `/api/wealth`, con `getSettings(db, user.id)`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/features/settings && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/settings src/app/api/settings && git commit -m "feat: ajustes de cuentas, categorías, reparto por defecto y avisos (servidor)"
@@ -1139,7 +1139,7 @@ git add src/features/settings src/app/api/settings && git commit -m "feat: ajust
   - `interface FundInput { name: string; accountId: string; monthlyAllocationCents: number }`, `createFund(db, userId, input)`, `updateFund(db, userId, id, input)`
   - Acciones: `createRecurringAction(input)`, `updateRecurringAction(id, input)`, `setRecurringActiveAction(id, active)`, `createPocketAction(input)`, `updatePocketAction(id, input)`, `createFundAction(input)`, `updateFundAction(id, input)`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `recurring-schema.test.ts`:
 
@@ -1218,12 +1218,12 @@ describe('bolsas y huchas', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/settings/domain/recurring-schema.test.ts src/features/settings/server/templates.test.ts`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `templates.ts`: helper `assertRefs(db, userId, kind, categoryId, accountId)` — categoría del usuario (`NotFoundError`) y de ese `kind` (`RangeError(kind === 'income' ? 'La categoría debe ser de ingreso.' : 'La categoría debe ser de gasto.')`), cuenta del usuario (`NotFoundError`). `normalize(input)`: `anchorMonth` solo si `annual`, `installmentsTotal` solo si `installments`, `paydayDay` solo si `income`; el resto `null`.
 - `updateRecurring`: `update … where id and userId returning id` (sin fila → `NotFoundError('Partida no encontrada')`); después, si `findMonth(ym)` está `open`, `update entries set amountCents where monthId and recurringItemId = id` (Decisión 3).
@@ -1232,12 +1232,12 @@ Expected: FAIL — módulos inexistentes.
 - `createFund` / `updateFund`: cuenta del usuario; `insert` / `update` con propiedad.
 - `templates-actions.ts` (`'use server'`): `recurringInputSchema` para recurrentes (errores → primer `issue.message` si es de los dos `custom`, si no `'Revisa los datos de la partida.'`); bolsas `{ name: 1..40, accountId: z.uuid(), monthlyLimitCents: cents }`; huchas `{ name, accountId, monthlyAllocationCents: cents }`; `active: z.boolean()`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/features/settings && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/settings/domain/recurring-schema.ts src/features/settings/domain/recurring-schema.test.ts src/features/settings/server/templates.ts src/features/settings/server/templates.test.ts src/features/settings/server/templates-actions.ts && git commit -m "feat: ajustes de recurrentes, bolsas y huchas (servidor)"
@@ -1255,7 +1255,7 @@ git add src/features/settings/domain/recurring-schema.ts src/features/settings/d
 - Consumes: `next-themes`, `ToggleGroup`.
 - Produces: `ThemeProvider({ children })` exportado de `providers.tsx` (usado en el layout raíz, así aplica también a `/login`); `ThemeControl()`; tokens `--serie-1` … `--serie-5` y utilidades `bg-serie-1` … `bg-serie-5` (para la barra de Patrimonio y el gráfico).
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 `theme-control.test.tsx`:
 
@@ -1288,12 +1288,12 @@ describe('ThemeControl', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/features/settings/components/theme-control.test.tsx`
 Expected: FAIL — `ThemeProvider` / `./theme-control` no existen.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 `globals.css`:
 - Sustituye el comentario y `@custom-variant dark (@media (prefers-color-scheme: dark));` por `@custom-variant dark (&:where(.dark, .dark *));`.
@@ -1319,12 +1319,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 `theme-control.tsx` (`'use client'`): `useTheme()`; `mounted` con `useEffect` (antes de montar, `value={undefined}` para no desajustar la hidratación); `ToggleGroup type="single" variant="outline" aria-label="Tema" className="grid w-full grid-cols-3 gap-2"`, `value={mounted ? (theme ?? 'system') : undefined}`, `onValueChange={(v) => { if (v) setTheme(v); }}`; tres `ToggleGroupItem` (`system` «Sistema», `light` «Claro», `dark` «Oscuro») con las mismas clases que los del `AddEntrySheet` (`min-h-11`, borde `tinta` el elegido).
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS (incluido `providers.test.tsx`); sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/app/globals.css src/app/layout.tsx src/shared/components/providers.tsx src/features/settings/components/theme-control.tsx src/features/settings/components/theme-control.test.tsx && git commit -m "feat: tema sistema, claro u oscuro sin parpadeo"
@@ -1347,7 +1347,7 @@ git add src/app/globals.css src/app/layout.tsx src/shared/components/providers.t
   - `needsOnboarding(db, userId): Promise<boolean>`, `completeOnboarding(db, userId, input: OnboardingInput, ym: YearMonth, now?: Date): Promise<void>`
   - `completeOnboardingAction(input: OnboardingInput): Promise<ActionResult>`
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `onboarding.test.ts` (dominio):
 
@@ -1402,23 +1402,23 @@ it('sin nómina ni partidas ni cuentas de ahorro también vale', async () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/onboarding`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `completeOnboarding`: una transacción como `scripts/seed-core.ts` (`select … for('update')` del usuario; si ya hay cuentas → `RangeError('Ya tienes cuentas; cambia lo que quieras en Ajustes.')`; borra sus `months`); inserta cuentas en orden (`defaultSavingsPercent: 100` en la primera `savings`/`investment`, el resto 0), un snapshot por cuenta con saldo (`credit_card` → `−balanceCents`, `date: now`), las `BASE_CATEGORIES` con `sortOrder` = índice, la nómina (`name: 'Nómina'`, `income`, `Ingresos`, `monthly`, `startMonth: ym`, `paydayDay`) y cada partida (`expense`, `monthly`, `startMonth: ym`).
 - `needsOnboarding`: `!(await db.select({ id }).from(bankAccounts).where(userId).limit(1)).length`.
 - `actions.ts` (`'use server'`): `onboardingSchema.safeParse` → primer mensaje de error; `completeOnboarding(db, user.id, data, currentYearMonth())`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/features/onboarding scripts && pnpm tsc --noEmit`
 Expected: PASS (también `scripts/seed-core.test.ts`); sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/onboarding && git commit -m "feat: asistente de primer uso (servidor)"
@@ -1441,7 +1441,7 @@ git add src/features/onboarding && git commit -m "feat: asistente de primer uso 
   - `monthStartsWithin(ym: YearMonth, days: number, now?: Date): boolean`
   - `MonthResponse.upcomingLater: Upcoming | null`; `UpcomingCard({ upcoming, later }: { upcoming: Upcoming | null; later: Upcoming | null })`
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `todo.test.ts` — sustituye el `describe` por:
 
@@ -1503,12 +1503,12 @@ describe('monthStartsWithin', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/home src/features/month/domain/upcoming.test.ts`
 Expected: FAIL — firmas antiguas y `monthStartsWithin` inexistente.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 `todo.ts`: `todoItems(view, wealth)` = `[...ingresos pendientes (si view y view.status === 'open'), ...wealth?.loans, ...wealth?.accounts.filter((a) => a.stale && a.realDate)]` con los textos del test (`Desde ${formatMonthNameOnly(lentYearMonth)}` + `· nota` si hay; `Último saldo: ${formatShortDate(new Date(realDate))}`). Comentario en el archivo: «5.8 en Inicio: solo lo que pide acción y no se ve en otro bloque. Bolsa pasada → tarjeta Bolsas; cargo próximo → “En [mes], además”.»
 
@@ -1522,12 +1522,12 @@ Expected: FAIL — firmas antiguas y `monthStartsWithin` inexistente.
 
 `upcoming-card.tsx`: acepta `upcoming` y `later` (cualquiera puede venir `null` o vacío; si los dos lo están, no pinta nada). Si hay `later` con partidas, tras la lista principal: `<h3 className="border-t border-line pt-3 text-[13px] font-semibold text-ink-muted">Y en {formatMonthNameOnly(later.yearMonth)}</h3>` y sus filas con el mismo marcado. Si solo hay `later`, el título de la tarjeta es «En {mes+2}, además».
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/home src/features/month/domain/upcoming.ts src/features/month/domain/upcoming.test.ts "src/app/api/months/[ym]/route.ts" src/features/month/hooks/use-month.ts && git commit -m "feat: préstamos y saldos en Por hacer; cargos a 60 días"
@@ -1549,7 +1549,7 @@ git add src/features/home src/features/month/domain/upcoming.ts src/features/mon
   - `UpdateBalanceSheet({ account, open, onOpenChange, onSave }: { account: AccountBalance | null; open: boolean; onOpenChange: (o: boolean) => void; onSave: (balanceCents: number) => void })`
   - `AccountList({ accounts, onUpdate }: { accounts: AccountBalance[]; onUpdate: (a: AccountBalance) => void })`, `LoansList({ loans }: { loans: PendingLoan[] })`, `WealthScreen()`
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `optimistic.test.ts`:
 
@@ -1606,12 +1606,12 @@ it('importe no válido: mensaje y no guarda', async () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/wealth`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `withSnapshot`: cambia la cuenta (`realCents = estimatedCents = balanceCents`, `diffCents: 0`, `stale: false`, `realDate: now.toISOString()`); `delta = balanceCents − (estimado anterior ?? 0)`; `totalCents + delta`; `variationCents === null ? null : variationCents + delta`.
 - `use-wealth.ts`: `fetchWealth` igual que `fetchMonth` (503 sin red con «No se ha podido cargar el patrimonio. Revisa la conexión.»; si no, `body.error`), `retry` igual que `useMonth`. `useAddSnapshot` como `useMonthMutation` pero sobre `wealthKey` y con `withSnapshot(prev, v.accountId, v.balanceCents, new Date())`.
@@ -1621,12 +1621,12 @@ Expected: FAIL — módulos inexistentes.
 - `WealthScreen` (`'use client'`): `main` `mx-auto w-full max-w-xl px-4 pt-5 pb-6 md:max-w-2xl md:px-6 md:pt-8 flex flex-col gap-6`; `h1` «Patrimonio» (22 px, 600); carga → `Skeleton` (3 filas de 64 px); error → mensaje + «Reintentar» (como Inicio); sin cuentas → `EmptyState` «Aún no tienes cuentas» con enlace-botón «Ir a Ajustes» (`/ajustes`). Con datos: bloque Total (`<p className="text-[13px] text-ink-muted">Total</p>`, importe 32 px 600, doble raya `h-1 border-y border-ink` como Inicio, y si `variationCents !== null` la línea «{formatEuros(v, { sign: true })} desde {formatMonthNameOnly(previousYearMonth)}» en `text-positivo` si > 0, `ink-muted` si no); `<section aria-labelledby="patrimonio-cuentas">` con h2 «Cuentas» y `AccountList`; `LoansList` si hay préstamos; `UpdateBalanceSheet` con la cuenta elegida y `onSave={(c) => addSnapshot.mutate({ accountId, balanceCents: c })}`.
 - `patrimonio/page.tsx`: mantiene `metadata` y devuelve `<WealthScreen />`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/features/wealth && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/wealth "src/app/(app)/patrimonio/page.tsx" && git commit -m "feat: pantalla Patrimonio con saldos, préstamos y actualizar saldo"
@@ -1649,7 +1649,7 @@ git add src/features/wealth "src/app/(app)/patrimonio/page.tsx" && git commit -m
   - `FundSpendDialog({ open, onOpenChange, ym, fund }: { …; fund: FundView | null })`
   - `CategoryList` gana `onAddPocketExpense?: () => void` y `onSpendFund?: (fundId: string) => void`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 En `add-entry-sheet.test.tsx`: amplía el `vi.mock` (`'@/features/month/server/loan-actions'` → `{ lendMoneyAction: vi.fn() }`, `'@/features/month/server/pocket-actions'` → `{ addPocketExpenseAction: vi.fn(), spendFromFundAction: vi.fn() }`), haz que `renderSheet(catalog, props = {})` pase `{...props}` y añade:
 
@@ -1678,12 +1678,12 @@ it('abre en «Gasto de bolsa» con la bolsa elegida', () => {
 
 (Los dos tests existentes siguen igual: modo Gasto por defecto.)
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/month/components/add-entry-sheet.test.tsx`
 Expected: FAIL — no hay radios «Préstamo» / «Gasto de bolsa».
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `form-fields.tsx`: mueve `FieldError`, `TextField` y `SelectField` sin cambios y expórtalos.
 - `entry-form.tsx`: `EntryForm({ ym, kind, catalog, onDone })` = el formulario actual **sin** el `ToggleGroup` de tipo (el `kind` llega por prop; al cambiar de `kind`, `key={kind}` en el padre lo reinicia). Mismo comportamiento, textos, aviso `role="status"` y botón «Añadir».
@@ -1694,12 +1694,12 @@ Expected: FAIL — no hay radios «Préstamo» / «Gasto de bolsa».
 - `category-list.tsx`: si `editable` y hay `onAddPocketExpense`, al final del contenido del acordeón de bolsas un `Button variant="link"` «Apuntar gasto» (`min-h-11 px-0 text-tinta`); en cada hucha, tras «Este mes apartas…», si `editable`, `balanceCents > 0` y hay `onSpendFund`, `Button variant="link"` «Gastar de la hucha» (`aria-label="Gastar de la hucha {nombre}"`).
 - `month-screen.tsx`: estado `addMode` y `fundId`; `CategoryList` con `onAddPocketExpense={() => { setAddMode('pocket'); setAddOpen(true); }}` y `onSpendFund={setFundId}`; el botón «Añadir» de la lista pone `addMode('expense')`; `AddEntrySheet` recibe `pockets={data.view.pockets}` e `initialMode={addMode}`; `FundSpendDialog` con `fund={data.view.funds.find((x) => x.id === fundId) ?? null}`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/features/month && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/components && git commit -m "feat: gasto de bolsa, préstamo y gasto de hucha desde Añadir y Mes"
@@ -1722,7 +1722,7 @@ git add src/features/month/components && git commit -m "feat: gasto de bolsa, pr
   - `SettingsSection({ id, title, description?, action?, children })`: `<section aria-labelledby={id}>` con h2 (17 px, 600), descripción 13 px `ink-muted`, `action` a la derecha (botón «Añadir …»), contenido en panel `rounded-lg border border-line bg-surface px-4`.
   - `SettingsScreen()` con orden: [Recurrentes — Task 16], Cuentas, Categorías, [Bolsas, Huchas — Task 16], Reparto del ahorro, Avisos, Tema.
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 `notifications-section.test.tsx` (jsdom; mock de `useUpdatePreferences` devolviendo `{ mutate }`):
 
@@ -1756,12 +1756,12 @@ it('con soporte, push se puede cambiar y no pide permiso', async () => {
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/features/settings/components/notifications-section.test.tsx`
 Expected: FAIL — no existe `./notifications-section`.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `use-settings.ts` (`'use client'`): `fetchSettings` como `fetchWealth` («No se han podido cargar los ajustes. Revisa la conexión.»); hooks de **Interfaces**.
 - `NotificationsSection({ preferences })`: `SettingsSection id="ajustes-avisos" title="Avisos" description="Los avisos se activarán cuando lleguen los recordatorios automáticos."`; dos filas `Label` `min-h-11 flex items-center justify-between gap-3` con texto y `Switch` (`id`, `checked`, `onCheckedChange={(v) => mutate({ emailNotifications: v })}`); soporte de push en `useEffect` (`'PushManager' in window && 'serviceWorker' in navigator`), `false` hasta montar; sin soporte: `disabled` y bajo la fila, en 13 px `ink-muted`, el texto de iPhone.
@@ -1771,12 +1771,12 @@ Expected: FAIL — no existe `./notifications-section`.
 - `SettingsScreen` (`'use client'`): `main` `mx-auto w-full max-w-xl px-4 pt-5 pb-6 md:max-w-2xl md:px-6 md:pt-8 lg:max-w-3xl flex flex-col gap-8`; `h1` «Ajustes»; carga (esqueletos) / error («Reintentar») como Patrimonio; las secciones del orden de **Interfaces**; «Tema» es `SettingsSection id="ajustes-tema" title="Tema"` con `<ThemeControl />`.
 - `ajustes/page.tsx`: `metadata` igual y `<SettingsScreen />`.
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run src/features/settings && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/settings/hooks src/features/settings/components "src/app/(app)/ajustes/page.tsx" && git commit -m "feat: ajustes de cuentas, categorías, reparto, avisos y tema"
@@ -1794,7 +1794,7 @@ git add src/features/settings/hooks src/features/settings/components "src/app/(a
 - Consumes: `onboardingSchema`, `OnboardingInput`, `BASE_ITEMS` (Task 9), `completeOnboardingAction`, `needsOnboarding` (Task 9), `requireUser`, `Providers`, `TextField`/`SelectField` (Task 12), `ACCOUNT_TYPE_LABEL` (Task 6), `parseEuros`.
 - Produces: `OnboardingWizard()`; ruta `/primer-uso`; `/inicio` redirige a `/primer-uso` si `needsOnboarding`.
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 `onboarding-wizard.test.tsx` (jsdom; `vi.mock('@/features/onboarding/server/actions', () => ({ completeOnboardingAction: vi.fn(async () => ({ ok: true })) }))`, `vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }))`):
 
@@ -1834,12 +1834,12 @@ it('no avanza sin nombre de cuenta y deja saltar la nómina', async () => {
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/features/onboarding/components`
 Expected: FAIL — no existe `./onboarding-wizard`.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `OnboardingWizard` (`'use client'`): una sola `useForm` de TanStack Form con `defaultValues { accounts: [{ name: '', bank: '', type: 'checking', balance: '' }], salary: { amount: '', accountIndex: '0', paydayDay: '' }, items: BASE_ITEMS.map((i) => ({ ...i, amount: '', accountIndex: '0' })) }` y `step` (1..3) en `useState` (estado de UI local). Cabecera: «Kuadrix» + doble raya, `h1` «Te damos la bienvenida», «Paso {n} de 3», y el título del paso como `h2`. Pie: «Atrás» (desde el paso 2), «Saltar» (solo paso 2: `salary = null`) y «Siguiente» / «Empezar». «Siguiente» valida solo los campos del paso. «Empezar» construye `OnboardingInput` (importes con `parseEuros`; partidas vacías fuera; nómina `null` si se saltó), lo pasa por `onboardingSchema.safeParse` (primer mensaje en `role="alert"` si falla), llama a `completeOnboardingAction` y, si ok, `router.replace('/inicio')`; si no, el error en `role="alert"`.
 - `AccountsStep`: `form.Field name="accounts" mode="array"`; por cuenta: «Nombre de la cuenta» (obligatorio, «Escribe un nombre, por ejemplo «BBVA».»), «Banco», «Tipo» (`ACCOUNT_TYPE_LABEL`), «Saldo de hoy (€)» / «Lo que debes (€)» según tipo (opcional); «Añadir otra cuenta» (máx. 8). Texto: «Apunta tus cuentas y lo que tienes hoy en cada una. El ahorro irá a la primera de ahorro o inversión; podrás cambiarlo en Ajustes.»
@@ -1849,12 +1849,12 @@ Expected: FAIL — no existe `./onboarding-wizard`.
 - `src/app/primer-uso/page.tsx`: `metadata = { title: 'Primer uso · Kuadrix' }`; `const user = await requireUser(); if (!(await needsOnboarding(db, user.id))) redirect('/inicio');` y `<Providers><main className="min-h-dvh bg-paper px-4 py-8"><OnboardingWizard /></main></Providers>`.
 - `src/app/(app)/inicio/page.tsx`: pasa a `async`; `const user = await requireUser(); if (await needsOnboarding(db, user.id)) redirect('/primer-uso');` antes de `<HomeScreen />`.
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run src/features/onboarding && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/app/primer-uso "src/app/(app)/inicio/page.tsx" src/features/onboarding/components && git commit -m "feat: asistente de primer uso: cuentas, nómina y partidas base"
@@ -1872,7 +1872,7 @@ git add src/app/primer-uso "src/app/(app)/inicio/page.tsx" src/features/onboardi
 - Consumes: `WealthPoint` (Task 2), `ChartContainer`, `ChartTooltip`, `ChartTooltipContent` (Task 2), Recharts `BarChart`, `Bar`, `XAxis`, `formatMonthNameOnly`, `formatEuros`, `--serie-1` (Task 8).
 - Produces: `chartPoints(history: WealthPoint[]): { yearMonth: string; label: string; euros: number; text: string }[]`; `WealthChart({ history }: { history: WealthPoint[] })`.
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 ```ts
 it('etiqueta corta del mes, euros para el eje y texto es-ES', () => {
@@ -1883,23 +1883,23 @@ it('etiqueta corta del mes, euros para el eje y texto es-ES', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/features/wealth/domain/chart.test.ts`
 Expected: FAIL — no existe `./chart`.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `chartPoints`: `label = formatMonthNameOnly(ym).slice(0, 3)`, `euros = cents / 100`, `text = formatEuros(cents)`.
 - `WealthChart` (`'use client'`): `<section aria-labelledby="patrimonio-evolucion">` con h2 «Evolución»; `ChartContainer config={{ euros: { label: 'Total', color: 'var(--serie-1)' } }} className="h-40 w-full"` con `aria-hidden`; `BarChart data accessibilityLayer` + `XAxis dataKey="label" tickLine={false} axisLine={false}` + `Bar dataKey="euros" fill="var(--color-euros)" radius={4}` + `ChartTooltip content={<ChartTooltipContent formatter={(_, __, item) => item.payload.text} />}`; a continuación una `<table className="sr-only">` con «Mes» / «Total» y una fila por punto (`formatMonthName` y `text`). Con `prefers-reduced-motion`, `isAnimationActive={false}` (lee `useMediaQuery('(prefers-reduced-motion: reduce)')`).
 - `wealth-screen.tsx`: tras el bloque Total, `{data.history.length >= 2 && <WealthChart history={data.history} />}`.
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run src/features/wealth && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/wealth && git commit -m "feat: gráfico de evolución del patrimonio"
@@ -1917,7 +1917,7 @@ git add src/features/wealth && git commit -m "feat: gráfico de evolución del p
 - Consumes: `SettingsRecurring`, `SettingsView` (Task 6), `recurringInputSchema` (Task 7), acciones de `templates-actions.ts` (Task 7), `useSettingsAction`, `SettingsSection` (Task 13), `Table*` (Task 2), `@tanstack/react-table`, `Switch`, `form-fields.tsx` (Task 12), `useMediaQuery`.
 - Produces: `FREQUENCY_LABEL: Record<Frequency, string>` (`Mensual`, `Cada 2 meses`, `Anual`, `A plazos`), `recurringNote(r: SettingsRecurring): string`; `RecurringSection({ settings })`, `PocketsFundsSection({ settings })` (pinta dos secciones: «Bolsas» y «Huchas»).
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 `recurring-view.test.ts` (con un `base: SettingsRecurring` mensual de gasto en «BBVA principal»):
 
@@ -1932,12 +1932,12 @@ it('nota por frecuencia', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/features/settings/domain/recurring-view.test.ts`
 Expected: FAIL — no existe `./recurring-view`.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `recurringNote`: reglas del test (`formatMonthNameOnly` con un `YYYY-MM` cualquiera del mes `anchorMonth`; «quedan N» solo con `currentInstallment`; sin cuota este mes y `remaining === 0` → «terminada»; si `remaining === total` → «empieza en {mes de startMonth}»).
 - `RecurringSection`: `SettingsSection id="ajustes-recurrentes" title="Recurrentes" description="Los cambios de importe valen ya para este mes; las altas y bajas, desde el mes que viene." action={«Añadir partida»}`. `useReactTable({ data: settings.recurring, columns, getCoreRowModel: getCoreRowModel() })` con columnas `name` («Partida»: nombre + `categoryLabel` en 13 px), `frequency` («Frecuencia»: `recurringNote` sin la cuenta), `accountName` («Cuenta»), `amountCents` («Importe», derecha, `formatEuros(kind === 'income' ? x : −x, { sign: true })`, `text-positivo` si ingreso), `active` («Activo»: `Switch` con `aria-label="Activa: {nombre}"` → `setRecurringActiveAction`), y «Editar». ≥ md: `Table` de shadcn con `flexRender`; < md: la misma `table.getRowModel().rows` como lista de filas `min-h-14` (nombre, `recurringNote`, importe; `Switch` y «Editar» en la fila). Inactivas con el nombre en `ink-muted` y la nota «Desactivada».
@@ -1945,12 +1945,12 @@ Expected: FAIL — no existe `./recurring-view`.
 - `PocketsFundsSection`: «Bolsas» (descripción «El límite nuevo vale ya para este mes.»; filas «{nombre} · {cuenta}» + «límite {X}»; «Añadir bolsa» / «Editar» con «Nombre», «Cuenta», «Límite al mes (€)») y «Huchas» (descripción «La aportación nueva vale desde el mes que viene.»; filas con «Aportas {X} al mes · tienes {saldo}»; «Añadir hucha» / «Editar» con «Nombre», «Cuenta», «Aportación al mes (€)»).
 - `settings-screen.tsx`: `RecurringSection` antes de «Cuentas» y `PocketsFundsSection` tras «Categorías».
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run src/features/settings && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/settings && git commit -m "feat: ajustes de recurrentes, bolsas y huchas"
@@ -1970,7 +1970,7 @@ git add src/features/settings && git commit -m "feat: ajustes de recurrentes, bo
   - `wealthBar(accounts: AccountBalance[]): { segments: { accountId: string; pct: number; color: string }[]; legend: { accountId: string; name: string; cents: number; color: string | null }[] }` — `color` es una clase `bg-serie-N`.
   - `WealthCard({ wealth }: { wealth: WealthView })`; `PocketsCard({ pockets, onAddExpense })`.
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 ```ts
 const acc = (accountId: string, cents: number | null, type: AccountBalance['type'] = 'checking'): AccountBalance =>
@@ -1997,24 +1997,24 @@ it('más de 5 cuentas repiten serie; sin positivas no hay segmentos', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/features/home/domain/wealth-bar.test.ts`
 Expected: FAIL — no existe `./wealth-bar`.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `wealthBar`: cuentas con `estimatedCents > 0` ordenadas como vienen; `color = \`bg-serie-${(i % 5) + 1}\`` (escribe las cinco clases literalmente en un array para que Tailwind las detecte); `pct = Math.floor(cents * 100 / suma)` y el resto de 100 se reparte de uno en uno empezando por la mayor (como `splitSavings`). Leyenda: todas con estimado no nulo; las negativas con `color: null`.
 - `WealthCard`: `HomeCard labelId="inicio-patrimonio" title="Patrimonio" aside={<Link href="/patrimonio" className="flex min-h-11 items-center text-[15px] font-semibold text-tinta">Ver cuentas</Link>}`; total 24 px 600; variación («{±X} desde {mes}», `text-positivo` si > 0) si no es `null`; barra `role="img" aria-label="Reparto del patrimonio por cuenta"` `flex h-2 gap-0.5 overflow-hidden rounded-full my-3` con un `div` por segmento (`style={{ width: \`${pct}%\` }}` y su clase); leyenda `<ul>` con fila `flex justify-between text-[13px] min-h-7`: muestra `size-2.5 rounded-full` (`color` o, si es `null`, `border border-ink-muted`), nombre y `formatEuros(cents)`.
 - `PocketsCard`: nueva prop `onAddExpense: () => void`; `aside` = `Button variant="ghost"` «Apuntar gasto» (`min-h-11 px-0.5 text-[15px] font-semibold text-tinta`), como en el prototipo.
 - `home-screen.tsx`: `const wealth = useWealth(); const repay = useMarkLoanRepaid(); const addSnapshot = useAddSnapshot();` estados `addMode` y `balanceFor: AccountBalance | null`; `todos = todoItems(view ?? null, wealth.data ?? null)`; `onAction`: `income` → `confirm.mutate(targetId)`, `loan` → `repay.mutate(targetId)`, `balance` → `setBalanceFor(wealth.data.accounts.find(…))`; «Añadir al mes» abre con `addMode('expense')`; `PocketsCard onAddExpense` abre con `addMode('pocket')`; `AddEntrySheet pockets={view.pockets} initialMode={addMode}`; `UpdateBalanceSheet account={balanceFor} open={balanceFor !== null} onSave={(c) => addSnapshot.mutate({ accountId: balanceFor!.accountId, balanceCents: c })}`. Columna derecha (lg): Bolsas → Patrimonio (si alguna cuenta tiene estimado) → «En [mes], además». `hasAside` cuenta las tres. Si el patrimonio falla al cargar, Inicio sigue (sin tarjeta y sin sus recordatorios).
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/home && git commit -m "feat: Inicio con patrimonio, préstamos, saldos y apuntar gasto"
@@ -2031,18 +2031,18 @@ git add src/features/home && git commit -m "feat: Inicio con patrimonio, présta
 - Consumes: todo lo anterior
 - Produces: —
 
-- [ ] **Step 1: Plan en curso**
+- [x] **Step 1: Plan en curso**
 
 En `CLAUDE.md`:
 - La línea `- Plan en curso: …plan-2a…` → `- Plan en curso: \`docs/superpowers/plans/2026-10-30-plan-2b-patrimonio-ajustes.md\` (los planes 1 y 2a están terminados)`
 - `- No empieces el plan 2b ni añadas funciones fuera del plan 2a (YAGNI).` → `- No empieces el plan 3 ni añadas funciones fuera del plan 2b (YAGNI).` (el resto de la línea igual)
 
-- [ ] **Step 2: Verificación automática**
+- [x] **Step 2: Verificación automática**
 
 Run: `pnpm tsc --noEmit && pnpm test && pnpm build`
 Expected: sin errores de tipos; todos los tests PASS; build OK con las rutas `/`, `/inicio`, `/mes`, `/patrimonio`, `/ajustes`, `/primer-uso`, `/login`, `/api/months/[ym]`, `/api/wealth`, `/api/settings`.
 
-- [ ] **Step 3: Migración**
+- [x] **Step 3: Migración**
 
 Run: `pnpm db:migrate` (contra la BD de `.env.local`)
 Expected: aplica `0001_*` sin errores. Tras fusionar en `main`, comprueba que el workflow «Migrar base de datos (producción)» termina en verde antes de probar en https://kuadrix-eight.vercel.app (si Vercel despliega antes de que acabe, las primeras peticiones pueden fallar por `confirmed_at`).

@@ -5,14 +5,14 @@ Web personal de presupuesto mensual para Jose y su pareja (cada uno con sus dato
 ## Documentos (leer antes de tocar código)
 
 - Spec: `docs/superpowers/specs/2026-10-30-finanzas-personales-design.md`
-- Plan en curso: `docs/superpowers/plans/2026-10-30-plan-2a-navegacion-inicio.md` (el plan 1 está terminado)
+- Plan en curso: `docs/superpowers/plans/2026-10-30-plan-2b-patrimonio-ajustes.md` (los planes 1 y 2a están terminados)
 - Sistema de diseño «Kuadrix»: `docs/design/README.md` y `docs/design/tokens.json`
 
 ## Cómo trabajar
 
 - Ejecuta el plan tarea a tarea con la skill `superpowers:subagent-driven-development` (o `superpowers:executing-plans`). Marca cada `- [ ]` al terminar.
 - TDD: test que falla → implementación mínima → test en verde → commit. No saltes pasos.
-- No empieces el plan 2b ni añadas funciones fuera del plan 2a (YAGNI). Si algo del plan no funciona con las versiones instaladas, para, explica el problema y propón el cambio mínimo.
+- No empieces el plan 3 ni añadas funciones fuera del plan 2b (YAGNI). Si algo del plan no funciona con las versiones instaladas, para, explica el problema y propón el cambio mínimo.
 - En la tarea 14 (Vercel, Neon, Google OAuth, variables de entorno) los pasos de cuentas externas los hace Jose: pídeselos y espera.
 - Nunca escribas secretos en archivos versionados. `.env.local` no se commitea.
 
