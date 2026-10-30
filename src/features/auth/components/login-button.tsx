@@ -15,7 +15,7 @@ function GoogleMark() {
   );
 }
 
-export function LoginButton() {
+export function LoginButton({ callbackURL }: { callbackURL: string }) {
   const [loading, setLoading] = useState(false);
   return (
     <Button
@@ -24,7 +24,7 @@ export function LoginButton() {
       disabled={loading}
       onClick={async () => {
         setLoading(true);
-        const { error } = await authClient.signIn.social({ provider: 'google', callbackURL: '/inicio', errorCallbackURL: '/login?error=acceso' });
+        const { error } = await authClient.signIn.social({ provider: 'google', callbackURL, errorCallbackURL: '/login?error=acceso' });
         if (error) setLoading(false);
       }}
     >

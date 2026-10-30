@@ -1,4 +1,5 @@
 import { LoginButton } from '@/features/auth/components/login-button';
+import { safeNext } from '@/features/auth/safe-next';
 
 const LEDGER_ROWS = [
   { op: '+', label: 'Ingresos' },
@@ -6,8 +7,8 @@ const LEDGER_ROWS = [
   { op: '−', label: 'Bolsas y huchas' },
 ] as const;
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { error } = await searchParams;
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
+  const { error, next } = await searchParams;
   return (
     <main className="flex min-h-dvh justify-center bg-paper px-4 pt-16 pb-10 sm:items-center sm:px-6 sm:py-10">
       <div className="mt-auto flex w-full max-w-sm flex-col gap-8 sm:mt-0">
@@ -41,7 +42,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               Este email no tiene acceso. Entra con la cuenta de Google autorizada.
             </p>
           )}
-          <LoginButton />
+          <LoginButton callbackURL={safeNext(next)} />
           <p className="text-center text-[13px] text-ink-muted">Solo para cuentas autorizadas.</p>
         </div>
       </div>
