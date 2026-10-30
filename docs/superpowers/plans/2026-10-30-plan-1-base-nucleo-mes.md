@@ -2206,7 +2206,7 @@ git add src/app/api/months src/features/month/server/actions.ts && git commit -m
 - Consumes: `parseEuros`, `formatEuros`, `formatAmountInput` (Task 2)
 - Produces: `<AmountEditor cents={number} label={string} sign={1 | -1} onSave={(cents: number) => void} />`
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 ```tsx
 // @vitest-environment jsdom
@@ -2258,12 +2258,12 @@ describe('AmountEditor', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
 Run: `pnpm vitest run src/features/month/components/amount-editor.test.tsx`
 Expected: FAIL «Failed to resolve import "./amount-editor"».
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 ```tsx
 'use client';
@@ -2344,12 +2344,12 @@ export function AmountEditor({ cents, label, sign, onSave }: Props) {
 }
 ```
 
-- [ ] **Step 4: Ejecutar y ver que pasa**
+- [x] **Step 4: Ejecutar y ver que pasa**
 
 Run: `pnpm vitest run src/features/month/components/amount-editor.test.tsx`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/components/amount-editor.* && git commit -m "feat: editor de importe en línea"
