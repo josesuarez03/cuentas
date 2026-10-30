@@ -32,6 +32,15 @@ describe('cuentas', () => {
   });
 });
 
+describe('cambio de tipo', () => {
+  it('al pasar a tarjeta o conjunta se pone a 0 su porcentaje de ahorro por defecto', async () => {
+    await setDefaultSplit(db, f.userId, [{ accountId: f.accounts.trade, percent: 100 }], '2026-10');
+    await updateAccount(db, f.userId, f.accounts.trade, { name: 'Trade', bank: 'Trade', type: 'credit_card' });
+    const a = (await getSettings(db, f.userId)).accounts.find((x) => x.id === f.accounts.trade)!;
+    expect(a.defaultSavingsPercent).toBe(0);
+  });
+});
+
 describe('categorías', () => {
   it('crea subcategorías de un solo nivel y del mismo tipo', async () => {
     const luz = await createCategory(db, f.userId, { name: 'Luz', kind: 'expense', parentId: f.categories.piso });
@@ -61,6 +70,12 @@ describe('setDefaultSplit', () => {
     await expect(setDefaultSplit(db, f.userId, [{ accountId: f.accounts.trade, percent: 90 }])).rejects.toThrow('El reparto debe sumar 100 %');
     const card = await createAccount(db, f.userId, { name: 'Tarjeta', bank: 'BBVA', type: 'credit_card', balanceCents: null });
     await expect(setDefaultSplit(db, f.userId, [{ accountId: card, percent: 100 }])).rejects.toThrow('Esa cuenta no puede recibir ahorro.');
+  });
+  it('rechaza cuentas repetidas sin tocar nada', async () => {
+    await ensureMonth(db, f.userId, '2026-10');
+    const before = (await getSettings(db, f.userId)).accounts.map((a) => [a.id, a.defaultSavingsPercent]);
+    await expect(setDefaultSplit(db, f.userId, [{ accountId: f.accounts.trade, percent: 50 }, { accountId: f.accounts.trade, percent: 50 }], '2026-10')).rejects.toThrow('Reparto no válido');
+    expect((await getSettings(db, f.userId)).accounts.map((a) => [a.id, a.defaultSavingsPercent])).toEqual(before);
   });
   it('si el mes actual está cerrado o no existe, solo cambia el defecto', async () => {
     await setDefaultSplit(db, f.userId, [{ accountId: f.accounts.trade, percent: 100 }], '2026-10');
