@@ -7,6 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Button } from '@/shared/components/ui/button';
 import { Progress } from '@/shared/components/ui/progress';
 import { AmountEditor } from './amount-editor';
+import { useOnline } from '@/shared/hooks/use-online';
 
 const listFormat = new Intl.ListFormat('es', { type: 'conjunction' });
 
@@ -64,7 +65,8 @@ export function CategoryList({ view, onAmountChange, onAddPocketExpense, onSpend
   onAddPocketExpense?: () => void;
   onSpendFund?: (fundId: string) => void;
 }) {
-  const editable = view.status === 'open';
+  const online = useOnline();
+  const editable = view.status === 'open' && online;
   const pocketsLeft = view.pockets.reduce((acc, p) => acc + p.limitCents - p.spentCents, 0);
 
   return (

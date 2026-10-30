@@ -3,6 +3,7 @@
 import { useSettings } from '@/features/settings/hooks/use-settings';
 import { Button } from '@/shared/components/ui/button';
 import { Skeleton } from '@/shared/components/ui/skeleton';
+import { useOnline } from '@/shared/hooks/use-online';
 import { AccountsSection } from './accounts-section';
 import { CategoriesSection } from './categories-section';
 import { NotificationsSection } from './notifications-section';
@@ -14,6 +15,7 @@ import { ThemeControl } from './theme-control';
 
 export function SettingsScreen({ vapidPublicKey }: { vapidPublicKey: string | null }) {
   const { data, error, isPending, refetch } = useSettings();
+  const online = useOnline();
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-col gap-8 px-4 pt-5 pb-6 md:max-w-2xl md:px-6 md:pt-8 lg:max-w-3xl">
@@ -33,12 +35,14 @@ export function SettingsScreen({ vapidPublicKey }: { vapidPublicKey: string | nu
       )}
       {data && (
         <>
-          <RecurringSection settings={data} />
-          <AccountsSection accounts={data.accounts} />
-          <CategoriesSection categories={data.categories} />
-          <PocketsFundsSection settings={data} />
-          <SplitSection accounts={data.accounts} />
-          <NotificationsSection preferences={data.preferences} vapidPublicKey={vapidPublicKey} />
+          <fieldset disabled={!online} className="m-0 flex min-w-0 flex-col gap-8 border-0 p-0">
+            <RecurringSection settings={data} />
+            <AccountsSection accounts={data.accounts} />
+            <CategoriesSection categories={data.categories} />
+            <PocketsFundsSection settings={data} />
+            <SplitSection accounts={data.accounts} />
+            <NotificationsSection preferences={data.preferences} vapidPublicKey={vapidPublicKey} />
+          </fieldset>
           <SettingsSection id="ajustes-tema" title="Tema">
             <div className="py-3"><ThemeControl /></div>
           </SettingsSection>

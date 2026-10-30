@@ -8,6 +8,7 @@ import { completeOnboardingAction } from '@/features/onboarding/server/actions';
 import { SAVE_ERROR } from '@/features/month/save-error';
 import { parseEuros } from '@/lib/money';
 import { Button } from '@/shared/components/ui/button';
+import { useOnline } from '@/shared/hooks/use-online';
 import { AccountsStep } from './accounts-step';
 import { ItemsStep } from './items-step';
 import { SalaryStep } from './salary-step';
@@ -56,6 +57,7 @@ function buildInput(values: WizardValues, skipSalary: boolean): OnboardingInput 
 }
 
 export function OnboardingWizard() {
+  const online = useOnline();
   const router = useRouter();
   const form = useWizardForm();
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -144,7 +146,7 @@ export function OnboardingWizard() {
         <Button
           type="button"
           className="min-h-12 text-base"
-          disabled={submitting}
+          disabled={submitting || (step === 3 && !online)}
           onClick={step === 3 ? finish : next}
         >
           {step === 3 ? 'Empezar' : 'Siguiente'}

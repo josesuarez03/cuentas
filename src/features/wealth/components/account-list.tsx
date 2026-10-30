@@ -2,8 +2,10 @@ import type { AccountBalance } from '@/features/wealth/domain/types';
 import { formatEuros } from '@/lib/money';
 import { formatShortDate } from '@/lib/year-month';
 import { Button } from '@/shared/components/ui/button';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function AccountList({ accounts, onUpdate }: { accounts: AccountBalance[]; onUpdate: (a: AccountBalance) => void }) {
+  const online = useOnline();
   return (
     <ul>
       {accounts.map((a) => (
@@ -29,6 +31,7 @@ export function AccountList({ accounts, onUpdate }: { accounts: AccountBalance[]
               variant="ghost"
               className="min-h-11 text-tinta"
               aria-label={`Actualizar saldo de ${a.name}`}
+              disabled={!online}
               onClick={() => onUpdate(a)}
             >
               Actualizar

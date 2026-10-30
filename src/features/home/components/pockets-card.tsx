@@ -4,12 +4,14 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import { Progress } from '@/shared/components/ui/progress';
 import { HomeCard } from './home-card';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function PocketsCard({ pockets, onAddExpense }: { pockets: PocketView[]; onAddExpense: () => void }) {
+  const online = useOnline();
   return (
     <HomeCard labelId="inicio-bolsas" title="Bolsas"
       aside={(
-        <Button variant="ghost" className="min-h-11 px-0.5 text-[15px] font-semibold text-tinta" onClick={onAddExpense}>
+        <Button variant="ghost" className="min-h-11 px-0.5 text-[15px] font-semibold text-tinta" onClick={onAddExpense} disabled={!online}>
           Apuntar gasto
         </Button>
       )}

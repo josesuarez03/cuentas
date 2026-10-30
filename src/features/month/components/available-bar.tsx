@@ -3,8 +3,10 @@
 import type { MonthView } from '@/features/month/domain/month-view';
 import { formatEuros } from '@/lib/money';
 import { cn } from '@/lib/utils';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function AvailableBar({ view, onEditSplit }: { view: MonthView; onEditSplit: () => void }) {
+  const online = useOnline();
   const available = view.calc.availableCents;
   const splitText = view.split.length > 0
     ? view.split.map((s) => `${s.accountName} ${s.percent} %: ${formatEuros(s.cents)}`).join(' · ')
@@ -21,7 +23,7 @@ export function AvailableBar({ view, onEditSplit }: { view: MonthView; onEditSpl
       <button
         type="button"
         onClick={onEditSplit}
-        disabled={view.status !== 'open'}
+        disabled={view.status !== 'open' || !online}
         className="ml-auto block min-h-11 text-right text-[13px] text-ink-muted underline-offset-4 hover:underline disabled:no-underline"
       >
         {splitText}

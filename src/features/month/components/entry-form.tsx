@@ -10,6 +10,7 @@ import { Button } from '@/shared/components/ui/button';
 import { parseEuros } from '@/lib/money';
 import type { Catalog } from '@/features/catalog/server/catalog';
 import { SelectField, TextField } from './form-fields';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function EntryForm({ ym, kind, catalog, onDone }: {
   ym: string;
@@ -17,6 +18,7 @@ export function EntryForm({ ym, kind, catalog, onDone }: {
   catalog: Catalog;
   onDone: () => void;
 }) {
+  const online = useOnline();
   const qc = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
@@ -97,7 +99,7 @@ export function EntryForm({ ym, kind, catalog, onDone }: {
                 Para añadir partidas necesitas al menos una categoría y una cuenta.
               </p>
             )}
-            <Button type="submit" className="min-h-12 text-base" disabled={submitting || missing}>
+            <Button type="submit" className="min-h-12 text-base" disabled={submitting || missing || !online}>
               {submitting ? 'Añadiendo…' : 'Añadir'}
             </Button>
           </>

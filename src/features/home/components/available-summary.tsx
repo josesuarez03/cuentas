@@ -5,6 +5,7 @@ import type { MonthView } from '@/features/month/domain/month-view';
 import { formatEuros } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { Button } from '@/shared/components/ui/button';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function AvailableSummary({ view, onAdd, onOpenMonth }: {
   view: MonthView;
@@ -12,6 +13,7 @@ export function AvailableSummary({ view, onAdd, onOpenMonth }: {
   onOpenMonth: () => void;
 }) {
   const { calc } = view;
+  const online = useOnline();
   return (
     <section aria-labelledby="inicio-disponible" className="flex flex-col pt-1 pb-2">
       <div className="flex items-baseline justify-between gap-3">
@@ -46,7 +48,7 @@ export function AvailableSummary({ view, onAdd, onOpenMonth }: {
         </Link>
       )}
       {view.status === 'open' && (
-        <Button className="mt-4 min-h-12 w-full gap-2 text-base font-semibold" onClick={onAdd}>
+        <Button className="mt-4 min-h-12 w-full gap-2 text-base font-semibold" onClick={onAdd} disabled={!online}>
           <Plus className="size-5" aria-hidden />
           Añadir al mes
         </Button>

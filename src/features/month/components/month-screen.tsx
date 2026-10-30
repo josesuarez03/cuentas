@@ -20,8 +20,10 @@ import { MonthFetchError, useConfirmIncome, useMonth, useUpdateAmount } from '@/
 import { useSetMonthStatus } from '@/features/month/hooks/use-month-status';
 import { currentYearMonth, type YearMonth } from '@/lib/year-month';
 import { useMonthStore } from '@/features/month/store/month-store';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function MonthScreen({ initialYm, confirmEntryId }: { initialYm?: YearMonth; confirmEntryId?: string | null }) {
+  const online = useOnline();
   const [pinned, setPinned] = useState(initialYm);
   const storeYm = useMonthStore((s) => s.ym);
   const ym = pinned ?? storeYm;
@@ -77,7 +79,7 @@ export function MonthScreen({ initialYm, confirmEntryId }: { initialYm?: YearMon
           <EmptyState
             title="Este mes aún no tiene partidas"
             action={open && (
-              <Button className="min-h-12 w-full gap-2 text-base font-semibold" onClick={() => {
+              <Button className="min-h-12 w-full gap-2 text-base font-semibold" disabled={!online} onClick={() => {
                 setAddMode('expense');
                 setAddOpen(true);
               }}>
@@ -108,6 +110,7 @@ export function MonthScreen({ initialYm, confirmEntryId }: { initialYm?: YearMon
                 <Button
                   variant="link"
                   className="min-h-11 px-0 text-[15px] text-tinta"
+                  disabled={!online}
                   onClick={() => {
                     setAddMode('expense');
                     setAddOpen(true);
@@ -117,7 +120,7 @@ export function MonthScreen({ initialYm, confirmEntryId }: { initialYm?: YearMon
                   Añadir
                 </Button>
                 {past && (
-                  <Button variant="link" className="min-h-11 px-0 text-[15px] text-tinta" onClick={() => status.mutate('closed')}>
+                  <Button variant="link" className="min-h-11 px-0 text-[15px] text-tinta" disabled={!online} onClick={() => status.mutate('closed')}>
                     Cerrar mes
                   </Button>
                 )}
@@ -125,7 +128,7 @@ export function MonthScreen({ initialYm, confirmEntryId }: { initialYm?: YearMon
             ) : (
               <div className="mt-4 flex flex-wrap items-center gap-x-4">
                 <p className="text-[13px] text-ink-muted">Mes cerrado: solo lectura.</p>
-                <Button variant="link" className="min-h-11 px-0 text-[15px] text-tinta" onClick={() => status.mutate('open')}>
+                <Button variant="link" className="min-h-11 px-0 text-[15px] text-tinta" disabled={!online} onClick={() => status.mutate('open')}>
                   Reabrir mes
                 </Button>
               </div>

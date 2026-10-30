@@ -24,8 +24,10 @@ import { PocketsCard } from './pockets-card';
 import { TodoCard } from './todo-card';
 import { UpcomingCard } from './upcoming-card';
 import { WealthCard } from './wealth-card';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function HomeScreen() {
+  const online = useOnline();
   const ym = currentYearMonth();
   const query = useMonth(ym);
   const confirm = useConfirmIncome(ym);
@@ -83,7 +85,7 @@ export function HomeScreen() {
               <EmptyState
                 title="Empieza por tu primera partida"
                 action={view.status === 'open' && (
-                  <Button className="min-h-12 w-full gap-2 text-base font-semibold" onClick={() => openAdd('expense')}>
+                  <Button className="min-h-12 w-full gap-2 text-base font-semibold" onClick={() => openAdd('expense')} disabled={!online}>
                     <Plus className="size-5" aria-hidden />
                     Añadir al mes
                   </Button>

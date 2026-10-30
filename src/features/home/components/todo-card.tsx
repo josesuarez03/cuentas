@@ -5,9 +5,11 @@ import type { TodoItem } from '@/features/home/domain/todo';
 import { cn } from '@/lib/utils';
 import { Button } from '@/shared/components/ui/button';
 import { HomeCard } from './home-card';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function TodoCard({ items, onAction }: { items: TodoItem[]; onAction: (item: TodoItem) => void }) {
   const [announcement, setAnnouncement] = useState('');
+  const online = useOnline();
   const buttons = useRef(new Map<string, HTMLButtonElement>());
   const pending = useRef<{ gone: string; next: string | null } | null>(null);
 
@@ -47,6 +49,7 @@ export function TodoCard({ items, onAction }: { items: TodoItem[]; onAction: (it
                   variant="ghost"
                   className="min-h-11 px-2 text-[15px] font-semibold text-tinta hover:text-tinta"
                   aria-label={t.actionLabel}
+                  disabled={!online}
                   onClick={() => act(t, i)}
                 >
                   {t.actionText}

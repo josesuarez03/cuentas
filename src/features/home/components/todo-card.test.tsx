@@ -4,6 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { TodoCard } from './todo-card';
 
+const online = vi.hoisted(() => ({ useOnline: vi.fn(() => true) }));
+vi.mock('@/shared/hooks/use-online', () => online);
+
 afterEach(cleanup);
 
 const income = (id: string, name: string, note: string) => ({
@@ -62,5 +65,12 @@ describe('TodoCard', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Cobrado el préstamo de Juan' }));
     expect(onAction).toHaveBeenLastCalledWith(loan);
     expect(screen.getByRole('status').textContent).toBe('Préstamo de Juan cobrado.');
+  });
+
+  it('sin conexión, las acciones están desactivadas', () => {
+    online.useOnline.mockReturnValue(false);
+    render(<TodoCard items={[income('e1', 'Nómina', 'n')]} onAction={vi.fn()} />);
+    expect((screen.getByRole('button', { name: 'Confirmar Nómina' }) as HTMLButtonElement).disabled).toBe(true);
+    online.useOnline.mockReturnValue(true);
   });
 });

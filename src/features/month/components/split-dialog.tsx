@@ -11,6 +11,7 @@ import { Label } from '@/shared/components/ui/label';
 import type { MonthView } from '@/features/month/domain/month-view';
 import { cn } from '@/lib/utils';
 import type { Catalog } from '@/features/catalog/server/catalog';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function SplitDialog({ open, onOpenChange, ym, view, accounts }: {
   open: boolean;
@@ -19,6 +20,7 @@ export function SplitDialog({ open, onOpenChange, ym, view, accounts }: {
   view: MonthView;
   accounts: Catalog['accounts'];
 }) {
+  const online = useOnline();
   const qc = useQueryClient();
   const [values, setValues] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -87,7 +89,7 @@ export function SplitDialog({ open, onOpenChange, ym, view, accounts }: {
         </p>
         {error && <p role="alert" className="text-[13px] text-alerta">{error}</p>}
         <DialogFooter>
-          <Button className="min-h-11" disabled={total !== 100 || saving} onClick={save}>
+          <Button className="min-h-11" disabled={total !== 100 || saving || !online} onClick={save}>
             {saving ? 'Guardando…' : 'Guardar reparto'}
           </Button>
         </DialogFooter>
