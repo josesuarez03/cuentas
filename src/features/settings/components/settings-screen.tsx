@@ -6,6 +6,8 @@ import { Skeleton } from '@/shared/components/ui/skeleton';
 import { AccountsSection } from './accounts-section';
 import { CategoriesSection } from './categories-section';
 import { NotificationsSection } from './notifications-section';
+import { PocketsFundsSection } from './pockets-funds-section';
+import { RecurringSection } from './recurring-section';
 import { SettingsSection } from './settings-section';
 import { SplitSection } from './split-section';
 import { ThemeControl } from './theme-control';
@@ -31,10 +33,10 @@ export function SettingsScreen() {
       )}
       {data && (
         <>
-          {/* Task 16: Recurrentes */}
+          <RecurringSection settings={data} />
           <AccountsSection accounts={data.accounts} />
           <CategoriesSection categories={data.categories} />
-          {/* Task 16: Bolsas y Huchas */}
+          <PocketsFundsSection settings={data} />
           <SplitSection accounts={data.accounts} />
           <NotificationsSection preferences={data.preferences} />
           <SettingsSection id="ajustes-tema" title="Tema">
