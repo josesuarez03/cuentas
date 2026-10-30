@@ -1435,7 +1435,7 @@ git add src/app/layout.tsx src/shared/components/speed-insights.tsx src/shared/c
 - Consumes: manifest e iconos (T4), SW y `/sin-conexion` (T5), `OfflineBanner` (T6), `ANA`, `readE2eData`, `global-setup` (T7), controles deshabilitados (T8).
 - Produces: workflow «E2E» en cada PR; informes de Playwright y Lighthouse como artefacto.
 
-- [ ] **Step 1: Escenarios** — `e2e/pwa.spec.ts`
+- [x] **Step 1: Escenarios** — `e2e/pwa.spec.ts`
 
 ```ts
 import { expect, test } from '@playwright/test';
@@ -1509,11 +1509,11 @@ test.describe('con sesión', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que pasan (uno detrás de otro)**
+- [x] **Step 2: Ver que pasan (uno detrás de otro)**
 
 `pnpm e2e:db`, `pnpm e2e:build`, `pnpm e2e` → todos PASS (los de la Task 7 y estos 4). Si el escenario sin conexión falla por algo del SW, depura con `trace` (`pnpm exec playwright show-trace test-results/…/trace.zip`) antes de tocar la política: la política tiene sus tests.
 
-- [ ] **Step 3: Lighthouse** — `lighthouserc.cjs`
+- [x] **Step 3: Lighthouse** — `lighthouserc.cjs`
 
 ```js
 const fs = require('node:fs');
@@ -1547,7 +1547,7 @@ module.exports = {
 
 (Las variables del servidor las hereda del entorno: en CI vienen de `e2e/e2e.env` vía `$GITHUB_ENV`; en local, ejecuta `pnpm lh` con `node --env-file=e2e/e2e.env` delante o tras `set -a; . e2e/e2e.env; set +a`.)
 
-- [ ] **Step 4: Workflow** — `.github/workflows/e2e.yml`
+- [x] **Step 4: Workflow** — `.github/workflows/e2e.yml`
 
 ```yaml
 name: E2E
@@ -1604,7 +1604,7 @@ jobs:
           retention-days: 7
 ```
 
-- [ ] **Step 5: Verificación**
+- [x] **Step 5: Verificación**
 
 - Local (opcional, si la memoria da): tras `pnpm e2e`, `set -a; . e2e/e2e.env; set +a; pnpm lh` → assertions de accesibilidad, buenas prácticas y CLS sin errores. Anota las puntuaciones de rendimiento.
 - Abre un PR de prueba (o `gh workflow run E2E --ref <rama>` tras el push): el job «E2E» termina en verde y deja el artefacto `informes-e2e`.
@@ -1626,7 +1626,7 @@ git add e2e/pwa.spec.ts .github/workflows/e2e.yml lighthouserc.cjs package.json 
 - Consumes: todo lo anterior.
 - Produces: —
 
-- [ ] **Step 1: CLAUDE.md**
+- [x] **Step 1: CLAUDE.md**
 
 - `- Plan en curso: …plan-3…` → `- Plan en curso: \`docs/superpowers/plans/2026-10-30-plan-4-pwa-rendimiento-e2e.md\` (los planes 1, 2a, 2b y 3 están terminados)`
 - `- No empieces el plan 4 ni añadas funciones fuera del plan 3 (YAGNI).` → `- No empieces un plan 5 ni añadas funciones fuera del plan 4 (YAGNI).` (resto de la línea igual)
@@ -1634,7 +1634,7 @@ git add e2e/pwa.spec.ts .github/workflows/e2e.yml lighthouserc.cjs package.json 
 - En «Reglas del proyecto», añade: `- Service worker en \`src/sw/\` (Serwist). Nunca cachear \`POST\`, \`/api/auth\`, \`/api/cron\` ni RSC. Sin conexión = solo lectura, sin cola.` y `- Ejecuta \`tsc\`, \`test\`, \`build\` y \`e2e\` de uno en uno (memoria justa).`
 - En «Comandos», añade: `- \`pnpm tsc -p src/sw/tsconfig.json --noEmit\` · \`pnpm e2e:db\` · \`pnpm e2e:build\` · \`pnpm e2e\` · \`pnpm lh\` · \`pnpm tsx scripts/first-load.ts\` · \`pnpm tsx scripts/make-icons.ts\``
 
-- [ ] **Step 2: Verificación automática (cada comando solo, en este orden)**
+- [x] **Step 2: Verificación automática (cada comando solo, en este orden)**
 
 1. `pnpm tsc --noEmit` → sin errores.
 2. `pnpm tsc -p src/sw/tsconfig.json --noEmit` → sin errores.
@@ -1656,7 +1656,7 @@ git add e2e/pwa.spec.ts .github/workflows/e2e.yml lighthouserc.cjs package.json 
 - [ ] LCP: DevTools → Performance, «Fast 4G» + CPU 4×, recarga `/inicio` → LCP ≤ 2,5 s. A los pocos días, Speed Insights (tras activarlo Jose) → p75 de LCP en móvil ≤ 2,5 s en `/inicio`; compáralo con los 5,5 s de partida y anótalo en `.superpowers/sdd/…/progress.md`.
 - [ ] Foco visible y objetivos ≥ 44 px en «Volver a Inicio» y en los botones deshabilitados; el aviso «Sin conexión» se lee con VoiceOver/TalkBack.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add CLAUDE.md && git commit -m "docs: plan 4 en curso"
