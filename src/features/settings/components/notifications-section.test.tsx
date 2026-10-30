@@ -25,7 +25,7 @@ beforeEach(() => {
   actions.subscribePushAction.mockResolvedValue({ ok: true });
   actions.unsubscribePushAction.mockResolvedValue({ ok: true });
 });
-afterEach(() => { cleanup(); vi.clearAllMocks(); });
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals(); });
 
 it('explica qué se avisa y el correo se puede cambiar', async () => {
   ui();
@@ -61,6 +61,7 @@ it('activar: pide permiso, suscribe este dispositivo y lo guarda', async () => {
 });
 
 it('permiso denegado: lo explica y no guarda nada', async () => {
+  vi.stubGlobal('Notification', { permission: 'denied' });
   client.subscribeThisDevice.mockResolvedValue('denied');
   ui();
   const push = await screen.findByRole('switch', { name: 'Avisos push' });
@@ -80,4 +81,39 @@ it('desactivar: da de baja este dispositivo', async () => {
   await userEvent.click(push);
   expect(actions.unsubscribePushAction).toHaveBeenCalledWith('https://push.example/1');
   await waitFor(() => expect(push.getAttribute('aria-checked')).toBe('false'));
+});
+
+it('permiso descartado sin decidir: no dice que está bloqueado', async () => {
+  vi.stubGlobal('Notification', { permission: 'default' });
+  client.subscribeThisDevice.mockResolvedValue('denied');
+  ui();
+  const push = await screen.findByRole('switch', { name: 'Avisos push' });
+  await waitFor(() => expect((push as HTMLButtonElement).disabled).toBe(false));
+  await userEvent.click(push);
+  expect(await screen.findByText('No se han activado los avisos. Vuelve a intentarlo cuando quieras.')).toBeTruthy();
+  expect(screen.queryByText(/Has bloqueado/)).toBeNull();
+});
+
+it('si el servidor falla al suscribir, deshace la suscripción del navegador', async () => {
+  client.subscribeThisDevice.mockResolvedValue({ endpoint: 'https://push.example/1', keys: { p256dh: 'p', auth: 'a' } });
+  client.unsubscribeThisDevice.mockResolvedValue('https://push.example/1');
+  actions.subscribePushAction.mockResolvedValue({ ok: false, error: 'Fallo del servidor.' });
+  ui();
+  const push = await screen.findByRole('switch', { name: 'Avisos push' });
+  await waitFor(() => expect((push as HTMLButtonElement).disabled).toBe(false));
+  await userEvent.click(push);
+  await waitFor(() => expect(client.unsubscribeThisDevice).toHaveBeenCalled());
+  expect(push.getAttribute('aria-checked')).toBe('false');
+  expect(await screen.findByText('Fallo del servidor.')).toBeTruthy();
+});
+
+it('mantiene el foco en el interruptor tras activar y se describe con la nota', async () => {
+  client.subscribeThisDevice.mockResolvedValue({ endpoint: 'https://push.example/1', keys: { p256dh: 'p', auth: 'a' } });
+  ui();
+  const push = await screen.findByRole('switch', { name: 'Avisos push' });
+  await waitFor(() => expect((push as HTMLButtonElement).disabled).toBe(false));
+  await userEvent.click(push);
+  await waitFor(() => expect(push.getAttribute('aria-checked')).toBe('true'));
+  expect(document.activeElement).toBe(push);
+  expect(push.getAttribute('aria-describedby')).toBe('pref-push-note');
 });

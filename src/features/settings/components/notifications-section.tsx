@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { runAction, SaveError } from '@/features/month/hooks/use-month';
 import { SAVE_ERROR } from '@/features/month/save-error';
@@ -32,8 +32,9 @@ export function NotificationsSection({
   const qc = useQueryClient();
   const [support, setSupport] = useState<Support>('unknown');
   const [subscribed, setSubscribed] = useState<boolean | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [denied, setDenied] = useState(false);
+  const [denied, setDenied] = useState<'blocked' | 'dismissed' | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const busyRef = useRef(false);
 
   useEffect(() => {
     const s = pushSupport();
@@ -44,16 +45,19 @@ export function NotificationsSection({
   }, []);
 
   async function togglePush(on: boolean) {
-    if (!vapidPublicKey) return;
-    setBusy(true);
-    setDenied(false);
+    if (!vapidPublicKey || busyRef.current) return;
+    busyRef.current = true;
+    setDenied(null);
+    setError(null);
+    let browserSubscribed = false;
     try {
       if (on) {
         const r = await subscribeThisDevice(vapidPublicKey);
         if (r === 'denied') {
-          setDenied(true);
+          setDenied(typeof Notification !== 'undefined' && Notification.permission === 'default' ? 'dismissed' : 'blocked');
           return;
         }
+        browserSubscribed = true;
         await runAction(() => subscribePushAction(r));
         setSubscribed(true);
       } else {
@@ -62,15 +66,18 @@ export function NotificationsSection({
         setSubscribed(false);
       }
       await qc.invalidateQueries({ queryKey: settingsKey });
-    } catch (error) {
-      toast.error(error instanceof SaveError ? error.message : SAVE_ERROR);
+    } catch (e) {
+      const message = e instanceof SaveError ? e.message : SAVE_ERROR;
+      toast.error(message);
+      setError(message);
+      if (browserSubscribed) await unsubscribeThisDevice().catch(() => null);
       try {
         setSubscribed((await currentSubscription()) !== null);
       } catch {
         setSubscribed(false);
       }
     } finally {
-      setBusy(false);
+      busyRef.current = false;
     }
   }
 
@@ -79,7 +86,11 @@ export function NotificationsSection({
       ? 'En iPhone, añade Kuadrix a la pantalla de inicio para recibir avisos push (iOS 16.4+).'
       : !vapidPublicKey
         ? 'Los avisos push no están configurados todavía.'
-        : denied
+        : error
+          ? error
+          : denied === 'dismissed'
+          ? 'No se han activado los avisos. Vuelve a intentarlo cuando quieras.'
+          : denied === 'blocked'
           ? 'Has bloqueado las notificaciones de Kuadrix en este navegador. Permítelas en los ajustes del navegador y vuelve a intentarlo.'
           : 'Solo en este dispositivo. Actívalo también en los demás donde quieras recibirlos.';
 
@@ -104,11 +115,12 @@ export function NotificationsSection({
             <Switch
               id="pref-push"
               checked={subscribed === true}
-              disabled={support !== 'supported' || !vapidPublicKey || busy || subscribed === null}
+              aria-describedby="pref-push-note"
+              disabled={support !== 'supported' || !vapidPublicKey || subscribed === null}
               onCheckedChange={(v) => void togglePush(v)}
             />
           </Label>
-          <p role={denied ? 'alert' : undefined} className="pb-3 text-[13px] text-ink-muted">
+          <p id="pref-push-note" aria-live="polite" className="pb-3 text-[13px] text-ink-muted">
             {note}
           </p>
         </div>
