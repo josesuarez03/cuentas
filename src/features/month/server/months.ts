@@ -11,7 +11,7 @@ export async function findMonth(db: Db, userId: string, ym: YearMonth) {
   return m ?? null;
 }
 
-async function lastAmounts(db: Db, userId: string, ym: YearMonth): Promise<Map<string, number>> {
+export async function lastAmounts(db: Db, userId: string, ym: YearMonth): Promise<Map<string, number>> {
   const rows = await db
     .selectDistinctOn([s.entries.recurringItemId], {
       itemId: s.entries.recurringItemId,

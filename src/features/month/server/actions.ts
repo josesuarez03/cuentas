@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { isYearMonth } from '@/lib/year-month';
 import {
-  addOneOffEntry, ClosedMonthError, NotFoundError, setSavingsSplit, updateEntryAmount, type NewOneOffEntry,
+  addOneOffEntry, ClosedMonthError, confirmIncome, NotFoundError, setSavingsSplit, updateEntryAmount, type NewOneOffEntry,
 } from '@/features/month/server/entries';
 import { requireUser } from '@/features/auth/session';
 import { SAVE_ERROR } from '@/features/month/save-error';
@@ -65,6 +65,18 @@ export async function setSavingsSplitAction(
   if (!isYearMonth(ym) || !parsed.success) return { ok: false, error: 'Reparto no válido.' };
   try {
     await setSavingsSplit(db, user.id, ym, parsed.data);
+    return { ok: true };
+  } catch (error) {
+    return toResult(error);
+  }
+}
+
+export async function confirmIncomeAction(entryId: string): Promise<ActionResult> {
+  const user = await requireUser();
+  const parsed = z.uuid().safeParse(entryId);
+  if (!parsed.success) return { ok: false, error: 'Ingreso no válido.' };
+  try {
+    await confirmIncome(db, user.id, parsed.data);
     return { ok: true };
   } catch (error) {
     return toResult(error);

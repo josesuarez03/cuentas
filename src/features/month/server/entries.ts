@@ -28,6 +28,16 @@ export async function updateEntryAmount(db: Db, userId: string, entryId: string,
   await db.update(s.entries).set({ amountCents }).where(eq(s.entries.id, entryId));
 }
 
+export async function confirmIncome(db: Db, userId: string, entryId: string): Promise<void> {
+  const [row] = await db.select({ kind: s.entries.kind, status: s.entries.status, monthStatus: s.months.status })
+    .from(s.entries).innerJoin(s.months, eq(s.entries.monthId, s.months.id))
+    .where(and(eq(s.entries.id, entryId), eq(s.months.userId, userId)));
+  if (!row || row.kind !== 'income') throw new NotFoundError('Ingreso no encontrado');
+  if (row.monthStatus === 'closed') throw new ClosedMonthError('El mes está cerrado');
+  if (row.status === 'confirmed') return;
+  await db.update(s.entries).set({ status: 'confirmed' }).where(eq(s.entries.id, entryId));
+}
+
 export interface NewOneOffEntry {
   yearMonth: string;
   kind: 'income' | 'expense';
