@@ -33,6 +33,7 @@ export function HomeScreen() {
   const [addOpen, setAddOpen] = useState(false);
   const [addMode, setAddMode] = useState<AddMode>('expense');
   const [balanceFor, setBalanceFor] = useState<AccountBalance | null>(null);
+  const [balanceOpen, setBalanceOpen] = useState(false);
 
   const data = query.data;
   const view = data?.view;
@@ -92,7 +93,10 @@ export function HomeScreen() {
             <TodoCard items={todos} onAction={(t) => {
               if (t.kind === 'income') confirm.mutate(t.targetId);
               else if (t.kind === 'loan') repay.mutate(t.targetId);
-              else setBalanceFor(wealth.data?.accounts.find((a) => a.accountId === t.targetId) ?? null);
+              else {
+                const account = wealth.data?.accounts.find((a) => a.accountId === t.targetId);
+                if (account) { setBalanceFor(account); setBalanceOpen(true); }
+              }
             }} />
           </div>
           {hasAside && (
@@ -105,8 +109,8 @@ export function HomeScreen() {
           <AddEntrySheet open={addOpen} onOpenChange={setAddOpen} ym={ym} catalog={data.catalog} pockets={view.pockets} initialMode={addMode} />
           <UpdateBalanceSheet
             account={balanceFor}
-            open={balanceFor !== null}
-            onOpenChange={(o) => { if (!o) setBalanceFor(null); }}
+            open={balanceOpen}
+            onOpenChange={setBalanceOpen}
             onSave={(c) => { if (balanceFor) addSnapshot.mutate({ accountId: balanceFor.accountId, balanceCents: c }); }}
           />
         </>

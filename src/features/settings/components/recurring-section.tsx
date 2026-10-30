@@ -61,7 +61,7 @@ function NameCell({ item }: { item: SettingsRecurring }) {
 
 function AmountText({ item }: { item: SettingsRecurring }) {
   return (
-    <span className={cn('text-[15px] whitespace-nowrap tabular-nums', item.kind === 'income' ? 'text-positivo' : 'text-ink', !item.active && 'opacity-70')}>
+    <span className={cn('text-[15px] whitespace-nowrap tabular-nums', !item.active ? 'text-ink-muted' : item.kind === 'income' ? 'text-positivo' : 'text-ink')}>
       {signedAmount(item)}
     </span>
   );

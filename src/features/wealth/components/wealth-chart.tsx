@@ -17,7 +17,7 @@ export function WealthChart({ history }: { history: WealthPoint[] }) {
     <section aria-labelledby="patrimonio-evolucion">
       <h2 id="patrimonio-evolucion" className="pb-2 text-[17px] leading-6 font-semibold">Evolución</h2>
       <ChartContainer config={config} className="h-40 w-full" aria-hidden>
-        <BarChart data={data} accessibilityLayer>
+        <BarChart data={data} accessibilityLayer={false}>
           <XAxis dataKey="label" tickLine={false} axisLine={false} />
           <Bar dataKey="euros" fill="var(--color-euros)" radius={4} isAnimationActive={!reduceMotion} />
           <ChartTooltip content={<ChartTooltipContent formatter={(_, __, item) => item.payload.text} />} />

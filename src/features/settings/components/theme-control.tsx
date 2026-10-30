@@ -16,7 +16,7 @@ export function ThemeControl() {
   const [mounted, setMounted] = useState(false);
   // Antes de montar no se conoce el tema guardado: sin valor para no desajustar la hidratación.
   useEffect(() => setMounted(true), []);
-  const current = mounted ? (theme ?? 'system') : undefined;
+  const current = mounted ? (theme ?? 'system') : '';
 
   return (
     <ToggleGroup
