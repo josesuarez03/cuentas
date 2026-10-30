@@ -2,8 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Plan 4 cambia esto a clase .dark con next-themes; ahora sigue al sistema. */
-@custom-variant dark (@media (prefers-color-scheme: dark));
+/* Modo oscuro por clase .dark en <html> (next-themes). */
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --paper: #f3f4f6;
@@ -19,6 +19,11 @@
   --aviso: #8a5300;
   --aviso-soft: #fbefdc;
   --sheet-shadow: 0 8px 24px rgba(20, 23, 28, 0.14);
+  --serie-1: #2244c4;
+  --serie-2: #17784a;
+  --serie-3: #8a5300;
+  --serie-4: #6b4fbb;
+  --serie-5: #58606c;
 
   --radius: 10px;
   --background: var(--paper);
@@ -42,23 +47,26 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #121519;
-    --surface: #1b1f25;
-    --surface-sunk: #262c35;
-    --line: #353c47;
-    --ink: #eceef1;
-    --ink-muted: #a3abb7;
-    --tinta: #91a8ff;
-    --on-tinta: #0e1530;
-    --positivo: #6bd7a0;
-    --alerta: #ff8f86;
-    --aviso: #f2b866;
-    --aviso-soft: #3a2c14;
-    --sheet-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
-    color-scheme: dark;
-  }
+.dark {
+  --paper: #121519;
+  --surface: #1b1f25;
+  --surface-sunk: #262c35;
+  --line: #353c47;
+  --ink: #eceef1;
+  --ink-muted: #a3abb7;
+  --tinta: #91a8ff;
+  --on-tinta: #0e1530;
+  --positivo: #6bd7a0;
+  --alerta: #ff8f86;
+  --aviso: #f2b866;
+  --aviso-soft: #3a2c14;
+  --sheet-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  --serie-1: #91a8ff;
+  --serie-2: #6bd7a0;
+  --serie-3: #f2b866;
+  --serie-4: #c3b1ff;
+  --serie-5: #a3abb7;
+  color-scheme: dark;
 }
 
 /* Alto de la barra inferior (AppNav). En ≥ md la navegación es un raíl lateral y no ocupa abajo. */
@@ -102,6 +110,11 @@
   --color-alerta: var(--alerta);
   --color-aviso: var(--aviso);
   --color-aviso-soft: var(--aviso-soft);
+  --color-serie-1: var(--serie-1);
+  --color-serie-2: var(--serie-2);
+  --color-serie-3: var(--serie-3);
+  --color-serie-4: var(--serie-4);
+  --color-serie-5: var(--serie-5);
 
   --font-sans: var(--font-plex), system-ui, sans-serif;
   --radius-sm: 6px;
