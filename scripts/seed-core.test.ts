@@ -33,6 +33,24 @@ describe('seedOwner', () => {
     expect(await db.select().from(s.months).where(eq(s.months.userId, 'u1'))).toHaveLength(1);
   });
 
+  it('guarda la regla de cobro y el saldo de hoy (la tarjeta en negativo)', async () => {
+    const data: SeedData = {
+      ...filled,
+      accounts: filled.accounts.map((a) => ({ ...a, balanceEuros: a.key === 'principal' ? 1234.5 : a.key === 'tarjeta' ? 200 : undefined })),
+      items: filled.items.map((i) => (i.name === 'Nómina' ? { ...i, paydayDay: 28, paydayRule: 'after' as const } : i)),
+    };
+    await seedOwner(db, 'u1', data, '2026-10');
+
+    const [nomina] = await db.select().from(s.recurringItems).where(eq(s.recurringItems.name, 'Nómina'));
+    expect(nomina).toMatchObject({ paydayDay: 28, paydayRule: 'after' });
+    const snaps = await db.select({ name: s.bankAccounts.name, cents: s.balanceSnapshots.balanceCents })
+      .from(s.balanceSnapshots).innerJoin(s.bankAccounts, eq(s.bankAccounts.id, s.balanceSnapshots.accountId));
+    expect(snaps.sort((a, b) => a.name.localeCompare(b.name))).toEqual([
+      { name: 'BBVA principal', cents: 123450 },
+      { name: 'Tarjeta BBVA', cents: -20000 },
+    ]);
+  });
+
   it('no siembra dos veces', async () => {
     await seedOwner(db, 'u1', filled, '2026-10');
     await expect(seedOwner(db, 'u1', filled, '2026-10')).rejects.toThrow('ya tiene datos');
@@ -45,7 +63,8 @@ describe('validate', () => {
       ...filled,
       items: [{ ...filled.items[0], euros: NaN, category: 'Nada' }, { ...filled.items[1], account: 'zzz' as never }],
       funds: [{ name: 'F', account: 'ahorro' as const, euros: Infinity }],
+      accounts: filled.accounts.map((a, i) => (i === 0 ? { ...a, balanceEuros: NaN } : a)),
     } as SeedData;
-    expect(() => validate(bad)).toThrow(/falta el importe[\s\S]*categoría «Nada»[\s\S]*cuenta «zzz»[\s\S]*Fondo F/);
+    expect(() => validate(bad)).toThrow(/falta el importe[\s\S]*categoría «Nada»[\s\S]*cuenta «zzz»[\s\S]*Fondo F[\s\S]*Cuenta BBVA principal: saldo/);
   });
 });

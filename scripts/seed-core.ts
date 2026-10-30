@@ -27,7 +27,10 @@ export function validate(data: SeedData) {
     if (!validEuros(f.euros)) problems.push(`Fondo ${f.name}: falta la aportación`);
     if (!accountKeys.has(f.account)) problems.push(`Fondo ${f.name}: la cuenta «${f.account}» no existe`);
   }
-  if (problems.length > 0) throw new Error(`Rellena scripts/seed-data.ts:\n- ${problems.join('\n- ')}`);
+  for (const a of data.accounts) {
+    if (a.balanceEuros !== undefined && !Number.isFinite(a.balanceEuros)) problems.push(`Cuenta ${a.name}: saldo no válido`);
+  }
+  if (problems.length > 0) throw new Error(`Rellena scripts/seed-data.local.ts:\n- ${problems.join('\n- ')}`);
 }
 
 export async function seedOwner(db: Db, ownerId: string, data: SeedData, ym: string) {
@@ -49,6 +52,13 @@ export async function seedOwner(db: Db, ownerId: string, data: SeedData, ym: str
       return accountRows.find((r) => r.name === name)!.id;
     };
 
+    // Como en el primer uso: la deuda de la tarjeta se guarda en negativo.
+    const snapshots = data.accounts.flatMap((a) => a.balanceEuros === undefined ? [] : [{
+      accountId: accountId(a.key),
+      balanceCents: Math.round(a.balanceEuros * 100) * (a.type === 'credit_card' ? -1 : 1),
+    }]);
+    if (snapshots.length > 0) await tx.insert(s.balanceSnapshots).values(snapshots);
+
     const categories = await tx.insert(s.categories).values(data.categories.map((c, i) => ({
       userId: ownerId, name: c.name, kind: c.kind, sortOrder: i,
     }))).returning();
@@ -65,6 +75,7 @@ export async function seedOwner(db: Db, ownerId: string, data: SeedData, ym: str
       startMonth: i.startMonth || ym,
       anchorMonth: i.anchorMonth ?? null,
       paydayDay: i.paydayDay ?? null,
+      paydayRule: i.paydayRule ?? 'before',
     })));
 
     await tx.insert(s.pockets).values(data.pockets.map((p) => ({

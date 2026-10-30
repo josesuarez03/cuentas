@@ -53,3 +53,6 @@ __pycache__/
 /playwright-report/
 /test-results/
 /.lighthouseci/
+
+# Datos reales del seed (repo público)
+/scripts/seed-data.local.ts

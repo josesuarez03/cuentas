@@ -1,12 +1,21 @@
+import { existsSync } from 'node:fs';
 import { eq } from 'drizzle-orm';
 import { db } from '../src/db';
 import * as s from '../src/db/schema';
 import { isAllowedEmail } from '../src/features/auth/allowlist';
 import { currentYearMonth } from '../src/lib/year-month';
-import { seedData } from './seed-data';
+import type { SeedData } from './seed-core';
 import { seedOwner, validate } from './seed-core';
 
+// Los datos reales van en seed-data.local.ts (ignorado por git); seed-data.ts es solo la plantilla.
+async function loadSeedData(): Promise<SeedData> {
+  const local = new URL('./seed-data.local.ts', import.meta.url);
+  if (!existsSync(local)) throw new Error('Copia scripts/seed-data.ts a scripts/seed-data.local.ts y rellena tus datos.');
+  return (await import(local.href)).seedData;
+}
+
 async function main() {
+  const seedData = await loadSeedData();
   validate(seedData);
   const email = process.env.SEED_EMAIL;
   if (!email) throw new Error('Define SEED_EMAIL en .env.local');
