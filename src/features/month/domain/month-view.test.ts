@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  isMonthEmpty, pocketProgress, recomputeView, withEntryAmount, withIncomeConfirmed, type MonthViewBase,
+  isMonthEmpty, pocketProgress, recomputeView, withEntryAmount, withFundSpend, withIncomeConfirmed, withPocketExpense,
+  type MonthViewBase,
 } from './month-view';
 
 const base: MonthViewBase = {
@@ -73,5 +74,32 @@ describe('pocketProgress', () => {
   });
   it('límite 0 sin dividir por cero', () => {
     expect(pocketProgress({ limitCents: 0, spentCents: 0 })).toEqual({ pct: 100, over: false, restCents: 0 });
+  });
+});
+
+const withBagAndFund: MonthViewBase = {
+  ...base,
+  pockets: [{ id: 'b1', name: 'Ocio', limitCents: 15000, spentCents: 9200 }],
+  funds: [{ id: 'h1', name: 'Regalos', allocatedCents: 5000, balanceCents: 5000 }],
+};
+
+describe('withPocketExpense', () => {
+  it('suma al gastado y recalcula solo si se pasa del límite', () => {
+    const v = recomputeView(withBagAndFund);
+    const a = withPocketExpense(v, 'b1', 1000);
+    expect(a.pockets[0].spentCents).toBe(10200);
+    expect(a.calc.availableCents).toBe(v.calc.availableCents); // max(límite, gastado) no cambia
+    const b = withPocketExpense(v, 'b1', 7000);
+    expect(b.calc.availableCents).toBe(v.calc.availableCents - 1200);
+  });
+});
+
+describe('withFundSpend', () => {
+  it('baja el saldo de la hucha sin tocar Gastos ni el disponible', () => {
+    const v = recomputeView(withBagAndFund);
+    const a = withFundSpend(v, 'h1', 2000);
+    expect(a.funds[0].balanceCents).toBe(3000);
+    expect(a.calc.expenseCents).toBe(v.calc.expenseCents);
+    expect(a.calc.availableCents).toBe(v.calc.availableCents);
   });
 });

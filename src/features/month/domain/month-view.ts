@@ -66,6 +66,15 @@ export function withEntryAmount(view: MonthView, entryId: string, amountCents: n
   });
 }
 
+export function withPocketExpense(view: MonthView, pocketId: string, amountCents: number): MonthView {
+  return recomputeView({ ...view, pockets: view.pockets.map((p) => (p.id === pocketId ? { ...p, spentCents: p.spentCents + amountCents } : p)) });
+}
+
+/** 5.4: el gasto de una hucha no cuenta en Gastos; solo baja su saldo. */
+export function withFundSpend(view: MonthView, fundId: string, amountCents: number): MonthView {
+  return { ...view, funds: view.funds.map((f) => (f.id === fundId ? { ...f, balanceCents: f.balanceCents - amountCents } : f)) };
+}
+
 export function isMonthEmpty(view: MonthViewBase): boolean {
   return view.categories.length === 0 && view.pockets.length === 0 && view.funds.length === 0;
 }
