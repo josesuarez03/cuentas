@@ -12,7 +12,7 @@ import { SettingsSection } from './settings-section';
 import { SplitSection } from './split-section';
 import { ThemeControl } from './theme-control';
 
-export function SettingsScreen() {
+export function SettingsScreen({ vapidPublicKey }: { vapidPublicKey: string | null }) {
   const { data, error, isPending, refetch } = useSettings();
 
   return (
@@ -38,7 +38,7 @@ export function SettingsScreen() {
           <CategoriesSection categories={data.categories} />
           <PocketsFundsSection settings={data} />
           <SplitSection accounts={data.accounts} />
-          <NotificationsSection preferences={data.preferences} />
+          <NotificationsSection preferences={data.preferences} vapidPublicKey={vapidPublicKey} />
           <SettingsSection id="ajustes-tema" title="Tema">
             <div className="py-3"><ThemeControl /></div>
           </SettingsSection>

@@ -1,24 +1,93 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { useUpdatePreferences } from '@/features/settings/hooks/use-settings';
+import { toast } from 'sonner';
+import { runAction, SaveError } from '@/features/month/hooks/use-month';
+import { SAVE_ERROR } from '@/features/month/save-error';
+import {
+  currentSubscription,
+  pushSupport,
+  subscribeThisDevice,
+  unsubscribeThisDevice,
+} from '@/features/notifications/client/push-client';
+import { subscribePushAction, unsubscribePushAction } from '@/features/notifications/server/actions';
+import { settingsKey } from '@/features/settings/domain/types';
 import type { Preferences } from '@/features/settings/domain/types';
+import { useUpdatePreferences } from '@/features/settings/hooks/use-settings';
 import { Label } from '@/shared/components/ui/label';
 import { Switch } from '@/shared/components/ui/switch';
 import { SettingsSection } from './settings-section';
 
-export function NotificationsSection({ preferences }: { preferences: Preferences }) {
+type Support = 'unknown' | 'supported' | 'unsupported';
+
+export function NotificationsSection({
+  preferences,
+  vapidPublicKey,
+}: {
+  preferences: Preferences;
+  vapidPublicKey: string | null;
+}) {
   const { mutate } = useUpdatePreferences();
-  const [pushSupported, setPushSupported] = useState(false);
+  const qc = useQueryClient();
+  const [support, setSupport] = useState<Support>('unknown');
+  const [subscribed, setSubscribed] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [denied, setDenied] = useState(false);
+
   useEffect(() => {
-    setPushSupported('PushManager' in window && 'serviceWorker' in navigator);
+    const s = pushSupport();
+    setSupport(s);
+    if (s === 'supported') {
+      currentSubscription().then((sub) => setSubscribed(sub !== null)).catch(() => setSubscribed(false));
+    }
   }, []);
+
+  async function togglePush(on: boolean) {
+    if (!vapidPublicKey) return;
+    setBusy(true);
+    setDenied(false);
+    try {
+      if (on) {
+        const r = await subscribeThisDevice(vapidPublicKey);
+        if (r === 'denied') {
+          setDenied(true);
+          return;
+        }
+        await runAction(() => subscribePushAction(r));
+        setSubscribed(true);
+      } else {
+        const endpoint = await unsubscribeThisDevice();
+        await runAction(() => unsubscribePushAction(endpoint));
+        setSubscribed(false);
+      }
+      await qc.invalidateQueries({ queryKey: settingsKey });
+    } catch (error) {
+      toast.error(error instanceof SaveError ? error.message : SAVE_ERROR);
+      try {
+        setSubscribed((await currentSubscription()) !== null);
+      } catch {
+        setSubscribed(false);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const note =
+    support === 'unsupported'
+      ? 'En iPhone, añade Kuadrix a la pantalla de inicio para recibir avisos push (iOS 16.4+).'
+      : !vapidPublicKey
+        ? 'Los avisos push no están configurados todavía.'
+        : denied
+          ? 'Has bloqueado las notificaciones de Kuadrix en este navegador. Permítelas en los ajustes del navegador y vuelve a intentarlo.'
+          : 'Solo en este dispositivo. Actívalo también en los demás donde quieras recibirlos.';
 
   return (
     <SettingsSection
       id="ajustes-avisos"
       title="Avisos"
-      description="Los avisos se activarán cuando lleguen los recordatorios automáticos."
+      description="Te avisamos el día de cobro de una nómina pendiente y, si sigue pendiente, al día siguiente. El resto de recordatorios está en Inicio."
     >
       <div className="divide-y divide-line">
         <Label htmlFor="pref-email" className="flex min-h-11 items-center justify-between gap-3 text-[15px] font-normal">
@@ -34,16 +103,14 @@ export function NotificationsSection({ preferences }: { preferences: Preferences
             Avisos push
             <Switch
               id="pref-push"
-              checked={preferences.pushNotifications}
-              disabled={!pushSupported}
-              onCheckedChange={(v) => mutate({ pushNotifications: v })}
+              checked={subscribed === true}
+              disabled={support !== 'supported' || !vapidPublicKey || busy || subscribed === null}
+              onCheckedChange={(v) => void togglePush(v)}
             />
           </Label>
-          {!pushSupported && (
-            <p className="pb-3 text-[13px] text-ink-muted">
-              En iPhone, añade Kuadrix a la pantalla de inicio para recibir avisos push (iOS 16.4+).
-            </p>
-          )}
+          <p role={denied ? 'alert' : undefined} className="pb-3 text-[13px] text-ink-muted">
+            {note}
+          </p>
         </div>
       </div>
     </SettingsSection>
