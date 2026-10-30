@@ -10,7 +10,7 @@ export function FieldError({ field }: { field: AnyFieldApi }) {
   return first ? <p role="alert" className="text-[13px] text-alerta">{String(first)}</p> : null;
 }
 
-export function TextField({ field, label, inputMode }: { field: AnyFieldApi; label: string; inputMode?: 'decimal' }) {
+export function TextField({ field, label, inputMode }: { field: AnyFieldApi; label: string; inputMode?: 'decimal' | 'numeric' }) {
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={field.name}>{label}</Label>
