@@ -14,13 +14,7 @@ describe('classify', () => {
       req('/api/auth/get-session'), req('/api/auth/callback/google?code=x'), req('/api/cron/daily'),
       req('/mes', { method: 'POST', headers: { 'Next-Action': 'abc' } }), req('/api/months/2026-10', { method: 'POST' }),
       req('/api/months/2026-10/x'), req('/api/otra'), req('https://accounts.google.com/o/oauth2/auth'),
-      req('/api/entrar/vincular', { method: 'POST' }), req('/api/entrar/recoger', { method: 'POST' }),
-      req('/api/entrar/vincular'), req('/api/entrar/recoger'),
     ]) expect(classify(r, O), `${r.method} ${r.url}`).toBe('network-only');
-  });
-  it('la vuelta de Google lleva un código de un solo uso en la URL: nunca se guarda', () => {
-    expect(classify(req('/entrar/listo?h=abc'), O)).toBe('network-only');
-    expect(classify(req('/entrar/listo'), O)).toBe('network-only');
   });
   it('las peticiones RSC van siempre a la red', () => {
     expect(classify(req('/mes?_rsc=abc', { headers: { RSC: '1' } }), O)).toBe('network-only');

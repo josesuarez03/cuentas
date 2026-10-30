@@ -1,13 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { authClient } from '@/features/auth/auth-client';
-import {
-  ERROR_CALLBACK_URL, claimHandoff, clearPendingHandoff, handoffCallbackURL, isInstalledApp, newHandoffCode, pendingHandoff, savePendingHandoff,
-} from '@/features/auth/pwa-handoff';
-
-const POLL_MS = 2000;
 
 function GoogleMark() {
   return (
@@ -23,37 +18,14 @@ function GoogleMark() {
 export function LoginButton({ callbackURL }: { callbackURL: string }) {
   const [loading, setLoading] = useState(false);
   const checking = useRef(false);
-  const claiming = useRef(false);
-  const poll = useRef<number | undefined>(undefined);
 
-  // PWA de iPhone: canjea el código que el navegador de Google vinculó a su sesión.
-  const claim = useCallback(async (): Promise<boolean> => {
-    const pending = pendingHandoff();
-    if (!pending || claiming.current) return false;
-    claiming.current = true;
-    try {
-      if (!(await claimHandoff(pending.h))) return false;
-      clearPendingHandoff();
-      window.clearInterval(poll.current);
-      window.location.replace(pending.next);
-      return true;
-    } finally {
-      claiming.current = false;
-    }
-  }, []);
-
-  const stopPolling = useCallback(() => {
-    window.clearInterval(poll.current);
-    poll.current = undefined;
-  }, []);
-
-  // Al volver a ver /login (cerrado el navegador de Google), si ya hay sesión, entramos.
+  // PWA de iPhone: Google se abre en una ventana aparte que comparte cookies; al cerrarla,
+  // esta página sigue en /login. Al volver a verla, si ya hay sesión, entramos.
   useEffect(() => {
     async function check() {
       if (checking.current) return;
       checking.current = true;
       try {
-        if (pendingHandoff() && (await claim())) return;
         const { data } = await authClient.getSession();
         if (data?.session) {
           window.location.replace('/');
@@ -72,43 +44,23 @@ export function LoginButton({ callbackURL }: { callbackURL: string }) {
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('pageshow', onPageShow);
     window.addEventListener('focus', onFocus);
-    // La app se reabrió con un código pendiente: un intento.
-    void claim();
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pageshow', onPageShow);
       window.removeEventListener('focus', onFocus);
-      stopPolling();
     };
-  }, [claim, stopPolling]);
-
-  async function signIn() {
-    setLoading(true);
-    let target = callbackURL;
-    if (isInstalledApp()) {
-      const h = newHandoffCode();
-      savePendingHandoff({ h, next: callbackURL, startedAt: Date.now() });
-      target = handoffCallbackURL(h);
-      stopPolling();
-      poll.current = window.setInterval(() => {
-        if (pendingHandoff()) void claim();
-        else stopPolling();
-      }, POLL_MS);
-    }
-    const { error } = await authClient.signIn.social({ provider: 'google', callbackURL: target, errorCallbackURL: ERROR_CALLBACK_URL });
-    if (error) {
-      stopPolling();
-      clearPendingHandoff();
-      setLoading(false);
-    }
-  }
+  }, []);
 
   return (
     <Button
       variant="outline"
       className="h-12 w-full gap-3 border-ink/30 bg-surface text-base font-medium text-ink hover:bg-surface-sunk hover:text-ink dark:border-ink/30 dark:bg-surface dark:hover:bg-surface-sunk"
       disabled={loading}
-      onClick={() => void signIn()}
+      onClick={async () => {
+        setLoading(true);
+        const { error } = await authClient.signIn.social({ provider: 'google', callbackURL, errorCallbackURL: '/login?error=acceso' });
+        if (error) setLoading(false);
+      }}
     >
       <GoogleMark />
       {loading ? 'Abriendo Google…' : 'Entrar con Google'}
