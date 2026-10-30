@@ -524,7 +524,7 @@ git add src/lib/year-month.ts src/lib/year-month.test.ts && git commit -m "feat:
 **Interfaces:**
 - Produces: tablas `user`, `session`, `account`, `verification` (Better Auth) y `bankAccounts`, `categories`, `recurringItems`, `months`, `monthSavingsSplit`, `entries`, `funds`, `fundMovements`, `pockets`, `monthPockets`, `pocketExpenses`; `type Db`; `db` (Neon); `createTestDb(): Promise<Db>`; `createFixture(db, userId?): Promise<Fixture>` con `Fixture = { userId, accounts: { principal, trade, ahorro }, categories: { ingresos, piso, suscripciones, tarjeta }, items: { nomina, gas, portatil, prime }, pocketId, fundId }` (todos `string`).
 
-- [ ] **Step 1: Esquema**
+- [x] **Step 1: Esquema**
 
 `src/db/schema.ts`:
 ```ts
@@ -720,12 +720,12 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db: Db = drizzle(pool, { schema });
 ```
 
-- [ ] **Step 2: Generar la migración**
+- [x] **Step 2: Generar la migración**
 
 Run: `pnpm db:generate`
 Expected: crea `drizzle/0000_*.sql` y `drizzle/meta/`.
 
-- [ ] **Step 3: Base de tests y fixture**
+- [x] **Step 3: Base de tests y fixture**
 
 `src/test/db.ts`:
 ```ts
@@ -793,7 +793,7 @@ export async function createFixture(db: Db, userId = 'u1'): Promise<Fixture> {
 }
 ```
 
-- [ ] **Step 4: Test del esquema**
+- [x] **Step 4: Test del esquema**
 
 `src/db/schema.test.ts`:
 ```ts
@@ -818,12 +818,12 @@ it('impide dos meses iguales para el mismo usuario', async () => {
 });
 ```
 
-- [ ] **Step 5: Ejecutar**
+- [x] **Step 5: Ejecutar**
 
 Run: `pnpm vitest run src/db/schema.test.ts`
 Expected: PASS (2 tests).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/db src/test drizzle drizzle.config.ts && git commit -m "feat: esquema Drizzle y base de tests PGlite"
