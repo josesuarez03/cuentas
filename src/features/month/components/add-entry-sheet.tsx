@@ -39,7 +39,30 @@ function TextField({ field, label, inputMode }: { field: AnyFieldApi; label: str
   );
 }
 
-function SelectField({ field, label, options }: { field: AnyFieldApi; label: string; options: { value: string; label: string }[] }) {
+function SelectField({ field, label, options, emptyText }: {
+  field: AnyFieldApi;
+  label: string;
+  options: { value: string; label: string }[];
+  emptyText: string;
+}) {
+  if (options.length === 0) {
+    return (
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor={field.name}>{label}</Label>
+        <div
+          id={field.name}
+          role="textbox"
+          aria-readonly="true"
+          aria-disabled="true"
+          aria-describedby={`${field.name}-help`}
+          className="flex min-h-11 w-full items-center rounded-sm border border-line bg-surface-sunk px-3 text-[15px] text-ink-muted"
+        >
+          {emptyText}
+        </div>
+        <p id={`${field.name}-help`} className="text-[13px] text-ink-muted">Podrás crearlas en Ajustes.</p>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={field.name}>{label}</Label>
@@ -179,6 +202,7 @@ export function AddEntrySheet({ open, onOpenChange, ym, catalog }: {
                   <SelectField
                     field={field}
                     label="Categoría"
+                    emptyText={`Aún no tienes categorías de ${kind === 'income' ? 'ingreso' : 'gasto'}`}
                     options={catalog.categories.filter((c) => c.kind === kind).map((c) => ({ value: c.id, label: c.name }))}
                   />
                 )}
@@ -187,17 +211,27 @@ export function AddEntrySheet({ open, onOpenChange, ym, catalog }: {
           </form.Subscribe>
 
           <form.Field name="accountId" validators={{ onSubmit: ({ value }) => (value ? undefined : 'Elige una cuenta.') }}>
-            {(field) => <SelectField field={field} label="Cuenta" options={catalog.accounts.map((a) => ({ value: a.id, label: a.name }))} />}
+            {(field) => <SelectField field={field} label="Cuenta" emptyText="Aún no tienes cuentas" options={catalog.accounts.map((a) => ({ value: a.id, label: a.name }))} />}
           </form.Field>
 
           {error && <p role="alert" className="text-[13px] text-alerta">{error}</p>}
 
-          <form.Subscribe selector={(state) => state.isSubmitting}>
-            {(submitting) => (
-              <Button type="submit" className="min-h-12 text-base" disabled={submitting}>
-                {submitting ? 'Añadiendo…' : 'Añadir'}
-              </Button>
-            )}
+          <form.Subscribe selector={(state) => [state.isSubmitting, state.values.kind] as const}>
+            {([submitting, kind]) => {
+              const missing = catalog.accounts.length === 0 || !catalog.categories.some((c) => c.kind === kind);
+              return (
+                <>
+                  {missing && (
+                    <p role="status" className="text-[13px] text-ink-muted">
+                      Para añadir partidas necesitas al menos una categoría y una cuenta.
+                    </p>
+                  )}
+                  <Button type="submit" className="min-h-12 text-base" disabled={submitting || missing}>
+                    {submitting ? 'Añadiendo…' : 'Añadir'}
+                  </Button>
+                </>
+              );
+            }}
           </form.Subscribe>
         </form>
       </SheetContent>
