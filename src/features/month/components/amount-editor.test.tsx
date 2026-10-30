@@ -47,6 +47,13 @@ describe('AmountEditor', () => {
     expect(screen.getByRole('button', { name: 'Editar importe de Luz' })).toBeTruthy();
   });
 
+  it('Esc devuelve el foco al botón del importe', async () => {
+    render(<AmountEditor cents={5200} label="Luz" sign={-1} onSave={vi.fn()} />);
+    await userEvent.click(screen.getByRole('button'));
+    await userEvent.type(screen.getByRole('textbox'), '{Escape}');
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Editar importe de Luz' }));
+  });
+
   it('un importe inválido muestra el error y no guarda', async () => {
     const onSave = vi.fn();
     render(<AmountEditor cents={5200} label="Luz" sign={-1} onSave={onSave} />);

@@ -18,12 +18,15 @@ export class MonthFetchError extends Error {
 const monthKey = (ym: string) => ['month', ym] as const;
 
 async function fetchMonth(ym: string): Promise<MonthResponse> {
-  const res = await fetch(`/api/months/${ym}`);
-  if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new MonthFetchError(res.status, body.error ?? 'No se ha podido cargar el mes.');
+  let res: Response;
+  try {
+    res = await fetch(`/api/months/${ym}`);
+    if (res.ok) return (await res.json()) as MonthResponse;
+  } catch {
+    throw new MonthFetchError(503, 'No se ha podido cargar el mes. Revisa la conexión.');
   }
-  return res.json() as Promise<MonthResponse>;
+  const body = (await res.json().catch(() => ({}))) as { error?: string };
+  throw new MonthFetchError(res.status, body.error ?? 'No se ha podido cargar el mes.');
 }
 
 export function useMonth(ym: string) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { formatAmountInput, formatEuros, parseEuros } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { Input } from '@/shared/components/ui/input';
@@ -17,6 +17,16 @@ export function AmountEditor({ cents, label, sign, onSave }: Props) {
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
   const cancelled = useRef(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
+  const errorId = useId();
+
+  useEffect(() => {
+    if (!editing && restoreFocus.current) {
+      restoreFocus.current = false;
+      buttonRef.current?.focus();
+    }
+  }, [editing]);
 
   function start() {
     cancelled.current = false;
@@ -40,6 +50,7 @@ export function AmountEditor({ cents, label, sign, onSave }: Props) {
   if (!editing) {
     return (
       <button
+        ref={buttonRef}
         type="button"
         aria-label={`Editar importe de ${label}`}
         onClick={start}
@@ -59,20 +70,25 @@ export function AmountEditor({ cents, label, sign, onSave }: Props) {
         autoFocus
         aria-label={`Importe de ${label}`}
         aria-invalid={error !== null}
+        aria-describedby={error ? errorId : undefined}
         inputMode="decimal"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') commit();
+          if (e.key === 'Enter') {
+            restoreFocus.current = true;
+            commit();
+          }
           if (e.key === 'Escape') {
             cancelled.current = true;
+            restoreFocus.current = true;
             setEditing(false);
           }
         }}
         onBlur={commit}
-        className="min-h-10 w-28 rounded-sm border-tinta bg-surface-sunk px-2.5 text-right text-[15px] font-medium tabular-nums"
+        className="min-h-10 w-28 rounded-sm border-tinta bg-surface-sunk px-2.5 text-right text-base font-medium md:text-base tabular-nums"
       />
-      {error && <span role="alert" className="text-[13px] text-alerta">{error}</span>}
+      {error && <span id={errorId} role="alert" className="text-[13px] text-alerta">{error}</span>}
     </div>
   );
 }
