@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addMonths, currentYearMonth, diffMonths, formatMonthName, formatMonthNameOnly, formatWeekdayDay, isYearMonth, monthOf } from './year-month';
+import { addMonths, currentYearMonth, diffMonths, formatMonthName, formatMonthNameOnly, formatShortDate, formatWeekdayDay, isYearMonth, monthOf, startOfMonth } from './year-month';
 
 describe('year-month', () => {
   it('valida el formato', () => {
@@ -33,5 +33,14 @@ describe('year-month', () => {
   it('nombra solo el mes, en minúscula', () => {
     expect(formatMonthNameOnly('2026-12')).toBe('diciembre');
     expect(formatMonthNameOnly('2027-01')).toBe('enero');
+  });
+  it('el mes empieza a medianoche de Madrid (invierno y verano)', () => {
+    expect(startOfMonth('2026-11').toISOString()).toBe('2026-10-31T23:00:00.000Z');
+    expect(startOfMonth('2026-07').toISOString()).toBe('2026-06-30T22:00:00.000Z');
+    expect(startOfMonth('2027-01').toISOString()).toBe('2026-12-31T23:00:00.000Z');
+  });
+  it('fecha corta en Madrid', () => {
+    expect(formatShortDate(new Date('2026-10-12T10:00:00Z'))).toBe('12 oct');
+    expect(formatShortDate(new Date('2026-10-31T23:30:00Z'))).toBe('1 nov');
   });
 });

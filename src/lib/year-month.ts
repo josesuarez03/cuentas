@@ -52,3 +52,22 @@ export function formatMonthNameOnly(ym: YearMonth): string {
   const [y, m] = ym.split('-').map(Number);
   return monthName.format(new Date(Date.UTC(y, m - 1, 1)));
 }
+
+function offsetMinutes(at: Date, timeZone: string): number {
+  const name = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' })
+    .formatToParts(at).find((p) => p.type === 'timeZoneName')!.value; // 'GMT+01:00' o 'GMT'
+  const m = /GMT([+-])(\d{2}):(\d{2})/.exec(name);
+  return m ? (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0;
+}
+
+/** Instante en que empieza `ym` en `timeZone` (dos pasadas por si el cambio de hora cae cerca). */
+export function startOfMonth(ym: YearMonth, timeZone = 'Europe/Madrid'): Date {
+  const [y, m] = ym.split('-').map(Number);
+  const utc = Date.UTC(y, m - 1, 1);
+  const guess = utc - offsetMinutes(new Date(utc), timeZone) * 60_000;
+  return new Date(utc - offsetMinutes(new Date(guess), timeZone) * 60_000);
+}
+
+export function formatShortDate(d: Date, timeZone = 'Europe/Madrid'): string {
+  return new Intl.DateTimeFormat('es-ES', { timeZone, day: 'numeric', month: 'short' }).format(d).replace('.', '');
+}
