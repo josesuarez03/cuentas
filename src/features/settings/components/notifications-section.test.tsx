@@ -11,6 +11,8 @@ const client = vi.hoisted(() => ({ pushSupport: vi.fn(), currentSubscription: vi
 vi.mock('@/features/notifications/client/push-client', () => client);
 const actions = vi.hoisted(() => ({ subscribePushAction: vi.fn(), unsubscribePushAction: vi.fn() }));
 vi.mock('@/features/notifications/server/actions', () => actions);
+const hint = vi.hoisted(() => ({ currentPushHint: vi.fn() }));
+vi.mock('@/features/notifications/client/install-hint', async (orig) => ({ ...(await orig<object>()), ...hint }));
 vi.mock('@/features/month/server/actions', () => ({ confirmIncomeAction: vi.fn(), updateEntryAmountAction: vi.fn() }));
 
 const prefs = { emailNotifications: true, pushNotifications: false };
@@ -34,11 +36,19 @@ it('explica qué se avisa y el correo se puede cambiar', async () => {
   expect(mutate).toHaveBeenCalledWith({ emailNotifications: false });
 });
 
-it('sin soporte: push desactivado con la explicación de iPhone', async () => {
+it('sin soporte en iPhone: desactivado y explica cómo instalar', async () => {
   client.pushSupport.mockReturnValue('unsupported');
+  hint.currentPushHint.mockReturnValue('ios-install');
   ui();
   await waitFor(() => expect((screen.getByRole('switch', { name: 'Avisos push' }) as HTMLButtonElement).disabled).toBe(true));
-  expect(screen.getByText('En iPhone, los avisos push llegarán cuando Kuadrix se pueda instalar en la pantalla de inicio. Mientras tanto, te avisamos por correo.')).toBeTruthy();
+  expect(screen.getByText('En iPhone, los avisos push llegan con Kuadrix instalada. Añádela a la pantalla de inicio desde Compartir → Añadir a pantalla de inicio (iOS 16.4+) y ábrela desde el icono. Mientras, te avisamos por correo.')).toBeTruthy();
+});
+
+it('sin soporte en otro navegador: lo dice sin hablar de iPhone', async () => {
+  client.pushSupport.mockReturnValue('unsupported');
+  hint.currentPushHint.mockReturnValue('unsupported');
+  ui();
+  expect(await screen.findByText('Este navegador no admite avisos push. Te avisamos por correo.')).toBeTruthy();
 });
 
 it('sin clave VAPID: desactivado y lo dice', async () => {

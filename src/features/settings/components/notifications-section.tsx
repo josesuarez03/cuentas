@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { runAction, SaveError } from '@/features/month/hooks/use-month';
 import { SAVE_ERROR } from '@/features/month/save-error';
+import { currentPushHint, PUSH_HINT_TEXT } from '@/features/notifications/client/install-hint';
+import type { PushHint } from '@/features/notifications/client/install-hint';
 import {
   currentSubscription,
   pushSupport,
@@ -34,11 +36,13 @@ export function NotificationsSection({
   const [subscribed, setSubscribed] = useState<boolean | null>(null);
   const [denied, setDenied] = useState<'blocked' | 'dismissed' | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hint, setHint] = useState<PushHint | null>(null);
   const busyRef = useRef(false);
 
   useEffect(() => {
     const s = pushSupport();
     setSupport(s);
+    if (s === 'unsupported') setHint(currentPushHint());
     if (s === 'supported') {
       currentSubscription().then((sub) => setSubscribed(sub !== null)).catch(() => setSubscribed(false));
     }
@@ -83,7 +87,7 @@ export function NotificationsSection({
 
   const note =
     support === 'unsupported'
-      ? 'En iPhone, los avisos push llegarán cuando Kuadrix se pueda instalar en la pantalla de inicio. Mientras tanto, te avisamos por correo.'
+      ? PUSH_HINT_TEXT[hint ?? 'unsupported']
       : !vapidPublicKey
         ? 'Los avisos push no están configurados todavía.'
         : error
