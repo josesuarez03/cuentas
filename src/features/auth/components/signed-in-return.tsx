@@ -3,34 +3,35 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/shared/components/ui/button';
-import { isInstalledApp, SIGNED_IN } from '@/features/auth/popup-sign-in';
+import { linkHandoff } from '@/features/auth/pwa-handoff';
 
-// Tras entrar con Google en la ventana aparte: avisa a la PWA y se cierra.
-// iOS no deja cerrar su navegador superpuesto desde la página: entonces pedimos tocar ✕
-// (la PWA de debajo entra sola al volver a verse) en vez de cargar la app aquí dentro.
+const COPY = {
+  linking: 'Has entrado. Un momento…',
+  done: 'Has entrado. Toca ✕ arriba para volver a Kuadrix.',
+  failed: 'No se ha podido volver a la app. Cierra esta ventana y vuelve a entrar.',
+} as const;
+
+// Vuelta de Google en el navegador superpuesto de iPhone (no comparte cookies con la PWA):
+// vincula esta sesión al código de la PWA (?h=…) para que la PWA la recoja, y pide tocar ✕
+// en vez de cargar la app aquí dentro.
 export function SignedInReturn() {
-  const [stuck, setStuck] = useState(false);
+  const [state, setState] = useState<keyof typeof COPY>('linking');
   useEffect(() => {
-    try {
-      (window.opener as Window | null)?.postMessage({ type: SIGNED_IN }, window.location.origin);
-    } catch {
-      // La ventana que nos abrió ya no está.
+    const h = new URLSearchParams(window.location.search).get('h');
+    if (!h) {
+      setState('done');
+      return;
     }
-    window.close();
-    const fallback = window.setTimeout(() => {
-      if (isInstalledApp()) window.location.replace('/');
-      else setStuck(true);
-    }, 300);
-    return () => window.clearTimeout(fallback);
+    let alive = true;
+    void linkHandoff(h).then((ok) => { if (alive) setState(ok ? 'done' : 'failed'); });
+    return () => { alive = false; };
   }, []);
 
   return (
     <main className="flex min-h-dvh flex-col items-start gap-4 bg-paper px-4 pt-16">
-      <p role="status" className="text-[15px] text-ink">
-        {stuck ? 'Has entrado. Toca ✕ arriba para volver a Kuadrix.' : 'Has entrado. Volviendo a Kuadrix…'}
-      </p>
-      <Button asChild variant={stuck ? 'outline' : 'default'} className="min-h-11">
-        <Link href="/">{stuck ? 'Seguir aquí' : 'Ir a Kuadrix'}</Link>
+      <p role="status" className={state === 'failed' ? 'text-[15px] text-alerta' : 'text-[15px] text-ink'}>{COPY[state]}</p>
+      <Button asChild variant="outline" className="min-h-11">
+        <Link href="/">Seguir aquí</Link>
       </Button>
     </main>
   );

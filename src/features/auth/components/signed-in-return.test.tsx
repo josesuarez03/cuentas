@@ -1,46 +1,51 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { SignedInReturn } from './signed-in-return';
 
-const replace = vi.fn();
+const fetch = vi.fn();
 const close = vi.fn();
+const replace = vi.fn();
+const H = 'k'.repeat(43);
+
+function at(search: string) {
+  vi.stubGlobal('location', { ...window.location, search, replace });
+}
 
 beforeEach(() => {
-  vi.useFakeTimers();
-  vi.stubGlobal('location', { ...window.location, replace });
+  vi.stubGlobal('fetch', fetch);
   vi.stubGlobal('close', close);
+  at('');
 });
-afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals(); });
 
-it('avisa a la PWA que la abrió, se cierra y, si iOS no la deja cerrar, pide tocar ✕ sin cargar la app aquí', () => {
-  const opener = { postMessage: vi.fn() };
-  vi.stubGlobal('opener', opener);
+it('con código: lo vincula a esta sesión y pide tocar ✕ para volver a la PWA, sin cargar la app aquí', async () => {
+  at(`?h=${H}`);
+  fetch.mockResolvedValue(new Response(null, { status: 204 }));
   render(<SignedInReturn />);
-  expect(opener.postMessage).toHaveBeenCalledWith({ type: 'kuadrix:signed-in' }, window.location.origin);
-  expect(close).toHaveBeenCalled();
-  act(() => { vi.advanceTimersByTime(300); });
+  expect(await screen.findByText('Has entrado. Toca ✕ arriba para volver a Kuadrix.')).toBeTruthy();
+  expect(fetch).toHaveBeenCalledWith('/api/entrar/vincular', expect.objectContaining({ method: 'POST', body: JSON.stringify({ h: H }) }));
+  expect(screen.getByRole('link', { name: 'Seguir aquí' }).getAttribute('href')).toBe('/');
+  expect(close).not.toHaveBeenCalled();
   expect(replace).not.toHaveBeenCalled();
-  expect(screen.getByText(/Toca ✕ arriba para volver a Kuadrix/)).toBeTruthy();
 });
 
-it('si postMessage falla, igual intenta cerrar', () => {
-  vi.stubGlobal('opener', { postMessage: () => { throw new Error('cerrada'); } });
+it('mientras vincula, muestra que está en ello', () => {
+  at(`?h=${H}`);
+  fetch.mockReturnValue(new Promise(() => {}));
   render(<SignedInReturn />);
-  expect(close).toHaveBeenCalled();
+  expect(screen.getByText('Has entrado. Un momento…')).toBeTruthy();
 });
 
-it('si esta ventana es la propia app instalada, sigue a Kuadrix aquí', () => {
-  vi.stubGlobal('opener', null);
-  vi.stubGlobal('matchMedia', () => ({ matches: true }));
+it('si no se puede vincular, pide cerrar y volver a entrar', async () => {
+  at(`?h=${H}`);
+  fetch.mockResolvedValue(new Response('{}', { status: 401 }));
   render(<SignedInReturn />);
-  act(() => { vi.advanceTimersByTime(300); });
-  expect(replace).toHaveBeenCalledWith('/');
+  expect(await screen.findByText('No se ha podido volver a la app. Cierra esta ventana y vuelve a entrar.')).toBeTruthy();
 });
 
-it('muestra el aviso y un enlace a Kuadrix', () => {
-  vi.stubGlobal('opener', { postMessage: vi.fn() });
+it('sin código (navegador normal): no llama al servidor y pide tocar ✕', async () => {
   render(<SignedInReturn />);
-  expect(screen.getByText('Has entrado. Volviendo a Kuadrix…')).toBeTruthy();
-  expect(screen.getByRole('link', { name: 'Ir a Kuadrix' }).getAttribute('href')).toBe('/');
+  expect(await screen.findByText('Has entrado. Toca ✕ arriba para volver a Kuadrix.')).toBeTruthy();
+  expect(fetch).not.toHaveBeenCalled();
 });

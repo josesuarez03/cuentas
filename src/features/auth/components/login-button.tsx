@@ -1,9 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { authClient } from '@/features/auth/auth-client';
-import { ERROR_CALLBACK_URL, POPUP_CALLBACK_URL, SIGNED_IN, SIGNIN_ERROR, isInstalledApp, kuadrixOpener } from '@/features/auth/popup-sign-in';
+import {
+  ERROR_CALLBACK_URL, claimHandoff, clearPendingHandoff, handoffCallbackURL, isInstalledApp, newHandoffCode, pendingHandoff, savePendingHandoff,
+} from '@/features/auth/pwa-handoff';
+
+const POLL_MS = 2000;
 
 function GoogleMark() {
   return (
@@ -19,14 +23,37 @@ function GoogleMark() {
 export function LoginButton({ callbackURL }: { callbackURL: string }) {
   const [loading, setLoading] = useState(false);
   const checking = useRef(false);
+  const claiming = useRef(false);
+  const poll = useRef<number | undefined>(undefined);
 
-  // PWA de iPhone: Google se abre en una ventana aparte que comparte cookies; al cerrarla,
-  // esta página sigue en /login. Al volver a verla, si ya hay sesión, entramos.
+  // PWA de iPhone: canjea el código que el navegador de Google vinculó a su sesión.
+  const claim = useCallback(async (): Promise<boolean> => {
+    const pending = pendingHandoff();
+    if (!pending || claiming.current) return false;
+    claiming.current = true;
+    try {
+      if (!(await claimHandoff(pending.h))) return false;
+      clearPendingHandoff();
+      window.clearInterval(poll.current);
+      window.location.replace(pending.next);
+      return true;
+    } finally {
+      claiming.current = false;
+    }
+  }, []);
+
+  const stopPolling = useCallback(() => {
+    window.clearInterval(poll.current);
+    poll.current = undefined;
+  }, []);
+
+  // Al volver a ver /login (cerrado el navegador de Google), si ya hay sesión, entramos.
   useEffect(() => {
     async function check() {
       if (checking.current) return;
       checking.current = true;
       try {
+        if (pendingHandoff() && (await claim())) return;
         const { data } = await authClient.getSession();
         if (data?.session) {
           window.location.replace('/');
@@ -45,54 +72,35 @@ export function LoginButton({ callbackURL }: { callbackURL: string }) {
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('pageshow', onPageShow);
     window.addEventListener('focus', onFocus);
+    // La app se reabrió con un código pendiente: un intento.
+    void claim();
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pageshow', onPageShow);
       window.removeEventListener('focus', onFocus);
+      stopPolling();
     };
-  }, []);
-
-  // PWA instalada: la ventana de Google avisa al terminar (ver /entrar/listo).
-  useEffect(() => {
-    const onMessage = (e: MessageEvent) => {
-      if (e.origin !== window.location.origin) return;
-      const type = (e.data as { type?: unknown } | null)?.type;
-      if (type === SIGNED_IN) window.location.replace(callbackURL);
-      else if (type === SIGNIN_ERROR) window.location.replace(ERROR_CALLBACK_URL);
-    };
-    window.addEventListener('message', onMessage);
-    return () => window.removeEventListener('message', onMessage);
-  }, [callbackURL]);
-
-  // Esta es la ventana de Google y el email no tiene acceso: que lo muestre la PWA.
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('error') !== 'acceso') return;
-    const opener = kuadrixOpener();
-    if (!opener) return;
-    opener.postMessage({ type: SIGNIN_ERROR }, window.location.origin);
-    window.close();
-  }, []);
+  }, [claim, stopPolling]);
 
   async function signIn() {
     setLoading(true);
-    // window.open tiene que ir antes de cualquier await: Safari bloquea ventanas fuera del toque.
-    const popup = isInstalledApp() ? window.open('about:blank', '_blank') : null;
-    if (popup) {
-      try {
-        const { data, error } = await authClient.signIn.social({
-          provider: 'google', callbackURL: POPUP_CALLBACK_URL, errorCallbackURL: ERROR_CALLBACK_URL, disableRedirect: true,
-        });
-        if (!error && data && 'url' in data && data.url) {
-          popup.location.href = data.url;
-          return;
-        }
-      } catch {
-        // Seguimos con la redirección de siempre.
-      }
-      popup.close();
+    let target = callbackURL;
+    if (isInstalledApp()) {
+      const h = newHandoffCode();
+      savePendingHandoff({ h, next: callbackURL, startedAt: Date.now() });
+      target = handoffCallbackURL(h);
+      stopPolling();
+      poll.current = window.setInterval(() => {
+        if (pendingHandoff()) void claim();
+        else stopPolling();
+      }, POLL_MS);
     }
-    const { error } = await authClient.signIn.social({ provider: 'google', callbackURL, errorCallbackURL: ERROR_CALLBACK_URL });
-    if (error) setLoading(false);
+    const { error } = await authClient.signIn.social({ provider: 'google', callbackURL: target, errorCallbackURL: ERROR_CALLBACK_URL });
+    if (error) {
+      stopPolling();
+      clearPendingHandoff();
+      setLoading(false);
+    }
   }
 
   return (
