@@ -4,7 +4,8 @@ import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { wealthKey } from '@/features/wealth/domain/types';
-import { monthKey, useMonthMutation } from './use-month';
+import { SAVE_ERROR } from '@/features/month/save-error';
+import { monthKey, runAction, useMonthMutation } from './use-month';
 
 vi.mock('sonner', () => ({ toast: { error: vi.fn() } }));
 vi.mock('@/features/month/server/actions', () => ({ confirmIncomeAction: vi.fn(), updateEntryAmountAction: vi.fn() }));
@@ -18,5 +19,15 @@ describe('useMonthMutation', () => {
     result.current.mutate('x');
     await waitFor(() => expect(spy).toHaveBeenCalledWith({ queryKey: monthKey('2026-10') }));
     expect(spy).toHaveBeenCalledWith({ queryKey: wealthKey });
+  });
+});
+
+describe('runAction', () => {
+  it('sin conexión no llama al servidor y falla con SAVE_ERROR', async () => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
+    const action = vi.fn();
+    await expect(runAction(action)).rejects.toThrow(SAVE_ERROR);
+    expect(action).not.toHaveBeenCalled();
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => true });
   });
 });

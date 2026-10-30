@@ -44,6 +44,7 @@ export function useMonth(ym: string) {
 export class SaveError extends Error {}
 
 export async function runAction(action: () => Promise<ActionResult>): Promise<void> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new SaveError(SAVE_ERROR);
   let result: ActionResult;
   try {
     result = await action();
