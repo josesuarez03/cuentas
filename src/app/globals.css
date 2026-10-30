@@ -79,6 +79,11 @@
   }
 }
 
+/* Alto máximo de un diálogo: la pantalla visible menos 1 rem arriba y abajo y las zonas seguras (notch, barra de inicio). */
+:root {
+  --dialog-max-h: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
