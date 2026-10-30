@@ -21,6 +21,7 @@
 - Copy en español, frase en minúscula inicial; botones con su acción. Error de guardado: «No se ha guardado. Revisa la conexión y vuelve a intentarlo.»
 - Objetivos táctiles ≥ 44 px, foco visible, contraste ≥ 4.5:1. Mobile first (390 px), contenedor `max-w-xl` en escritorio.
 - Tokens del sistema de diseño «Cuentas» (IBM Plex Sans, `tabular-nums`, colores de la tarea 1).
+- UI con componentes shadcn/ui siempre que exista uno adecuado (en `src/shared/components/ui`), no HTML hecho a mano. Tras cada `shadcn add`: imports de `cn` desde `@/lib/utils` (nunca el paquete npm `cn`), textos en español y objetivos táctiles ≥ 44 px.
 - Arquitectura por features: `src/features/<feature>/{domain,server,components,hooks,store}`; `src/app` solo rutas finas; `src/lib` utilidades compartidas sin dominio. Una feature solo importa de otra su `domain`/tipos, o su `server` desde código de servidor. Sin barrels `index.ts`. Componentes compartidos entre vistas en `src/shared/components` (shadcn en `src/shared/components/ui`).
 - La tabla de cuentas bancarias se llama `bank_accounts` (la spec dice `accounts`) porque Better Auth ya usa `account`.
 
@@ -1841,6 +1842,8 @@ git add src/features/month/server src/features/catalog/server && git commit -m "
 
 ### Task 10: Login con Google y lista de emails permitidos
 
+> **Ajuste (más shadcn):** antes del Step 1, `pnpm dlx shadcn@latest add card accordion select toggle-group progress skeleton` (todas las que usan las tareas 10–13) y aplica la regla de Global Constraints tras el `add`. La página de login usa `Card` (`Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`) en lugar del `div`; mismos textos y mismo `role="alert"`.
+
 **Files:**
 - Create: `src/features/auth/allowlist.ts`, `src/features/auth/auth-guard.ts`, `src/features/auth/auth.ts`, `src/features/auth/auth-client.ts`, `src/features/auth/session.ts`, `src/app/api/auth/[...all]/route.ts`, `src/middleware.ts`, `src/app/login/page.tsx`, `.env.example`
 - Test: `src/features/auth/allowlist.test.ts`
@@ -2193,6 +2196,8 @@ git add src/app/api/months src/features/month/server/actions.ts && git commit -m
 
 ### Task 12: Editor de importe en línea
 
+> **Ajuste (más shadcn):** el `<input>` del modo edición es el `Input` de `@/shared/components/ui/input` con las mismas props (`autoFocus`, `aria-label`, `aria-invalid`, `inputMode`, `value`, `onChange`, `onKeyDown`, `onBlur`) y clases de tamaño (`w-28 text-right tabular-nums`). Los tests no cambian.
+
 **Files:**
 - Create: `src/features/month/components/amount-editor.tsx`
 - Test: `src/features/month/components/amount-editor.test.tsx`
@@ -2353,6 +2358,12 @@ git add src/features/month/components/amount-editor.* && git commit -m "feat: ed
 ---
 
 ### Task 13: Pantalla Mes
+
+> **Ajuste (más shadcn):** el código de abajo es la referencia de comportamiento, textos y clases; sustituye estas piezas por shadcn manteniendo textos, accesibilidad y tokens:
+> - `category-list.tsx`: cada `<details>/<summary>` → `Accordion type="multiple"` con `AccordionItem`/`AccordionTrigger`/`AccordionContent` (trigger `min-h-14`; el chevron propio de `Summary` se elimina si el trigger ya trae uno).
+> - `PocketRow`: la barra → `Progress` (`value={pct}`, `aria-label` igual; indicador `bg-alerta` si se pasa, `bg-ink` si no).
+> - `add-entry-sheet.tsx`: radios Gasto/Ingreso → `ToggleGroup type="single"` (items `min-h-11`, sin permitir valor vacío); `<select>` → `Select` (`SelectTrigger` con `id` para el `Label`, `min-h-11`; placeholder «Elige…»; sin `SelectItem` de valor vacío).
+> - `month-skeleton.tsx`: cada `div` animado → `Skeleton`.
 
 **Files:**
 - Create: `src/shared/components/providers.tsx`, `src/features/month/store/month-store.ts`, `src/features/month/hooks/use-month.ts`, `src/features/month/components/{month-header,category-list,available-bar,split-dialog,add-entry-sheet,month-skeleton,month-screen}.tsx`, `src/app/(app)/layout.tsx`, `src/app/(app)/mes/page.tsx`
