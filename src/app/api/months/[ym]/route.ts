@@ -3,7 +3,8 @@ import { addMonths, currentYearMonth, isYearMonth } from '@/lib/year-month';
 import { monthStartsWithin } from '@/features/month/domain/upcoming';
 import { getUpcoming } from '@/features/month/server/upcoming';
 import { getCatalog } from '@/features/catalog/server/catalog';
-import { ensureMonth, getMonthView } from '@/features/month/server/months';
+import { rollMonth } from '@/features/month/server/lifecycle';
+import { getMonthView } from '@/features/month/server/months';
 import { getUserOrNull } from '@/features/auth/session';
 
 export const dynamic = 'force-dynamic';
@@ -17,7 +18,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ ym:
 
   const current = currentYearMonth();
   if (ym > current) return Response.json({ error: 'Este mes aún no ha empezado.' }, { status: 404 });
-  if (ym === current) await ensureMonth(db, user.id, ym);
+  if (ym === current) await rollMonth(db, user.id, current);
 
   const view = await getMonthView(db, user.id, ym);
   if (!view) return Response.json({ error: 'No hay datos de este mes.' }, { status: 404 });

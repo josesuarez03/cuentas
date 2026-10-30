@@ -13,12 +13,15 @@ import { isMonthEmpty } from '@/features/month/domain/month-view';
 import { EmptyState } from '@/shared/components/empty-state';
 import { Button } from '@/shared/components/ui/button';
 import { MonthFetchError, useMonth, useUpdateAmount } from '@/features/month/hooks/use-month';
+import { useSetMonthStatus } from '@/features/month/hooks/use-month-status';
+import { currentYearMonth } from '@/lib/year-month';
 import { useMonthStore } from '@/features/month/store/month-store';
 
 export function MonthScreen() {
   const ym = useMonthStore((s) => s.ym);
   const query = useMonth(ym);
   const update = useUpdateAmount(ym);
+  const status = useSetMonthStatus(ym);
   const [splitOpen, setSplitOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [addMode, setAddMode] = useState<AddMode>('expense');
@@ -26,6 +29,7 @@ export function MonthScreen() {
 
   const data = query.data;
   const open = data?.view.status === 'open';
+  const past = ym < currentYearMonth();
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col md:max-w-2xl">
@@ -71,19 +75,31 @@ export function MonthScreen() {
               onSpendFund={setFundId}
             />
             {open ? (
-              <Button
-                variant="link"
-                className="mt-2 min-h-11 px-0 text-[15px] text-tinta"
-                onClick={() => {
-                  setAddMode('expense');
-                  setAddOpen(true);
-                }}
-              >
-                <Plus className="size-[18px]" aria-hidden />
-                Añadir
-              </Button>
+              <div className="mt-2 flex flex-wrap items-center gap-x-6">
+                <Button
+                  variant="link"
+                  className="min-h-11 px-0 text-[15px] text-tinta"
+                  onClick={() => {
+                    setAddMode('expense');
+                    setAddOpen(true);
+                  }}
+                >
+                  <Plus className="size-[18px]" aria-hidden />
+                  Añadir
+                </Button>
+                {past && (
+                  <Button variant="link" className="min-h-11 px-0 text-[15px] text-tinta" onClick={() => status.mutate('closed')}>
+                    Cerrar mes
+                  </Button>
+                )}
+              </div>
             ) : (
-              <p className="mt-4 text-[13px] text-ink-muted">Mes cerrado: solo lectura.</p>
+              <div className="mt-4 flex flex-wrap items-center gap-x-4">
+                <p className="text-[13px] text-ink-muted">Mes cerrado: solo lectura.</p>
+                <Button variant="link" className="min-h-11 px-0 text-[15px] text-tinta" onClick={() => status.mutate('open')}>
+                  Reabrir mes
+                </Button>
+              </div>
             )}
           </main>
           <AvailableBar view={data.view} onEditSplit={() => setSplitOpen(true)} />
