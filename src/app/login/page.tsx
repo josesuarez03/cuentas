@@ -7,7 +7,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <main className="grid min-h-dvh place-items-center p-6">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-[22px] leading-7 font-semibold tracking-[-0.01em]">Cuentas</CardTitle>
+          <CardTitle>
+            <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.01em]">Cuentas</h1>
+          </CardTitle>
           <CardDescription className="text-[15px] text-ink-muted">Tu mes, como una cuenta.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { isAllowedEmail } from './allowlist';
 import { guardNewUser } from './auth-guard';
 
@@ -17,9 +17,16 @@ describe('isAllowedEmail', () => {
 });
 
 describe('guardNewUser', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
   it('bloquea el alta de emails fuera de la lista', async () => {
-    process.env.ALLOWED_EMAILS = LIST;
+    vi.stubEnv('ALLOWED_EMAILS', LIST);
     await expect(guardNewUser({ email: 'otro@example.com' })).rejects.toThrow('Este email no tiene acceso.');
     await expect(guardNewUser({ email: 'jose@example.com' })).resolves.toEqual({ data: { email: 'jose@example.com' } });
+  });
+
+  it('el error lleva código para que el callback de OAuth vuelva a /login', async () => {
+    vi.stubEnv('ALLOWED_EMAILS', LIST);
+    await expect(guardNewUser({ email: 'otro@example.com' })).rejects.toMatchObject({ body: { code: 'email_no_permitido' } });
   });
 });
