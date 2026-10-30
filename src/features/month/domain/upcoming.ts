@@ -1,4 +1,4 @@
-import type { YearMonth } from '@/lib/year-month';
+import { startOfMonth, type YearMonth } from '@/lib/year-month';
 import { generateEntries, type TemplateItem } from './generation';
 
 export interface UpcomingItem { id: string; name: string; note: string; signedCents: number }
@@ -23,4 +23,9 @@ export function upcomingFor(
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'es'));
   return { yearMonth: ym, items: rows, totalCents: rows.reduce((acc, r) => acc + r.signedCents, 0) };
+}
+
+/** ¿El día 1 de `ym` queda a ≤ `days` días de `now`? Decide si se avisa de cargos de dentro de dos meses. */
+export function monthStartsWithin(ym: YearMonth, days: number, now: Date = new Date()): boolean {
+  return startOfMonth(ym).getTime() - now.getTime() <= days * 86_400_000;
 }

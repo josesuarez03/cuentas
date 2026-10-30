@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { TemplateItem } from './generation';
-import { upcomingFor } from './upcoming';
+import { monthStartsWithin, upcomingFor } from './upcoming';
 
 const item = (over: Partial<TemplateItem>): TemplateItem => ({
   id: 'i1', name: 'X', kind: 'expense', categoryId: 'c', accountId: 'a', amountCents: 1000,
@@ -44,5 +44,13 @@ describe('upcomingFor', () => {
     expect(upcomingFor([extra], new Map(), '2026-12').items).toEqual([
       { id: 'extra', name: 'Paga extra', note: 'anual', signedCents: 50000 },
     ]);
+  });
+});
+
+describe('monthStartsWithin', () => {
+  it('el día 1 del mes está a ≤ N días', () => {
+    const now = new Date('2026-10-30T12:00:00Z');
+    expect(monthStartsWithin('2026-12', 60, now)).toBe(true);   // 1 dic: 32 días
+    expect(monthStartsWithin('2027-01', 60, now)).toBe(false);  // 1 ene: 63 días
   });
 });
