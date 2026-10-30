@@ -44,3 +44,6 @@ next-env.d.ts
 # Python
 __pycache__/
 *.pyc
+
+# Worktrees de agentes
+.claude/worktrees/
