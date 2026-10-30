@@ -91,7 +91,7 @@ src/
 - Consumes: —
 - Produces: `formatWeekdayDay(now?: Date, timeZone?: string): string` (`'viernes 30'`), `formatMonthNameOnly(ym: YearMonth): string` (`'diciembre'`, minúscula, sin año)
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 En `src/lib/year-month.test.ts`, añade `formatMonthNameOnly, formatWeekdayDay` al import y estos casos dentro del `describe('year-month')`:
 
@@ -107,12 +107,12 @@ En `src/lib/year-month.test.ts`, añade `formatMonthNameOnly, formatWeekdayDay` 
   });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/lib/year-month.test.ts`
 Expected: FAIL — `formatWeekdayDay is not a function` (o error de import).
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 Al final de `src/lib/year-month.ts`:
 
@@ -129,12 +129,12 @@ export function formatMonthNameOnly(ym: YearMonth): string {
 
 (`monthName` ya existe en el archivo y usa `timeZone: 'UTC'`.)
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run src/lib/year-month.test.ts`
 Expected: PASS (todos).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/year-month.ts src/lib/year-month.test.ts && git commit -m "feat: día de la semana en Madrid y nombre corto del mes"
@@ -152,7 +152,7 @@ git add src/lib/year-month.ts src/lib/year-month.test.ts && git commit -m "feat:
 - Consumes: `MonthView`, `MonthViewBase`, `PocketView` (plan 1)
 - Produces: `isMonthEmpty(view: MonthViewBase): boolean`, `withIncomeConfirmed(view: MonthView, entryId: string): MonthView`, `interface PocketProgress { pct: number; over: boolean; restCents: number }`, `pocketProgress(p: { limitCents: number; spentCents: number }): PocketProgress`; `useMonthStore` pasa a `{ ym, shift(n), reset() }`
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 En `src/features/month/domain/month-view.test.ts`, cambia el import a:
 
@@ -219,12 +219,12 @@ describe('useMonthStore', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/month/domain/month-view.test.ts src/features/month/store/month-store.test.ts`
 Expected: FAIL — `isMonthEmpty`/`withIncomeConfirmed`/`pocketProgress` no exportados; `reset is not a function`.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 Al final de `src/features/month/domain/month-view.ts`:
 
@@ -282,12 +282,12 @@ export const useMonthStore = create<MonthState>()((set) => ({
 }));
 ```
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/features/month`
 Expected: PASS (incluidos los tests previos de `month-view`).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/domain/month-view.ts src/features/month/domain/month-view.test.ts src/features/month/components/category-list.tsx src/features/month/store && git commit -m "feat: mes vacío, confirmar ingreso optimista, progreso de bolsa y volver al mes actual"
@@ -306,7 +306,7 @@ git add src/features/month/domain/month-view.ts src/features/month/domain/month-
 - Consumes: `generateEntries`, `TemplateItem` (plan 1, `domain/generation.ts`); `ensureMonth`; `addMonths`, `currentYearMonth`
 - Produces: `interface UpcomingItem { id: string; name: string; note: string; signedCents: number }`, `interface Upcoming { yearMonth: YearMonth; items: UpcomingItem[]; totalCents: number }`, `upcomingFor(items: TemplateItem[], lastAmounts: ReadonlyMap<string, number>, ym: YearMonth): Upcoming`, `getUpcoming(db: Db, userId: string, ym: YearMonth): Promise<Upcoming>`, `export async function lastAmounts(db, userId, ym): Promise<Map<string, number>>`; `GET /api/months/[ym]` → `200 { view; catalog; upcoming: Upcoming | null }` (`upcoming` del mes siguiente solo si `ym` es el actual); `type MonthResponse = { view: MonthView; catalog: Catalog; upcoming: Upcoming | null }`
 
-- [ ] **Step 1: Test puro que falla**
+- [x] **Step 1: Test puro que falla**
 
 `src/features/month/domain/upcoming.test.ts`:
 
@@ -361,12 +361,12 @@ describe('upcomingFor', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/features/month/domain/upcoming.test.ts`
 Expected: FAIL — no se encuentra `./upcoming`.
 
-- [ ] **Step 3: Implementación pura**
+- [x] **Step 3: Implementación pura**
 
 `src/features/month/domain/upcoming.ts`:
 
@@ -399,12 +399,12 @@ export function upcomingFor(
 }
 ```
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run src/features/month/domain/upcoming.test.ts`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Test de servidor que falla**
+- [x] **Step 5: Test de servidor que falla**
 
 `src/features/month/server/upcoming.test.ts`:
 
@@ -446,12 +446,12 @@ describe('getUpcoming', () => {
 });
 ```
 
-- [ ] **Step 6: Ver que falla**
+- [x] **Step 6: Ver que falla**
 
 Run: `pnpm vitest run src/features/month/server/upcoming.test.ts`
 Expected: FAIL — no se encuentra `./upcoming`.
 
-- [ ] **Step 7: Implementación de servidor y ruta**
+- [x] **Step 7: Implementación de servidor y ruta**
 
 En `src/features/month/server/months.ts`, cambia `async function lastAmounts(` por `export async function lastAmounts(` (sin más cambios).
 
@@ -485,12 +485,12 @@ En `src/features/month/hooks/use-month.ts`, añade `import type { Upcoming } fro
 export type MonthResponse = { view: MonthView; catalog: Catalog; upcoming: Upcoming | null };
 ```
 
-- [ ] **Step 8: Ver que pasa y que compila**
+- [x] **Step 8: Ver que pasa y que compila**
 
 Run: `pnpm vitest run src/features/month && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/features/month/domain/upcoming.ts src/features/month/domain/upcoming.test.ts src/features/month/server/upcoming.ts src/features/month/server/upcoming.test.ts src/features/month/server/months.ts src/features/month/hooks/use-month.ts "src/app/api/months/[ym]/route.ts" && git commit -m "feat: partidas no mensuales del mes siguiente en la API del mes"
@@ -508,7 +508,7 @@ git add src/features/month/domain/upcoming.ts src/features/month/domain/upcoming
 - Consumes: `NotFoundError`, `ClosedMonthError` (plan 1); `withIncomeConfirmed` (Task 2); `MonthResponse` (Task 3)
 - Produces: `confirmIncome(db: Db, userId: string, entryId: string): Promise<void>` (idempotente; `NotFoundError` si no es un ingreso del usuario; `ClosedMonthError` si el mes está cerrado); `confirmIncomeAction(entryId: string): Promise<ActionResult>`; `useConfirmIncome(ym: string)` → mutación TanStack con `mutate(entryId: string)`; `useUpdateAmount(ym)` mantiene su firma `mutate({ entryId, amountCents })`
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 En `src/features/month/server/entries.test.ts`, añade `confirmIncome` al import de `./entries` y, tras el helper `gasEntry`:
 
@@ -547,12 +547,12 @@ describe('confirmIncome', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/month/server/entries.test.ts`
 Expected: FAIL — `confirmIncome` no exportado.
 
-- [ ] **Step 3: Implementación de servidor**
+- [x] **Step 3: Implementación de servidor**
 
 En `src/features/month/server/entries.ts`, tras `updateEntryAmount`:
 
@@ -568,12 +568,12 @@ export async function confirmIncome(db: Db, userId: string, entryId: string): Pr
 }
 ```
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/features/month/server/entries.test.ts`
 Expected: PASS (los nuevos y los previos).
 
-- [ ] **Step 5: Server Action**
+- [x] **Step 5: Server Action**
 
 En `src/features/month/server/actions.ts`, añade `confirmIncome` al import de `@/features/month/server/entries` y al final:
 
@@ -591,7 +591,7 @@ export async function confirmIncomeAction(entryId: string): Promise<ActionResult
 }
 ```
 
-- [ ] **Step 6: Hook con actualización optimista (mutación común)**
+- [x] **Step 6: Hook con actualización optimista (mutación común)**
 
 `src/features/month/hooks/use-month.ts` completo (mantiene `fetchMonth`, `useMonth`, `MonthFetchError` y el comportamiento de `useUpdateAmount`; la lógica optimista + toast «Reintentar» pasa a `useMonthMutation`):
 
@@ -687,12 +687,12 @@ export function useConfirmIncome(ym: string) {
 }
 ```
 
-- [ ] **Step 7: Verificar tipos y tests**
+- [x] **Step 7: Verificar tipos y tests**
 
 Run: `pnpm tsc --noEmit && pnpm test`
 Expected: sin errores de tipos; todos los tests PASS (incluido `amount-editor.test.tsx`).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/features/month/server/entries.ts src/features/month/server/entries.test.ts src/features/month/server/actions.ts src/features/month/hooks/use-month.ts && git commit -m "feat: confirmar ingreso pendiente con actualización optimista"
@@ -711,7 +711,7 @@ git add src/features/month/server/entries.ts src/features/month/server/entries.t
 - Consumes: `cn` (`@/lib/utils`)
 - Produces: `AppNav()` (client), `isActive(pathname: string, href: string): boolean`; variable CSS `--app-nav-h` (alto de la barra inferior; `0px` en ≥ md); el contenedor del layout ya reserva ese hueco (`pb-(--app-nav-h)`) y el raíl (`md:pl-60`). Cada pantalla pone su propio ancho máximo (`mx-auto w-full max-w-…`).
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 `src/shared/components/app-nav.test.tsx`:
 
@@ -747,12 +747,12 @@ describe('AppNav', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/shared/components/app-nav.test.tsx`
 Expected: FAIL — no se encuentra `./app-nav`.
 
-- [ ] **Step 3: Implementación de `AppNav`**
+- [x] **Step 3: Implementación de `AppNav`**
 
 `src/shared/components/app-nav.tsx`:
 
@@ -812,12 +812,12 @@ export function AppNav() {
 }
 ```
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run src/shared/components/app-nav.test.tsx`
 Expected: PASS (2 tests).
 
-- [ ] **Step 5: Hueco de la barra, área segura y layout**
+- [x] **Step 5: Hueco de la barra, área segura y layout**
 
 En `src/app/globals.css`, justo después del bloque `@media (prefers-color-scheme: dark) { … }` (no es un color: es medida de layout):
 
@@ -858,7 +858,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 }
 ```
 
-- [ ] **Step 6: Mes encaja con la navegación**
+- [x] **Step 6: Mes encaja con la navegación**
 
 `src/features/month/components/available-bar.tsx`: la clase de `<section>` pasa a (se pega encima de la barra inferior en móvil y al fondo de la columna en escritorio; en móvil el área segura ya la cubre `AppNav`):
 
@@ -868,12 +868,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
 `src/features/month/components/month-screen.tsx`: el `<>` / `</>` exterior del `return` se sustituye por `<div className="mx-auto flex w-full max-w-xl flex-1 flex-col md:max-w-2xl">` / `</div>`, y `<main className="flex-1 px-4 pb-4">` pasa a `<main className="flex-1 px-4 pb-4 md:px-6">`. (El estado vacío llega en la Task 7.)
 
-- [ ] **Step 7: Verificar**
+- [x] **Step 7: Verificar**
 
 Run: `pnpm tsc --noEmit && pnpm test && pnpm build`
 Expected: todo OK. Con `pnpm dev`, a 390 px en `/mes`: la barra «Disponible para ahorrar» queda justo encima de la navegación al hacer scroll, sin taparse; a 1280 px el raíl está a la izquierda y la barra del disponible ocupa solo la columna de contenido.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/shared/components/app-nav.tsx src/shared/components/app-nav.test.tsx "src/app/(app)/layout.tsx" src/app/globals.css src/app/layout.tsx src/features/month/components/available-bar.tsx src/features/month/components/month-screen.tsx && git commit -m "feat: navegación inferior en móvil y raíl lateral en escritorio"
@@ -891,7 +891,7 @@ git add src/shared/components/app-nav.tsx src/shared/components/app-nav.test.tsx
 - Consumes: `Button` (shadcn, con `asChild`)
 - Produces: `EmptyState({ title: string; as?: 'h1' | 'h2'; children: React.ReactNode; action?: React.ReactNode })` (server-safe, sin hooks); `/` → `/inicio`; tras el login se entra en `/inicio`
 
-- [ ] **Step 1: `EmptyState`**
+- [x] **Step 1: `EmptyState`**
 
 `src/shared/components/empty-state.tsx`:
 
@@ -912,7 +912,7 @@ export function EmptyState({ title, as: Heading = 'h2', children, action }: {
 }
 ```
 
-- [ ] **Step 2: Patrimonio y Ajustes (sin datos inventados)**
+- [x] **Step 2: Patrimonio y Ajustes (sin datos inventados)**
 
 `src/app/(app)/patrimonio/page.tsx`:
 
@@ -945,18 +945,18 @@ export default function PatrimonioPage() {
 Aquí podrás cambiar tus recurrentes, cuentas, categorías, bolsas y huchas, y el reparto del ahorro. Aún no está disponible; mientras, tu mes sigue en Mes.
 ```
 
-- [ ] **Step 3: Entrada por Inicio**
+- [x] **Step 3: Entrada por Inicio**
 
 `src/app/page.tsx`: `redirect('/mes')` → `redirect('/inicio')`.
 
 `src/features/auth/components/login-button.tsx`: en `authClient.signIn.social({ … })`, `callbackURL: '/mes'` → `callbackURL: '/inicio'`.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `pnpm tsc --noEmit && pnpm test && pnpm build`
 Expected: OK; el build lista `/patrimonio` y `/ajustes`. (`/inicio` da 404 hasta la Task 8; no se despliega entre medias.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/shared/components/empty-state.tsx "src/app/(app)/patrimonio" "src/app/(app)/ajustes" src/app/page.tsx src/features/auth/components/login-button.tsx && git commit -m "feat: Patrimonio y Ajustes con estado vacío y entrada por Inicio"
@@ -975,7 +975,7 @@ git add src/shared/components/empty-state.tsx "src/app/(app)/patrimonio" "src/ap
 - Consumes: `isMonthEmpty` (Task 2), `EmptyState` (Task 6)
 - Produces: `useMediaQuery(query: string): boolean` (`false` en servidor), `DESKTOP_QUERY = '(min-width: 48rem)'` (igual que `md:`)
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 `src/shared/hooks/use-media-query.test.ts`:
 
@@ -1008,12 +1008,12 @@ describe('useMediaQuery', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/shared/hooks/use-media-query.test.ts`
 Expected: FAIL — no se encuentra `./use-media-query`.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 `src/shared/hooks/use-media-query.ts`:
 
@@ -1037,12 +1037,12 @@ export function useMediaQuery(query: string): boolean {
 }
 ```
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run src/shared/hooks/use-media-query.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Hoja «Añadir al mes» lateral en ≥ md**
+- [x] **Step 5: Hoja «Añadir al mes» lateral en ≥ md**
 
 En `src/features/month/components/add-entry-sheet.tsx`: añade `import { DESKTOP_QUERY, useMediaQuery } from '@/shared/hooks/use-media-query';`, dentro de `AddEntrySheet` (junto a `useState`) `const desktop = useMediaQuery(DESKTOP_QUERY);`, y la línea `<SheetContent side="bottom" className="rounded-t-[14px] shadow-sheet">` pasa a:
 
@@ -1055,7 +1055,7 @@ En `src/features/month/components/add-entry-sheet.tsx`: añade `import { DESKTOP
 
 (En `right` el propio `SheetContent` ya da `w-3/4 sm:max-w-sm` y borde izquierdo.)
 
-- [ ] **Step 6: Estado vacío de Mes**
+- [x] **Step 6: Estado vacío de Mes**
 
 `src/features/month/components/month-screen.tsx` completo (incluye el contenedor de la Task 5; la barra del disponible y el enlace «Añadir» solo existen cuando hay algo en el mes):
 
@@ -1147,12 +1147,12 @@ export function MonthScreen() {
 }
 ```
 
-- [ ] **Step 7: Verificar**
+- [x] **Step 7: Verificar**
 
 Run: `pnpm tsc --noEmit && pnpm test && pnpm build`
 Expected: OK. Con `pnpm dev` y un mes sin partidas (p. ej. un usuario sin plantilla): título «Este mes aún no tiene partidas», la frase y el botón ancho «Añadir al mes»; **no** aparece «0,00 €» ni «Elige a qué cuentas va el ahorro». A 1280 px, «Añadir» abre la hoja desde la derecha; a 390 px, desde abajo.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/shared/hooks src/features/month/components/month-screen.tsx src/features/month/components/add-entry-sheet.tsx && git commit -m "feat: estado vacío de Mes y hoja lateral en escritorio"
@@ -1170,7 +1170,7 @@ git add src/shared/hooks src/features/month/components/month-screen.tsx src/feat
 - Consumes: `useMonth`, `useConfirmIncome`, `MonthFetchError`, `MonthResponse` (Tasks 3–4); `isMonthEmpty`, `pocketProgress`, `recomputeView`, `MonthView`, `PocketView` (Task 2 / plan 1); `Upcoming` (Task 3); `useMonthStore().reset` (Task 2); `AddEntrySheet` (plan 1); `EmptyState` (Task 6); `formatMonthName`, `formatMonthNameOnly`, `formatWeekdayDay`, `currentYearMonth` (Task 1); `formatEuros`; `Card`, `Button`, `Progress`, `Skeleton` (shadcn)
 - Produces: `interface TodoItem { entryId: string; title: string; note: string; actionLabel: string }`, `todoItems(view: MonthView): TodoItem[]`, `HomeScreen()`, ruta `/inicio`
 
-- [ ] **Step 1: Test puro que falla**
+- [x] **Step 1: Test puro que falla**
 
 `src/features/home/domain/todo.test.ts`:
 
@@ -1208,12 +1208,12 @@ describe('todoItems', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/features/home/domain/todo.test.ts`
 Expected: FAIL — no se encuentra `./todo`.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 `src/features/home/domain/todo.ts`:
 
@@ -1238,12 +1238,12 @@ export function todoItems(view: MonthView): TodoItem[] {
 }
 ```
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run src/features/home/domain/todo.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Test de la tarjeta «Por hacer» que falla**
+- [x] **Step 5: Test de la tarjeta «Por hacer» que falla**
 
 `src/features/home/components/todo-card.test.tsx`:
 
@@ -1276,7 +1276,7 @@ describe('TodoCard', () => {
 Run: `pnpm vitest run src/features/home/components/todo-card.test.tsx`
 Expected: FAIL — no se encuentra `./todo-card`.
 
-- [ ] **Step 6: Tarjeta común y «Por hacer»**
+- [x] **Step 6: Tarjeta común y «Por hacer»**
 
 `src/features/home/components/home-card.tsx` (la `Card` de shadcn con los valores del prototipo: `surface`, borde `line` 1 px, radio 14 px, sin sombra):
 
@@ -1338,7 +1338,7 @@ export function TodoCard({ items, onConfirm }: { items: TodoItem[]; onConfirm: (
 Run: `pnpm vitest run src/features/home`
 Expected: PASS.
 
-- [ ] **Step 7: Bloque «Disponible para ahorrar»**
+- [x] **Step 7: Bloque «Disponible para ahorrar»**
 
 `src/features/home/components/available-summary.tsx` (sin tarjeta; mismas tres líneas que la barra de Mes; «Ver el mes» y el aviso de reparto llevan a Mes **en el mes actual**):
 
@@ -1401,7 +1401,7 @@ export function AvailableSummary({ view, onAdd, onOpenMonth }: {
 }
 ```
 
-- [ ] **Step 8: Tarjetas «Bolsas» y «En [mes siguiente], además»**
+- [x] **Step 8: Tarjetas «Bolsas» y «En [mes siguiente], además»**
 
 `src/features/home/components/pockets-card.tsx` (sin «Apuntar gasto»: los gastos de bolsa son del plan 2b):
 
@@ -1484,7 +1484,7 @@ export function UpcomingCard({ upcoming }: { upcoming: Upcoming }) {
 }
 ```
 
-- [ ] **Step 9: Esqueleto de carga**
+- [x] **Step 9: Esqueleto de carga**
 
 `src/features/home/components/home-skeleton.tsx`:
 
@@ -1505,7 +1505,7 @@ export function HomeSkeleton() {
 }
 ```
 
-- [ ] **Step 10: Composición, rejilla de escritorio y ruta**
+- [x] **Step 10: Composición, rejilla de escritorio y ruta**
 
 `src/features/home/components/home-screen.tsx` (orden de la spec 7: Disponible → Por hacer → Bolsas → En [mes siguiente]; Patrimonio no se pinta. En `lg` dos columnas —izquierda Disponible + Por hacer, derecha Bolsas + próximo mes— solo si la derecha tiene algo):
 
@@ -1613,12 +1613,12 @@ export default function InicioPage() {
 }
 ```
 
-- [ ] **Step 11: Verificar**
+- [x] **Step 11: Verificar**
 
 Run: `pnpm tsc --noEmit && pnpm test && pnpm build`
 Expected: OK; el build lista `/inicio`. Con `pnpm dev` y los datos de la siembra: cabecera «Octubre 2026 · viernes 30» (día real de Madrid), disponible con doble raya, desglose con signos, «Al ahorro: …», «Por hacer · 1» con «Nómina pendiente»; al tocar «Confirmar» la fila desaparece al instante y no vuelve tras recargar; en Mes la nómina ya no dice «Pendiente». «Bolsas» y «En noviembre, además» solo si hay datos.
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 
 ```bash
 git add src/features/home "src/app/(app)/inicio" && git commit -m "feat: pantalla Inicio con disponible, por hacer, bolsas y mes siguiente"
@@ -1635,13 +1635,13 @@ git add src/features/home "src/app/(app)/inicio" && git commit -m "feat: pantall
 - Consumes: todo lo anterior
 - Produces: —
 
-- [ ] **Step 1: Plan en curso**
+- [x] **Step 1: Plan en curso**
 
 En `CLAUDE.md`:
 - `- Plan en curso: \`docs/superpowers/plans/2026-10-30-plan-1-base-nucleo-mes.md\`` → `- Plan en curso: \`docs/superpowers/plans/2026-10-30-plan-2a-navegacion-inicio.md\` (el plan 1 está terminado)`
 - `- No empieces el plan 2 ni añadas funciones fuera del plan 1 (YAGNI).` → `- No empieces el plan 2b ni añadas funciones fuera del plan 2a (YAGNI).` (el resto de la línea igual)
 
-- [ ] **Step 2: Verificación automática**
+- [x] **Step 2: Verificación automática**
 
 Run: `pnpm tsc --noEmit && pnpm test && pnpm build`
 Expected: sin errores de tipos; todos los tests PASS; build OK con las rutas `/`, `/inicio`, `/mes`, `/patrimonio`, `/ajustes`, `/login`, `/api/months/[ym]`.
