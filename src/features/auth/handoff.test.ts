@@ -64,6 +64,13 @@ describe('/api/entrar/vincular', () => {
     expect(res.status).toBe(401);
   });
 
+  it('con una sesión antigua (no recién creada al entrar con Google) → 401: un enlace ajeno no roba la sesión', async () => {
+    await db.update(s.session).set({ createdAt: new Date(Date.now() - 10 * 60 * 1000) });
+    const res = await post(vincular, { h: H }, anaCookie);
+    expect(res.status).toBe(401);
+    expect(await db.select().from(s.verification).where(eq(s.verification.identifier, `kuadrix-handoff:${hex(H)}`))).toEqual([]);
+  });
+
   it('código ausente, corto, largo, con caracteres raros o cuerpo no JSON → 400', async () => {
     for (const body of [{}, { h: 'abc' }, { h: H + 'a' }, { h: H.slice(0, 42) + '=' }, { h: 42 }, 'no-json']) {
       const res = await post(vincular, body, anaCookie);
