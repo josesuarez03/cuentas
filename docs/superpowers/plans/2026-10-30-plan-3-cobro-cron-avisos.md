@@ -173,7 +173,7 @@ src/
   - `s.notificationsLog { id: uuid, userId: text → user (cascade), kind: text, refKey: text único, sentAt: timestamp default now }`.
   - `s.months.reopenedAt: Date | null` (`timestamp('reopened_at')`, nullable).
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 En `src/db/schema.test.ts`, añade:
 
@@ -200,24 +200,24 @@ it('suscripciones push, registro de avisos con ref_key único y meses reabiertos
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run src/db/schema.test.ts`
 Expected: FAIL — `s.pushSubscriptions` no existe.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 En `schema.ts`, tras `userSettings`, añade las dos tablas con los campos de «Produces» (`unique()` en `endpoint` y `refKey`; `index('push_subscriptions_user').on(t.userId)`); en `months`, `reopenedAt: timestamp('reopened_at'),` tras `status`.
 
 Run: `pnpm db:generate`
 Expected: crea `drizzle/0002_*.sql` con `CREATE TABLE "push_subscriptions"`, `CREATE TABLE "notifications_log"` y `ALTER TABLE "months" ADD COLUMN "reopened_at" timestamp`. Ningún `DROP`.
 
-- [ ] **Step 4: Ver que pasa**
+- [x] **Step 4: Ver que pasa**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS (los tests con PGlite migran `0002` solos); sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/db/schema.ts src/db/schema.test.ts drizzle && git commit -m "feat: tablas de suscripciones push y registro de avisos; meses reabiertos"
@@ -237,12 +237,12 @@ git add src/db/schema.ts src/db/schema.test.ts drizzle && git commit -m "feat: t
   - `iso-date.ts`: `type IsoDate = string` (`'YYYY-MM-DD'`); `todayIso(now?: Date, timeZone?: string): IsoDate` (por defecto `new Date()`, `'Europe/Madrid'`); `addDays(d: IsoDate, n: number): IsoDate`; `daysBetween(from: IsoDate, to: IsoDate): number` (`to − from` en días); `formatIsoWeekdayDay(d: IsoDate): string` (`'jueves 24'`).
   - `payday.ts`: `type PaydayRule = 'before' | 'after'`; `isHoliday(d: IsoDate, region: string): boolean`; `paydayDate(ym: YearMonth, day: number, rule?: PaydayRule, region?: string): IsoDate` (por defecto `'before'`, `'ES-MD'`).
 
-- [ ] **Step 1: Instalar dependencias**
+- [x] **Step 1: Instalar dependencias**
 
 Run: `pnpm add date-holidays@^3.38.0 resend@^6.35.0 web-push@^3.6.7 && pnpm add -D @types/web-push@^3.6.4`
 Expected: `package.json` y `pnpm-lock.yaml` cambian; `pnpm tsc --noEmit` sigue sin errores.
 
-- [ ] **Step 2: Tests que fallan**
+- [x] **Step 2: Tests que fallan**
 
 `src/lib/iso-date.test.ts`:
 
@@ -324,12 +324,12 @@ describe('isHoliday', () => {
 });
 ```
 
-- [ ] **Step 3: Ver que fallan**
+- [x] **Step 3: Ver que fallan**
 
 Run: `pnpm vitest run src/lib/iso-date.test.ts src/lib/payday.test.ts`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 4: Implementación**
+- [x] **Step 4: Implementación**
 
 `iso-date.ts`: `todayIso` con `Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' })` (da `YYYY-MM-DD`); `addDays`/`daysBetween` operando en UTC puro (`Date.UTC(y, m - 1, d)`, diferencia `/ 86_400_000` redondeada); `formatIsoWeekdayDay` con `Intl.DateTimeFormat('es-ES', { timeZone: 'UTC', weekday: 'long', day: 'numeric' })` sobre `Date.UTC(...)`.
 
@@ -376,12 +376,12 @@ export function paydayDate(ym: YearMonth, day: number, rule: PaydayRule = 'befor
 }
 ```
 
-- [ ] **Step 5: Ver que pasan**
+- [x] **Step 5: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json pnpm-lock.yaml src/lib/iso-date.ts src/lib/iso-date.test.ts src/lib/payday.ts src/lib/payday.test.ts && git commit -m "feat: día de cobro con fines de semana y festivos de Madrid"
@@ -398,7 +398,7 @@ git add package.json pnpm-lock.yaml src/lib/iso-date.ts src/lib/iso-date.test.ts
 - Consumes: `s.recurringItems.paydayRule` (enum `before`/`after`, default `before`, plan 1).
 - Produces: `RecurringInput.paydayRule: 'before' | 'after'` (en el esquema Zod con `.default('before')`); `SettingsRecurring.paydayRule: 'before' | 'after'`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `recurring-schema.test.ts`, añade:
 
@@ -432,12 +432,12 @@ it('guarda la regla de cobro en ingresos y la ignora en gastos', async () => {
 
 (importa `getSettings` de `./settings` si no está).
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/settings`
 Expected: FAIL — `paydayRule` no existe.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `recurring-schema.ts`: `paydayRule: z.enum(['before', 'after']).default('before'),` tras `paydayDay`.
 - `types.ts`: `SettingsRecurring` gana `paydayRule: 'before' | 'after'`.
@@ -447,12 +447,12 @@ Expected: FAIL — `paydayRule` no existe.
 - `recurring-form-dialog.tsx`: `FormValues.paydayRule: 'before' | 'after'` (default `item?.paydayRule ?? 'before'`), `toInput` lo pasa (`v.kind === 'income' ? v.paydayRule : 'before'`), `FIELD_OF_PATH.paydayRule = 'paydayRule'`. Dentro del bloque `kind === 'income'`, bajo «Día de cobro (opcional)», un `SelectField` (de `@/features/month/components/form-fields`) con etiqueta «Si cae en fin de semana o festivo» y opciones `before` → «Se cobra el día hábil anterior», `after` → «Se cobra el día hábil siguiente».
 - Si `pnpm tsc --noEmit` señala otros literales de `SettingsRecurring`/`RecurringInput` en tests de `settings`, añade `paydayRule: 'before'`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/settings && git commit -m "feat: regla de día de cobro (antes o después) en recurrentes"
@@ -474,7 +474,7 @@ git add src/features/settings && git commit -m "feat: regla de día de cobro (an
   - `pendingPaydays(db: Db, userId: string, ym: YearMonth, region: string): Promise<PendingPayday[]>` — ingresos `pending` del mes `ym` **abierto** del usuario cuya partida recurrente tiene `paydayDay`; ordenados por `paydayDate`.
   - `EntryView.paydayDate?: IsoDate | null` — `getMonthView` lo rellena solo en ingresos pendientes de un mes abierto (`null` si su partida no tiene día de cobro); el resto de entradas no lleva la clave.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `payday.test.ts`:
 
@@ -537,24 +537,24 @@ it('los ingresos pendientes traen su día de cobro; el resto no', async () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/month/server`
 Expected: FAIL — `./payday` inexistente y `paydayDate` `undefined`.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `month-view.ts`: `EntryView` gana `paydayDate?: IsoDate | null;` (importa el tipo de `@/lib/iso-date`).
 - `payday.ts`: `getUserCalendar` con un `select` de `timezone`, `holidayRegion`. `pendingPaydays`: `select` de `entries` ⋈ `months` (usuario, `yearMonth = ym`, `status = 'open'`) ⋈ `recurringItems` (`isNotNull(paydayDay)`), con `entries.kind = 'income'` y `entries.status = 'pending'`; mapea con `paydayDate(ym, paydayDay, paydayRule, region)` y ordena por fecha.
 - `months.ts` `getMonthView`: si `month.status === 'open'`, `const { holidayRegion } = await getUserCalendar(db, userId)` y `const paydays = new Map((await pendingPaydays(db, userId, ym, holidayRegion)).map((p) => [p.entryId, p.paydayDate]))`; al construir cada `EntryView`, si `r.kind === 'income' && r.status === 'pending'` añade `paydayDate: paydays.get(r.id) ?? null`.
 - Si algún test existente de `months.test.ts` compara entradas enteras con `toEqual`, añade ahí la clave.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/server/payday.ts src/features/month/server/payday.test.ts src/features/month/server/months.ts src/features/month/server/months.test.ts src/features/month/domain/month-view.ts && git commit -m "feat: día de cobro previsto de los ingresos pendientes del mes"
@@ -576,7 +576,7 @@ git add src/features/month/server/payday.ts src/features/month/server/payday.tes
   - `reopenMonthAction(ym: string): Promise<ActionResult>`, `closeMonthAction(ym: string): Promise<ActionResult>` (`lifecycle-actions.ts`, `'use server'`).
   - `useSetMonthStatus(ym: string)` → mutación con `vars: 'open' | 'closed'`, optimista con `recomputeView({ ...view, status })`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `lifecycle.test.ts`:
 
@@ -661,12 +661,12 @@ describe('reabrir y cerrar a mano', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/month/server/lifecycle.test.ts`
 Expected: FAIL — `./lifecycle` inexistente.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `lifecycle.ts`: `rollMonth` = `db.transaction(async (tx) => { const existed = await findMonth(tx, userId, current); await ensureMonth(tx, userId, current); const rows = await tx.update(s.months).set({ status: 'closed' }).where(and(eq(userId), lt(yearMonth, current), eq(status, 'open'), isNull(reopenedAt))).returning({ ym: s.months.yearMonth }); return { created: !existed, closed: rows.map((r) => r.ym) }; })` (la transacción anidada de `ensureMonth` es un savepoint). `reopenMonth`/`closeMonth`: `RangeError` si `ym >= current`, luego `update … where userId and yearMonth … returning`; sin filas → `NotFoundError`.
 - `lifecycle-actions.ts`: `requireUser()`, `isYearMonth(ym)` (si no, `{ ok: false, error: 'Mes no válido.' }`), llamada, `toResult`.
@@ -674,12 +674,12 @@ Expected: FAIL — `./lifecycle` inexistente.
 - `month-screen.tsx`: `const status = useSetMonthStatus(ym)`; `const past = ym < currentYearMonth()`. Donde hoy está `<p>Mes cerrado: solo lectura.</p>`, deja ese texto y a su lado un `Button variant="link"` «Reabrir mes» (`min-h-11`, `onClick={() => status.mutate('open')}`). Si el mes está abierto y `past`, junto a «Añadir» un `Button variant="link"` «Cerrar mes» (`status.mutate('closed')`).
 - `route.ts`: sustituye `if (ym === current) await ensureMonth(db, user.id, ym);` por `if (ym === current) await rollMonth(db, user.id, current);` (importa de `lifecycle`; quita el import de `ensureMonth` si ya no se usa).
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/server/lifecycle.ts src/features/month/server/lifecycle.test.ts src/features/month/server/lifecycle-actions.ts src/features/month/hooks/use-month-status.ts src/features/month/components/month-screen.tsx "src/app/api/months/[ym]/route.ts" && git commit -m "feat: abrir el mes nuevo, cerrar el anterior y reabrir a mano"
@@ -702,7 +702,7 @@ git add src/features/month/server/lifecycle.ts src/features/month/server/lifecyc
   - `ConfirmIncomeDialog({ entry, open, onOpenChange, onConfirm, returnFocusTo }: { entry: { id: string; name: string; amountCents: number } | null; open: boolean; onOpenChange: (open: boolean) => void; onConfirm: (amountCents: number) => void; returnFocusTo?: () => HTMLElement | null })`.
   - `TodoItem` de ingreso con `doneText: null` (el anuncio pasa al toast tras confirmar).
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `entries.test.ts`, en el `describe` de `confirmIncome`:
 
@@ -771,12 +771,12 @@ it('importe vacío, cero o no numérico: muestra el error y no confirma', async 
 
 `todo.test.ts`: en el primer test, el elemento `income:e1` pasa a `doneText: null`.
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/month src/features/home`
 Expected: FAIL — `confirmIncome` ignora el importe, el diálogo no existe y `doneText` aún es «Nómina confirmada.».
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `entries.ts` `confirmIncome`: si llega `amountCents`, `assertAmount` y además `amountCents >= 1` (si no, `RangeError('Importe no válido')`); el `UPDATE` pone `{ status: 'confirmed', confirmedAt: new Date(), ...(amountCents !== undefined && { amountCents }) }` (el resto igual: comprobación de propiedad, mes cerrado y ya confirmado → `return`).
 - `actions.ts`: `confirmIncomeAction(entryId, amountCents?)` valida `z.object({ entryId: z.uuid(), amountCents: positiveCents.optional() })`; error → `'Ingreso no válido.'`.
@@ -785,12 +785,12 @@ Expected: FAIL — `confirmIncome` ignora el importe, el diálogo no existe y `d
 - `todo.ts`: en ingresos, `doneText: null`.
 - `home-screen.tsx`: estado `confirmFor: { id: string; name: string; amountCents: number } | null`; en `onAction` de `income`, busca la entrada (`view.categories.flatMap((c) => c.entries).find((e) => e.id === t.targetId)`) y la guarda en `confirmFor`. Renderiza `<ConfirmIncomeDialog entry={confirmFor} open={confirmFor !== null} onOpenChange={(o) => { if (!o) setConfirmFor(null); }} returnFocusTo={() => document.getElementById('inicio-disponible')} onConfirm={(c) => { confirm.mutate({ entryId: confirmFor!.id, amountCents: c }); toast.success(`${confirmFor!.name} confirmada.`); }} />` (importa `toast` de `sonner`).
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS; sin errores de tipos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/server/entries.ts src/features/month/server/entries.test.ts src/features/month/server/actions.ts src/features/month/hooks/use-month.ts src/features/month/components/confirm-income-dialog.tsx src/features/month/components/confirm-income-dialog.test.tsx src/features/home/components/home-screen.tsx src/features/home/domain/todo.ts src/features/home/domain/todo.test.ts && git commit -m "feat: confirmar la nómina con el importe real desde un diálogo"
@@ -813,7 +813,7 @@ git add src/features/month/server/entries.ts src/features/month/server/entries.t
   - `interface EmailMessage { subject: string; text: string; html: string }`, `interface PushPayload { title: string; body: string; url: string; tag: string }`
   - `paydayEmail(r: DueReminder, url: string): EmailMessage`, `paydayPush(r: DueReminder, url: string): PushPayload`
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `due.test.ts`:
 
@@ -879,21 +879,21 @@ describe('mensajes de nómina', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/notifications/domain`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 `due.ts` con `daysBetween(c.paydayDate, today)` (0 → 1, 1 → 2). `messages.ts`: `confirmUrl` quita la `/` final de `baseUrl`; textos exactos de los tests con `formatEuros(amountCents)` (sin signo) y `formatIsoWeekdayDay(paydayDate)`; `html` = los mismos párrafos en `<p>` (nombre escapado con `& < > " '`), el enlace como `<a href="{url}">Confirmar {nombre}</a>` y el pie en `<p style="color:#666;font-size:13px">`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/notifications/domain && git commit -m "feat: avisos de nómina del día y del día siguiente con sus textos"
@@ -915,7 +915,7 @@ git add src/features/notifications/domain && git commit -m "feat: avisos de nóm
   - `saveSubscription(db, userId, t: PushTarget): Promise<void>` (upsert por `endpoint`), `removeSubscription(db, userId, endpoint): Promise<number>` (filas que quedan del usuario), `listSubscriptions(db, userId): Promise<PushTarget[]>`, `deleteSubscriptionByEndpoint(db, endpoint): Promise<void>`.
   - `subscribePushAction(sub: { endpoint: string; keys: { p256dh: string; auth: string } }): Promise<ActionResult>`; `unsubscribePushAction(endpoint: string | null): Promise<ActionResult>`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `email.test.ts`:
 
@@ -1036,24 +1036,24 @@ describe('suscripciones', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/notifications/server`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `email.ts`: `import { Resend } from 'resend'`; crea el cliente dentro de `sendEmail` (lee las variables en cada llamada, así los tests pueden cambiarlas; si falta alguna, `console.warn` y `false`); `try { const { error } = await new Resend(key).emails.send({ from, to, subject, text, html }); if (error) console.error(...); return !error; } catch (e) { console.error(e); return false; }`.
 - `push.ts`: `import webpush from 'web-push'`; lee las tres variables en cada llamada; si falta alguna → `console.warn` y `'failed'`; `webpush.setVapidDetails(subject, pub, priv)`; `await webpush.sendNotification({ endpoint, keys: { p256dh, auth } }, JSON.stringify(payload), { TTL: 86_400 })` → `'sent'`; en `catch`, `statusCode` 404/410 → `'gone'`, si no → `console.error` y `'failed'`.
 - `subscriptions.ts`: `saveSubscription` con `insert … onConflictDoUpdate({ target: s.pushSubscriptions.endpoint, set: { userId, p256dh, auth } })`; `removeSubscription` borra `where userId and endpoint` y devuelve el `count` restante del usuario; `listSubscriptions` ordena por `createdAt`.
 - `actions.ts` (`'use server'`): `subscribePushAction` valida `z.object({ endpoint: z.url().startsWith('https://').max(2000), keys: z.object({ p256dh: z.string().min(1).max(200), auth: z.string().min(1).max(200) }) })` (error: `'Suscripción no válida.'`), luego `saveSubscription` + `updatePreferences(db, user.id, { pushNotifications: true })`. `unsubscribePushAction(endpoint)` valida `z.string().max(2000).nullable()`; si hay endpoint, `const left = await removeSubscription(...)`, si no `left = (await listSubscriptions(...)).length`; si `left === 0`, `updatePreferences(..., { pushNotifications: false })`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS; ningún test hace red.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/notifications/server && git commit -m "feat: envío de correo (Resend) y push (VAPID) y suscripciones push"
@@ -1079,7 +1079,7 @@ git add src/features/notifications/server && git commit -m "feat: envío de corr
   - `LoginButton({ callbackURL }: { callbackURL: string })`
   - Middleware: deja pasar `/sw.js` y `/api/cron/*`; redirige a `/login?next=<ruta+query>`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `safe-next.test.ts`:
 
@@ -1152,12 +1152,12 @@ describe('push-client', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/auth/safe-next.test.ts src/features/notifications/client`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `safe-next.ts`: devuelve `value` si empieza por `/`, no por `//` ni `/\`, y no es `/login` ni empieza por `/login?` o `/login/`; si no, `'/inicio'`.
 - `push-client.ts` (sin `'use client'`: son funciones de navegador): `subscribeThisDevice` = `requestPermission()` (≠ `'granted'` → `'denied'`) → `register('/sw.js', { scope: '/' })` → `await navigator.serviceWorker.ready` → `getSubscription() ?? subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(key) })` → `toJSON()` reducido a `{ endpoint, keys: { p256dh, auth } }`. `unsubscribeThisDevice` = `currentSubscription()`; si hay, guarda `endpoint`, `await unsubscribe()` y lo devuelve.
@@ -1199,19 +1199,19 @@ self.addEventListener('notificationclick', (event) => {
 - `login/page.tsx`: `searchParams` gana `next?: string`; `<LoginButton callbackURL={safeNext(next)} />`.
 - `login-button.tsx`: prop `callbackURL` en vez de `'/inicio'` fijo.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit && pnpm build`
 Expected: PASS; build OK.
 
-- [ ] **Step 5: Verificación manual del middleware**
+- [x] **Step 5: Verificación manual del middleware**
 
 Con `pnpm dev`, sin sesión:
 - `curl -sI http://localhost:3000/sw.js` → `200` y `content-type: application/javascript`.
 - `curl -sI "http://localhost:3000/mes/2026-12?confirmar=e1"` → `307` con `location: /login?next=%2Fmes%2F2026-12%3Fconfirmar%3De1`.
 - `curl -s http://localhost:3000/api/cron/daily` → `404` (la ruta llega en la Task 12), **no** el `401` «Inicia sesión…» del middleware.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add public/sw.js src/features/notifications/client src/features/auth/safe-next.ts src/features/auth/safe-next.test.ts src/middleware.ts src/app/login/page.tsx src/features/auth/components/login-button.tsx && git commit -m "feat: service worker para push, cliente de suscripción y login que vuelve al enlace"
@@ -1228,7 +1228,7 @@ git add public/sw.js src/features/notifications/client src/features/auth/safe-ne
 - Consumes: `EntryView.paydayDate` (Task 4), `IsoDate`, `todayIso`, `daysBetween`, `formatIsoWeekdayDay` (Task 2).
 - Produces: `todoItems(view: MonthView | null, wealth: WealthView | null, today: IsoDate): TodoItem[]`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `todo.test.ts`: todas las llamadas existentes pasan un tercer argumento `'2026-10-30'` (la nómina de `base` no tiene `paydayDate`, así que sigue saliendo con «Previsto: +1.870,00 €»). Añade:
 
@@ -1259,23 +1259,23 @@ describe('nómina con día de cobro (5.8)', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/home/domain/todo.test.ts`
 Expected: FAIL — sin filtro ni nota nueva.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 `todo.ts`: ingresos pendientes del mes abierto, filtra `e.paydayDate == null || daysBetween(today, e.paydayDate) <= 3`, ordena por `paydayDate` (los `null` al final, orden estable), nota `e.paydayDate ? \`Cobro previsto el ${formatIsoWeekdayDay(e.paydayDate)} · ${formatEuros(e.amountCents, { sign: true })}\` : \`Previsto: ${…}\``. Actualiza el comentario de cabecera con «nómina: solo si cobra hoy, ya o en ≤ 3 días».
 
 `home-screen.tsx`: `todoItems(view, wealth.data ?? null, todayIso())`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/home && git commit -m "feat: nómina en Por hacer solo cerca del día de cobro, con la fecha prevista"
@@ -1296,7 +1296,7 @@ git add src/features/home && git commit -m "feat: nómina en Por hacer solo cerc
   - `confirmTarget(view: MonthView, entryId: string): { kind: 'open'; entry: { id: string; name: string; amountCents: number } } | { kind: 'message'; text: string }`.
   - `MonthScreen({ initialYm, confirmEntryId }: { initialYm?: YearMonth; confirmEntryId?: string | null })`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `confirm-target.test.ts`:
 
@@ -1342,12 +1342,12 @@ it('goTo fija un mes concreto', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/month/domain/confirm-target.test.ts src/features/month/store`
 Expected: FAIL.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `confirm-target.ts`: busca en `view.categories.flatMap((c) => c.entries)` una entrada `kind === 'income'` con ese id; orden de comprobación: no existe → «No encuentro…»; `confirmed` → «… ya está confirmada.»; mes cerrado → «… está cerrado…»; si no, `open`.
 - `month-store.ts`: `goTo: (ym) => set({ ym })`.
@@ -1358,16 +1358,16 @@ Expected: FAIL.
   - `useEffect`: cuando `confirmEntryId && data && !handled.current` → `handled.current = true`; `const t = confirmTarget(data.view, confirmEntryId)`; `open` → `setConfirmFor(t.entry)`; `message` → `toast.info(t.text)` y `router.replace('/mes', { scroll: false })`.
   - `<ConfirmIncomeDialog entry={confirmFor} open={confirmFor !== null} onOpenChange={(o) => { if (!o) { setConfirmFor(null); router.replace('/mes', { scroll: false }); } }} onConfirm={(c) => { confirm.mutate({ entryId: confirmFor!.id, amountCents: c }); toast.success(\`${confirmFor!.name} confirmada.\`); }} />`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit && pnpm build`
 Expected: PASS; el build lista `/mes/[ym]`.
 
-- [ ] **Step 5: Verificación manual**
+- [x] **Step 5: Verificación manual**
 
 Con `pnpm dev` y la siembra: copia el id de la nómina pendiente (Mes → `/api/months/2026-10`) y abre `/mes/2026-10?confirmar=<id>` → Mes de octubre con el diálogo «Confirmar Nómina» y «1.870,00»; escribe «1.790» → la fila deja de decir «Pendiente», importe 1.790,00 €, la URL pasa a `/mes`; recargar el mismo enlace → toast «Nómina ya está confirmada.». La pestaña «Mes» de la navegación sigue marcada en `/mes/2026-10`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add "src/app/(app)/mes/[ym]/page.tsx" src/features/month/domain/confirm-target.ts src/features/month/domain/confirm-target.test.ts src/features/month/components/month-screen.tsx src/features/month/store && git commit -m "feat: enlace para confirmar la nómina desde un aviso"
@@ -1390,7 +1390,7 @@ git add "src/app/(app)/mes/[ym]/page.tsx" src/features/month/domain/confirm-targ
   - `runDaily(db: Db, now: Date, deps: { baseUrl: string; senders: Senders }): Promise<DailySummary>`
   - `GET /api/cron/daily` (Bearer `CRON_SECRET`).
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `notify.test.ts`:
 
@@ -1569,12 +1569,12 @@ describe('GET /api/cron/daily', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/notifications/server/notify.test.ts src/features/cron src/app/api/cron`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 `notify.ts`:
 
@@ -1669,18 +1669,18 @@ VAPID_PRIVATE_KEY=
 VAPID_SUBJECT=mailto:tu@email.com
 ```
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit && pnpm build`
 Expected: PASS; el build lista `/api/cron/daily` como función dinámica.
 
-- [ ] **Step 5: Verificación manual en local (con las claves de `.env.local`)**
+- [x] **Step 5: Verificación manual en local (con las claves de `.env.local`)**
 
 Con `pnpm dev`:
 - `curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/api/cron/daily` → `401`.
 - `curl -s -H "Authorization: Bearer $(grep ^CRON_SECRET= .env.local | cut -d= -f2-)" http://localhost:3000/api/cron/daily` → `200` con `{"users":…,"errors":0}`. (Para forzar un aviso real hoy, pon en Ajustes el día de cobro de la nómina en el día de hoy —laborable— y lánzalo otra vez: llega el correo desde `avisos@kuadrix.dev` (con `kuadrix.dev` «Verified» en Resend); una tercera llamada no reenvía.)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/notifications/server/notify.ts src/features/notifications/server/notify.test.ts src/features/cron "src/app/api/cron/daily" vercel.json .env.example && git commit -m "feat: cron diario que abre y cierra meses y avisa del cobro de la nómina"
@@ -1697,7 +1697,7 @@ git add src/features/notifications/server/notify.ts src/features/notifications/s
 - Consumes: `subscribePushAction`, `unsubscribePushAction` (Task 8); `pushSupport`, `currentSubscription`, `subscribeThisDevice`, `unsubscribeThisDevice` (Task 9); `useUpdatePreferences`, `settingsKey`, `runAction`, `SAVE_ERROR`.
 - Produces: `SettingsScreen({ vapidPublicKey }: { vapidPublicKey: string | null })`; `NotificationsSection({ preferences, vapidPublicKey }: { preferences: Preferences; vapidPublicKey: string | null })`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 Sustituye `notifications-section.test.tsx` por:
 
@@ -1786,23 +1786,23 @@ it('desactivar: da de baja este dispositivo', async () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/settings/components/notifications-section.test.tsx`
 Expected: FAIL — la sección aún no suscribe ni tiene el copy nuevo.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `ajustes/page.tsx`: `<SettingsScreen vapidPublicKey={process.env.VAPID_PUBLIC_KEY || null} />` (la página ya es dinámica por `requireUser()` del layout; la clave pública no es secreta).
 - `settings-screen.tsx`: recibe la prop y la pasa a `NotificationsSection`.
 - `notifications-section.tsx`: estado `support: 'unknown' | 'supported' | 'unsupported'`, `subscribed: boolean | null`, `busy`, `denied`. En `useEffect`: `setSupport(pushSupport())`; si `'supported'`, `currentSubscription().then((s) => setSubscribed(s !== null))`. El interruptor push: `checked={subscribed === true}`, `disabled={support !== 'supported' || !vapidPublicKey || busy || subscribed === null}`. Al activar: `const r = await subscribeThisDevice(vapidPublicKey)`; `'denied'` → `setDenied(true)`; si no, `await runAction(() => subscribePushAction(r))`, `setSubscribed(true)`, `qc.invalidateQueries({ queryKey: settingsKey })`. Al desactivar: `const endpoint = await unsubscribeThisDevice(); await runAction(() => unsubscribePushAction(endpoint)); setSubscribed(false);` + invalidar. Errores: `toast.error(error instanceof SaveError ? error.message : SAVE_ERROR)` y se recalcula `subscribed` con `currentSubscription()`. Textos bajo el interruptor (`text-[13px] text-ink-muted`, `pb-3`), uno solo, en este orden de prioridad: sin soporte → iPhone; sin clave → «…no están configurados todavía.»; `denied` → bloqueado (con `role="alert"`); si no → «Solo en este dispositivo…». La descripción de la sección pasa al copy fijado.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run && pnpm tsc --noEmit`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/settings/components/notifications-section.tsx src/features/settings/components/notifications-section.test.tsx src/features/settings/components/settings-screen.tsx "src/app/(app)/ajustes/page.tsx" && git commit -m "feat: activar avisos push desde Ajustes con permiso y suscripción"
@@ -1819,19 +1819,19 @@ git add src/features/settings/components/notifications-section.tsx src/features/
 - Consumes: todo lo anterior.
 - Produces: —
 
-- [ ] **Step 1: Plan en curso**
+- [x] **Step 1: Plan en curso**
 
 En `CLAUDE.md`:
 - `- Plan en curso: …plan-2b…` → `- Plan en curso: \`docs/superpowers/plans/2026-10-30-plan-3-cobro-cron-avisos.md\` (los planes 1, 2a y 2b están terminados)`
 - `- No empieces el plan 3 ni añadas funciones fuera del plan 2b (YAGNI).` → `- No empieces el plan 4 ni añadas funciones fuera del plan 3 (YAGNI).` (el resto de la línea igual)
 - Tras la línea de la tarea 14 de Vercel, añade: `- En el plan 3, lo de «Pasos que hace Jose» (dominio verificado en Resend, comprobar Vercel) lo hace Jose: pídeselo y espera.`
 
-- [ ] **Step 2: Verificación automática**
+- [x] **Step 2: Verificación automática**
 
 Run: `pnpm tsc --noEmit && pnpm test && pnpm build`
 Expected: sin errores de tipos; todos los tests PASS; build OK con, además de las rutas de 2b, `/mes/[ym]` y `/api/cron/daily`.
 
-- [ ] **Step 3: Migración (antes que el código en producción)**
+- [x] **Step 3: Migración (antes que el código en producción)**
 
 La `0002` añade `months.reopened_at`, que **todas** las lecturas de meses seleccionan: si el código llega a producción antes que la migración, Mes e Inicio fallan.
 
