@@ -25,6 +25,18 @@ describe('AmountEditor', () => {
     expect(onSave).toHaveBeenCalledWith(5550);
   });
 
+  it('Intro guarda una vez y no vuelve a abrir el editor', async () => {
+    const onSave = vi.fn();
+    render(<AmountEditor cents={5200} label="Luz" sign={-1} onSave={onSave} />);
+    await userEvent.click(screen.getByRole('button'));
+    const input = screen.getByRole('textbox');
+    await userEvent.clear(input);
+    await userEvent.type(input, '55,5{Enter}');
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('textbox')).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Editar importe de Luz' }));
+  });
+
   it('Intro seguido de blur guarda una sola vez', async () => {
     const onSave = vi.fn();
     render(<AmountEditor cents={5200} label="Luz" sign={-1} onSave={onSave} />);
