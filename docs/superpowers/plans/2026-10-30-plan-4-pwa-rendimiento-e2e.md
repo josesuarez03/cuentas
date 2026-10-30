@@ -1609,7 +1609,7 @@ jobs:
 - Local (opcional, si la memoria da): tras `pnpm e2e`, `set -a; . e2e/e2e.env; set +a; pnpm lh` → assertions de accesibilidad, buenas prácticas y CLS sin errores. Anota las puntuaciones de rendimiento.
 - Abre un PR de prueba (o `gh workflow run E2E --ref <rama>` tras el push): el job «E2E» termina en verde y deja el artefacto `informes-e2e`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add e2e/pwa.spec.ts .github/workflows/e2e.yml lighthouserc.cjs package.json .gitignore && git commit -m "test: E2E de la PWA y Lighthouse en cada PR"
