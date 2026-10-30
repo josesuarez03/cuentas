@@ -4,6 +4,7 @@ import { useForm } from '@tanstack/react-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { addOneOffEntryAction } from '@/features/month/server/actions';
+import { wealthKey } from '@/features/wealth/domain/types';
 import { SAVE_ERROR } from '@/features/month/save-error';
 import { Button } from '@/shared/components/ui/button';
 import { parseEuros } from '@/lib/money';
@@ -41,7 +42,10 @@ export function EntryForm({ ym, kind, catalog, onDone }: {
           setError(result.error);
           return;
         }
-        await qc.invalidateQueries({ queryKey: ['month', ym] });
+        await Promise.all([
+          qc.invalidateQueries({ queryKey: ['month', ym] }),
+          qc.invalidateQueries({ queryKey: wealthKey }),
+        ]);
         form.reset();
         onDone();
       } catch {

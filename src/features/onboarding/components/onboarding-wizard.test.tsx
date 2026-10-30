@@ -3,6 +3,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { completeOnboardingAction } from '@/features/onboarding/server/actions';
+import { SAVE_ERROR } from '@/features/month/save-error';
 import { OnboardingWizard } from './onboarding-wizard';
 
 const replace = vi.fn();
@@ -126,6 +127,18 @@ describe('OnboardingWizard', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
     expect(screen.getByText('Paso 2 de 3')).toBeTruthy();
     expect(screen.getByRole('alert').textContent).toBe('Escribe un día entre 1 y 31.');
+  });
+
+  it('si la acción lanza, muestra el error de guardado y rehabilita el botón', async () => {
+    vi.mocked(completeOnboardingAction).mockRejectedValueOnce(new Error('boom'));
+    render(<OnboardingWizard />);
+    await userEvent.type(screen.getByLabelText('Nombre de la cuenta'), 'BBVA');
+    await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Saltar' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Empezar' }));
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toBe(SAVE_ERROR));
+    expect((screen.getByRole('button', { name: 'Empezar' }) as HTMLButtonElement).disabled).toBe(false);
+    expect(replace).not.toHaveBeenCalled();
   });
 
   it('rechaza un saldo negativo', async () => {

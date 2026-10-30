@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { BASE_ITEMS, onboardingSchema, type OnboardingInput } from '@/features/onboarding/domain/onboarding';
 import { completeOnboardingAction } from '@/features/onboarding/server/actions';
+import { SAVE_ERROR } from '@/features/month/save-error';
 import { parseEuros } from '@/lib/money';
 import { Button } from '@/shared/components/ui/button';
 import { AccountsStep } from './accounts-step';
@@ -108,13 +109,17 @@ export function OnboardingWizard() {
       return;
     }
     setSubmitting(true);
-    const result = await completeOnboardingAction(parsed.data);
-    if (result.ok) {
-      router.replace('/inicio');
-      return;
+    try {
+      const result = await completeOnboardingAction(parsed.data);
+      if (result.ok) {
+        router.replace('/inicio');
+        return;
+      }
+      setError(result.error);
+    } catch {
+      setError(SAVE_ERROR);
     }
     setSubmitting(false);
-    setError(result.error);
   }
 
   return (

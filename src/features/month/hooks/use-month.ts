@@ -7,6 +7,7 @@ import type { ActionResult } from '@/features/month/server/action-result';
 import { withEntryAmount, withIncomeConfirmed, type MonthView } from '@/features/month/domain/month-view';
 import type { Upcoming } from '@/features/month/domain/upcoming';
 import type { Catalog } from '@/features/catalog/server/catalog';
+import { wealthKey } from '@/features/wealth/domain/types';
 import { SAVE_ERROR } from '@/features/month/save-error';
 
 export type MonthResponse = { view: MonthView; catalog: Catalog; upcoming: Upcoming | null; upcomingLater: Upcoming | null };
@@ -75,6 +76,7 @@ export function useMonthMutation<V>(
     },
     onSettled: () => Promise.all([
       qc.invalidateQueries({ queryKey: monthKey(ym) }),
+      qc.invalidateQueries({ queryKey: wealthKey }),
       ...(options.alsoInvalidate ?? []).map((queryKey) => qc.invalidateQueries({ queryKey })),
     ]),
   });
