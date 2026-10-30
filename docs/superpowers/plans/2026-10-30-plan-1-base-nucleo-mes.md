@@ -2372,7 +2372,7 @@ git add src/features/month/components/amount-editor.* && git commit -m "feat: ed
 - Consumes: `MonthView`, `withEntryAmount`, `signOf` (Task 7); `Catalog` (Task 9); actions y `ActionResult` (Task 11); `AmountEditor` (Task 12); `formatEuros`, `parseEuros`, `formatMonthName`, `currentYearMonth`, `addMonths`
 - Produces: `useMonthStore` (`{ ym, shift(n) }`), `useMonth(ym)`, `useUpdateAmount(ym)`, `MonthFetchError`, `type MonthResponse = { view: MonthView; catalog: Catalog }`, `MonthScreen`
 
-- [ ] **Step 1: Providers, store y hooks**
+- [x] **Step 1: Providers, store y hooks**
 
 `src/shared/components/providers.tsx`:
 ```tsx
@@ -2470,7 +2470,7 @@ export function useUpdateAmount(ym: string) {
 }
 ```
 
-- [ ] **Step 2: Componentes de la pantalla**
+- [x] **Step 2: Componentes de la pantalla**
 
 `src/features/month/components/month-header.tsx`:
 ```tsx
@@ -2932,7 +2932,7 @@ export function MonthSkeleton() {
 }
 ```
 
-- [ ] **Step 3: Layout protegido y página**
+- [x] **Step 3: Layout protegido y página**
 
 `src/app/(app)/layout.tsx`:
 ```tsx
@@ -3026,12 +3026,12 @@ export default function MesPage() {
 }
 ```
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `pnpm tsc --noEmit && pnpm test && pnpm build`
 Expected: sin errores; tests PASS; build OK.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src && git commit -m "feat: pantalla Mes con lista desplegable, edición y reparto"
