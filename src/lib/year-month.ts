@@ -43,3 +43,12 @@ export function formatMonthName(ym: YearMonth): string {
   const name = monthName.format(new Date(Date.UTC(y, m - 1, 1)));
   return `${name.charAt(0).toUpperCase()}${name.slice(1)} ${y}`;
 }
+
+export function formatWeekdayDay(now: Date = new Date(), timeZone = 'Europe/Madrid'): string {
+  return new Intl.DateTimeFormat('es-ES', { timeZone, weekday: 'long', day: 'numeric' }).format(now);
+}
+
+export function formatMonthNameOnly(ym: YearMonth): string {
+  const [y, m] = ym.split('-').map(Number);
+  return monthName.format(new Date(Date.UTC(y, m - 1, 1)));
+}

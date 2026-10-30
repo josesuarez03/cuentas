@@ -65,3 +65,30 @@ export function withEntryAmount(view: MonthView, entryId: string, amountCents: n
     })),
   });
 }
+
+export function isMonthEmpty(view: MonthViewBase): boolean {
+  return view.categories.length === 0 && view.pockets.length === 0 && view.funds.length === 0;
+}
+
+/** Optimista: el disponible no cambia (los pendientes ya cuentan como ingreso, 5.4). */
+export function withIncomeConfirmed(view: MonthView, entryId: string): MonthView {
+  return {
+    ...view,
+    categories: view.categories.map((c) => ({
+      ...c,
+      entries: c.entries.map((e) => (e.id === entryId && e.status === 'pending'
+        ? { ...e, status: 'confirmed' as const, note: e.note.replace(/^Pendiente · /, '') }
+        : e)),
+    })),
+  };
+}
+
+export interface PocketProgress { pct: number; over: boolean; restCents: number }
+
+export function pocketProgress(p: { limitCents: number; spentCents: number }): PocketProgress {
+  return {
+    pct: p.limitCents > 0 ? Math.min(100, Math.round((p.spentCents * 100) / p.limitCents)) : 100,
+    over: p.spentCents > p.limitCents,
+    restCents: p.limitCents - p.spentCents,
+  };
+}

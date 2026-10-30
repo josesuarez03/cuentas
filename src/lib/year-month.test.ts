@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addMonths, currentYearMonth, diffMonths, formatMonthName, isYearMonth, monthOf } from './year-month';
+import { addMonths, currentYearMonth, diffMonths, formatMonthName, formatMonthNameOnly, formatWeekdayDay, isYearMonth, monthOf } from './year-month';
 
 describe('year-month', () => {
   it('valida el formato', () => {
@@ -24,5 +24,14 @@ describe('year-month', () => {
   });
   it('nombra el mes en español', () => {
     expect(formatMonthName('2026-11')).toBe('Noviembre 2026');
+  });
+  it('escribe el día de la semana y el día en Madrid', () => {
+    expect(formatWeekdayDay(new Date('2026-10-30T12:00:00Z'))).toBe('viernes 30');
+    // 31/10/2026 23:30 UTC = domingo 1/11 00:30 en Madrid
+    expect(formatWeekdayDay(new Date('2026-10-31T23:30:00Z'))).toBe('domingo 1');
+  });
+  it('nombra solo el mes, en minúscula', () => {
+    expect(formatMonthNameOnly('2026-12')).toBe('diciembre');
+    expect(formatMonthNameOnly('2027-01')).toBe('enero');
   });
 });

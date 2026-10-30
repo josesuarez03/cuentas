@@ -1,6 +1,6 @@
 'use client';
 
-import { signOf, type CategoryGroup, type MonthView, type PocketView } from '@/features/month/domain/month-view';
+import { pocketProgress, signOf, type CategoryGroup, type MonthView, type PocketView } from '@/features/month/domain/month-view';
 import { formatEuros } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/shared/components/ui/accordion';
@@ -33,9 +33,7 @@ function categoryNote(c: CategoryGroup): { note: string; tone: 'muted' | 'aviso'
 }
 
 function PocketRow({ pocket }: { pocket: PocketView }) {
-  const over = pocket.spentCents > pocket.limitCents;
-  const pct = pocket.limitCents > 0 ? Math.min(100, Math.round((pocket.spentCents * 100) / pocket.limitCents)) : 100;
-  const rest = pocket.limitCents - pocket.spentCents;
+  const { pct, over, restCents: rest } = pocketProgress(pocket);
   return (
     <div className="flex flex-col gap-1.5 border-t border-line py-2.5">
       <div className="flex justify-between text-[15px]">
