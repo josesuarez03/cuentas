@@ -7,7 +7,8 @@ import {
   addOneOffEntry, confirmIncome, setSavingsSplit, updateEntryAmount, type NewOneOffEntry,
 } from '@/features/month/server/entries';
 import { requireUser } from '@/features/auth/session';
-import { cents, positiveCents, toResult, type ActionResult } from './action-result';
+import { cents, positiveCents } from '@/features/month/domain/amount-schema';
+import { toResult, type ActionResult } from './action-result';
 
 export async function updateEntryAmountAction(entryId: string, amountCents: number): Promise<ActionResult> {
   const user = await requireUser();

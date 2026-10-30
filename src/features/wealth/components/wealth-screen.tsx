@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAddSnapshot, useWealth, WealthFetchError } from '@/features/wealth/hooks/use-wealth';
@@ -13,7 +14,16 @@ import { Skeleton } from '@/shared/components/ui/skeleton';
 import { AccountList } from './account-list';
 import { LoansList } from './loans-list';
 import { UpdateBalanceSheet } from './update-balance-sheet';
-import { WealthChart } from './wealth-chart';
+
+const WealthChart = dynamic(() => import('./wealth-chart').then((m) => m.WealthChart), {
+  ssr: false,
+  loading: () => (
+    <section aria-hidden className="flex flex-col">
+      <p className="pb-2 text-[17px] leading-6 font-semibold">Evolución</p>
+      <Skeleton className="h-40 w-full" />
+    </section>
+  ),
+});
 
 export function WealthScreen() {
   const query = useWealth();

@@ -3,7 +3,8 @@
 import { z } from 'zod';
 import { db } from '@/db';
 import { requireUser } from '@/features/auth/session';
-import { cents, toResult, type ActionResult } from '@/features/month/server/action-result';
+import { cents } from '@/features/month/domain/amount-schema';
+import { toResult, type ActionResult } from '@/features/month/server/action-result';
 import { recurringInputSchema, type RecurringInput } from '../domain/recurring-schema';
 import {
   createFund, createPocket, createRecurring, setRecurringActive, updateFund, updatePocket, updateRecurring,

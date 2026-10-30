@@ -116,36 +116,61 @@ export async function getMonthView(db: Db, userId: string, ym: YearMonth): Promi
   const month = await findMonth(db, userId, ym);
   if (!month) return null;
 
-  const cats = await db.select().from(s.categories)
-    .where(eq(s.categories.userId, userId))
-    .orderBy(asc(s.categories.sortOrder), asc(s.categories.name));
+  const [cats, rows, pending, pocketRows, spentRows, fundRows, splitRows] = await Promise.all([
+    db.select().from(s.categories)
+      .where(eq(s.categories.userId, userId))
+      .orderBy(asc(s.categories.sortOrder), asc(s.categories.name)),
+    db.select({
+      id: s.entries.id,
+      kind: s.entries.kind,
+      name: s.entries.name,
+      amountCents: s.entries.amountCents,
+      status: s.entries.status,
+      installmentNumber: s.entries.installmentNumber,
+      categoryId: s.entries.categoryId,
+      accountName: s.bankAccounts.name,
+      frequency: s.recurringItems.frequency,
+      installmentsTotal: s.recurringItems.installmentsTotal,
+    })
+      .from(s.entries)
+      .innerJoin(s.bankAccounts, eq(s.entries.accountId, s.bankAccounts.id))
+      .leftJoin(s.recurringItems, eq(s.entries.recurringItemId, s.recurringItems.id))
+      .where(eq(s.entries.monthId, month.id))
+      .orderBy(asc(s.entries.createdAt), asc(s.entries.name)),
+    month.status === 'open'
+      ? getUserCalendar(db, userId).then(({ holidayRegion }) => pendingPaydays(db, userId, ym, holidayRegion))
+      : Promise.resolve([]),
+    db.select({ id: s.pockets.id, name: s.pockets.name, limitCents: s.monthPockets.limitCents })
+      .from(s.monthPockets).innerJoin(s.pockets, eq(s.monthPockets.pocketId, s.pockets.id))
+      .where(eq(s.monthPockets.monthId, month.id)).orderBy(asc(s.pockets.name)),
+    db.select({
+      pocketId: s.pocketExpenses.pocketId,
+      spent: sql<number>`coalesce(sum(${s.pocketExpenses.amountCents}), 0)::int`,
+    }).from(s.pocketExpenses).where(eq(s.pocketExpenses.monthId, month.id)).groupBy(s.pocketExpenses.pocketId),
+    db.select({
+      id: s.funds.id,
+      name: s.funds.name,
+      allocated: sql<number>`coalesce(sum(${s.fundMovements.amountCents}) filter (where ${s.fundMovements.monthId} = ${month.id} and ${s.fundMovements.amountCents} > 0), 0)::int`,
+      balance: sql<number>`coalesce(sum(${s.fundMovements.amountCents}), 0)::int`,
+    })
+      .from(s.funds).leftJoin(s.fundMovements, eq(s.fundMovements.fundId, s.funds.id))
+      .where(eq(s.funds.userId, userId)).groupBy(s.funds.id, s.funds.name).orderBy(asc(s.funds.name)),
+    db.select({
+      accountId: s.monthSavingsSplit.accountId,
+      accountName: s.bankAccounts.name,
+      percent: s.monthSavingsSplit.percent,
+    })
+      .from(s.monthSavingsSplit).innerJoin(s.bankAccounts, eq(s.monthSavingsSplit.accountId, s.bankAccounts.id))
+      .where(eq(s.monthSavingsSplit.monthId, month.id))
+      .orderBy(desc(s.monthSavingsSplit.percent), asc(s.bankAccounts.name)),
+  ]);
+
   const topOf = new Map(cats.map((c) => [c.id, c.parentId ?? c.id]));
   const groups = new Map<string, CategoryGroup>();
   for (const c of cats) if (!c.parentId) groups.set(c.id, { id: c.id, name: c.name, totalCents: 0, entries: [] });
 
-  const rows = await db.select({
-    id: s.entries.id,
-    kind: s.entries.kind,
-    name: s.entries.name,
-    amountCents: s.entries.amountCents,
-    status: s.entries.status,
-    installmentNumber: s.entries.installmentNumber,
-    categoryId: s.entries.categoryId,
-    accountName: s.bankAccounts.name,
-    frequency: s.recurringItems.frequency,
-    installmentsTotal: s.recurringItems.installmentsTotal,
-  })
-    .from(s.entries)
-    .innerJoin(s.bankAccounts, eq(s.entries.accountId, s.bankAccounts.id))
-    .leftJoin(s.recurringItems, eq(s.entries.recurringItemId, s.recurringItems.id))
-    .where(eq(s.entries.monthId, month.id))
-    .orderBy(asc(s.entries.createdAt), asc(s.entries.name));
-
   const paydays = new Map<string, IsoDate>();
-  if (month.status === 'open') {
-    const { holidayRegion } = await getUserCalendar(db, userId);
-    for (const p of await pendingPaydays(db, userId, ym, holidayRegion)) paydays.set(p.entryId, p.paydayDate);
-  }
+  for (const p of pending) paydays.set(p.entryId, p.paydayDate);
 
   for (const r of rows) {
     const group = groups.get(topOf.get(r.categoryId) ?? r.categoryId);
@@ -156,32 +181,7 @@ export async function getMonthView(db: Db, userId: string, ym: YearMonth): Promi
     });
   }
 
-  const pocketRows = await db.select({ id: s.pockets.id, name: s.pockets.name, limitCents: s.monthPockets.limitCents })
-    .from(s.monthPockets).innerJoin(s.pockets, eq(s.monthPockets.pocketId, s.pockets.id))
-    .where(eq(s.monthPockets.monthId, month.id)).orderBy(asc(s.pockets.name));
-  const spentRows = await db.select({
-    pocketId: s.pocketExpenses.pocketId,
-    spent: sql<number>`coalesce(sum(${s.pocketExpenses.amountCents}), 0)::int`,
-  }).from(s.pocketExpenses).where(eq(s.pocketExpenses.monthId, month.id)).groupBy(s.pocketExpenses.pocketId);
   const spentOf = new Map(spentRows.map((r) => [r.pocketId, Number(r.spent)]));
-
-  const fundRows = await db.select({
-    id: s.funds.id,
-    name: s.funds.name,
-    allocated: sql<number>`coalesce(sum(${s.fundMovements.amountCents}) filter (where ${s.fundMovements.monthId} = ${month.id} and ${s.fundMovements.amountCents} > 0), 0)::int`,
-    balance: sql<number>`coalesce(sum(${s.fundMovements.amountCents}), 0)::int`,
-  })
-    .from(s.funds).leftJoin(s.fundMovements, eq(s.fundMovements.fundId, s.funds.id))
-    .where(eq(s.funds.userId, userId)).groupBy(s.funds.id, s.funds.name).orderBy(asc(s.funds.name));
-
-  const splitRows = await db.select({
-    accountId: s.monthSavingsSplit.accountId,
-    accountName: s.bankAccounts.name,
-    percent: s.monthSavingsSplit.percent,
-  })
-    .from(s.monthSavingsSplit).innerJoin(s.bankAccounts, eq(s.monthSavingsSplit.accountId, s.bankAccounts.id))
-    .where(eq(s.monthSavingsSplit.monthId, month.id))
-    .orderBy(desc(s.monthSavingsSplit.percent), asc(s.bankAccounts.name));
 
   return recomputeView({
     yearMonth: month.yearMonth,
