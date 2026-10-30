@@ -1,11 +1,11 @@
 'use client';
 
 import { createColumnHelper, tableFeatures, useTable } from '@tanstack/react-table';
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { SaveError } from '@/features/month/hooks/use-month';
 import { SAVE_ERROR } from '@/features/month/save-error';
-import { recurringFrequencyNote, recurringNote } from '@/features/settings/domain/recurring-view';
+import { filterRecurringByName, recurringFrequencyNote, recurringNote, sortRecurringByName } from '@/features/settings/domain/recurring-view';
 import type { SettingsRecurring, SettingsView } from '@/features/settings/domain/types';
 import { useSettingsAction } from '@/features/settings/hooks/use-settings';
 import { setRecurringActiveAction } from '@/features/settings/server/templates-actions';
@@ -13,6 +13,8 @@ import { formatEuros } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { DESKTOP_QUERY, useMediaQuery } from '@/shared/hooks/use-media-query';
 import { Button } from '@/shared/components/ui/button';
+import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
 import { Switch } from '@/shared/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table';
 import { RecurringFormDialog } from './recurring-form-dialog';
@@ -91,7 +93,11 @@ const EMPTY: SettingsRecurring[] = [];
 export function RecurringSection({ settings }: { settings: SettingsView }) {
   const desktop = useMediaQuery(DESKTOP_QUERY);
   const [editing, setEditing] = useState<SettingsRecurring | 'new' | null>(null);
-  const table = useTable({ features, columns, data: settings.recurring ?? EMPTY });
+  const [query, setQuery] = useState('');
+  const all = settings.recurring ?? EMPTY;
+  const sorted = useMemo(() => sortRecurringByName(all), [all]);
+  const visible = useMemo(() => filterRecurringByName(sorted, query), [sorted, query]);
+  const table = useTable({ features, columns, data: visible });
   const rows = table.getRowModel().rows;
 
   return (
@@ -102,7 +108,26 @@ export function RecurringSection({ settings }: { settings: SettingsView }) {
       action={<Button variant="outline" className="min-h-11 text-[15px]" onClick={() => setEditing('new')}>Añadir partida</Button>}
     >
       <EditContext.Provider value={setEditing}>
-        {rows.length === 0 && <p className="py-3 text-[15px] text-ink-muted">Sin partidas recurrentes todavía.</p>}
+        {all.length === 0 && <p className="py-3 text-[15px] text-ink-muted">Sin partidas recurrentes todavía.</p>}
+        {all.length > 0 && (
+          <div className="flex flex-col gap-1.5 pt-3 pb-1">
+            <Label htmlFor="recurrentes-buscar" className="sr-only">Buscar partida</Label>
+            <Input
+              id="recurrentes-buscar"
+              type="search"
+              placeholder="Buscar…"
+              autoComplete="off"
+              enterKeyHint="search"
+              className="min-h-11 text-[15px]"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Escape') setQuery(''); }}
+            />
+          </div>
+        )}
+        {all.length > 0 && rows.length === 0 && (
+          <p role="status" className="py-3 text-[15px] text-ink-muted">Ninguna partida coincide con «{query.trim()}».</p>
+        )}
         {rows.length > 0 && desktop && (
           <Table>
             <TableHeader>

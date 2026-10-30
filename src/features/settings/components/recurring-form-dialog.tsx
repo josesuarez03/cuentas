@@ -25,6 +25,10 @@ const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
   label: formatMonthNameOnly(`2000-${String(i + 1).padStart(2, '0')}`),
 }));
 
+// iOS Safari ignora el ancho de los campos de fecha/mes y se salen por la derecha: sin apariencia nativa,
+// en bloque y con el valor alineado a la izquierda se quedan dentro.
+const MONTH_INPUT_CLASS = 'block min-h-11 w-full min-w-0 appearance-none text-left [&::-webkit-date-and-time-value]:text-left';
+
 interface FormValues {
   kind: Kind; name: string; amount: string; categoryId: string; accountId: string; frequency: Frequency;
   anchorMonth: string; installmentsTotal: string; startMonth: string; paydayDay: string;
@@ -137,119 +141,123 @@ function RecurringForm({ item, settings, onDone }: { item: SettingsRecurring | n
 
   return (
     <form
-      className="flex max-h-[70dvh] flex-col gap-4 overflow-y-auto px-0.5 py-0.5"
+      className="flex min-h-0 flex-1 flex-col"
       onSubmit={(e) => {
         e.preventDefault();
         void form.handleSubmit();
       }}
     >
-      <form.Field name="kind" listeners={{ onChange: () => form.setFieldValue('categoryId', '') }}>
-        {(field) => (
-          <div className="flex flex-col gap-1.5">
-            <Label id="recurrente-tipo">Tipo</Label>
-            <ToggleGroup
-              type="single"
-              variant="outline"
-              aria-labelledby="recurrente-tipo"
-              className="grid w-full grid-cols-2 gap-2"
-              value={field.state.value}
-              onValueChange={(v) => { if (v) field.handleChange(v as Kind); }}
-            >
-              {(['expense', 'income'] as const).map((k) => (
-                <ToggleGroupItem
-                  key={k}
-                  value={k}
-                  className={cn(
-                    'min-h-11 w-full rounded-sm text-[15px] font-medium data-[state=on]:bg-transparent',
-                    field.state.value === k ? 'border-tinta text-tinta' : 'border-line text-ink',
-                  )}
-                >
-                  {KIND_LABEL[k]}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          </div>
-        )}
-      </form.Field>
-      <form.Field name="name">{(field) => <TextField field={field} label="Nombre" />}</form.Field>
-      <form.Field name="amount">{(field) => <TextField field={field} label="Importe (€)" inputMode="decimal" />}</form.Field>
-      <form.Subscribe selector={(s) => s.values.kind}>
-        {(kind) => (
-          <form.Field name="categoryId">
-            {(field) => <SelectField field={field} label="Categoría" options={categoryOptions(kind)} emptyText="Sin categorías" />}
-          </form.Field>
-        )}
-      </form.Subscribe>
-      <form.Field name="accountId">
-        {(field) => (
-          <SelectField
-            field={field}
-            label="Cuenta"
-            options={settings.accounts.map((a) => ({ value: a.id, label: a.name }))}
-            emptyText="Sin cuentas"
-          />
-        )}
-      </form.Field>
-      <form.Field name="frequency">
-        {(field) => <SelectField field={field} label="Frecuencia" options={FREQUENCY_OPTIONS} emptyText="Sin frecuencias" />}
-      </form.Field>
-      <form.Subscribe selector={(s) => s.values.frequency}>
-        {(frequency) => (
-          <>
-            {frequency === 'annual' && (
-              <form.Field name="anchorMonth">
-                {(field) => <SelectField field={field} label="Mes de cobro" options={MONTH_OPTIONS} emptyText="Sin meses" />}
-              </form.Field>
-            )}
-            {frequency === 'installments' && (
-              <form.Field name="installmentsTotal">
-                {(field) => <TextField field={field} label="Número de cuotas" inputMode="numeric" />}
-              </form.Field>
-            )}
-          </>
-        )}
-      </form.Subscribe>
-      <form.Field name="startMonth">
-        {(field) => (
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor={field.name}>Empieza en</Label>
-            <Input
-              id={field.name}
-              type="month"
-              className="min-h-11"
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-              aria-invalid={field.state.meta.errors.length > 0}
+      <div data-testid="recurring-form-body" className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-4">
+        <form.Field name="kind" listeners={{ onChange: () => form.setFieldValue('categoryId', '') }}>
+          {(field) => (
+            <div className="flex flex-col gap-1.5">
+              <Label id="recurrente-tipo">Tipo</Label>
+              <ToggleGroup
+                type="single"
+                variant="outline"
+                aria-labelledby="recurrente-tipo"
+                className="grid w-full grid-cols-2 gap-2"
+                value={field.state.value}
+                onValueChange={(v) => { if (v) field.handleChange(v as Kind); }}
+              >
+                {(['expense', 'income'] as const).map((k) => (
+                  <ToggleGroupItem
+                    key={k}
+                    value={k}
+                    className={cn(
+                      'min-h-11 w-full rounded-sm text-[15px] font-medium data-[state=on]:bg-transparent',
+                      field.state.value === k ? 'border-tinta text-tinta' : 'border-line text-ink',
+                    )}
+                  >
+                    {KIND_LABEL[k]}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
+          )}
+        </form.Field>
+        <form.Field name="name">{(field) => <TextField field={field} label="Nombre" />}</form.Field>
+        <form.Field name="amount">{(field) => <TextField field={field} label="Importe (€)" inputMode="decimal" />}</form.Field>
+        <form.Subscribe selector={(s) => s.values.kind}>
+          {(kind) => (
+            <form.Field name="categoryId">
+              {(field) => <SelectField field={field} label="Categoría" options={categoryOptions(kind)} emptyText="Sin categorías" />}
+            </form.Field>
+          )}
+        </form.Subscribe>
+        <form.Field name="accountId">
+          {(field) => (
+            <SelectField
+              field={field}
+              label="Cuenta"
+              options={settings.accounts.map((a) => ({ value: a.id, label: a.name }))}
+              emptyText="Sin cuentas"
             />
-            <FieldError field={field} />
-          </div>
-        )}
-      </form.Field>
-      <form.Subscribe selector={(s) => s.values.kind}>
-        {(kind) => kind === 'income' && (
-          <>
-            <form.Field name="paydayDay">
-              {(field) => <TextField field={field} label="Día de cobro (opcional)" inputMode="numeric" />}
-            </form.Field>
-            <form.Field name="paydayRule">
-              {(field) => (
-                <SelectField
-                  field={field}
-                  label="Si cae en fin de semana o festivo"
-                  options={[
-                    { value: 'before', label: 'Se cobra el día hábil anterior' },
-                    { value: 'after', label: 'Se cobra el día hábil siguiente' },
-                  ]}
-                  emptyText="Sin reglas"
-                />
+          )}
+        </form.Field>
+        <form.Field name="frequency">
+          {(field) => <SelectField field={field} label="Frecuencia" options={FREQUENCY_OPTIONS} emptyText="Sin frecuencias" />}
+        </form.Field>
+        <form.Subscribe selector={(s) => s.values.frequency}>
+          {(frequency) => (
+            <>
+              {frequency === 'annual' && (
+                <form.Field name="anchorMonth">
+                  {(field) => <SelectField field={field} label="Mes de cobro" options={MONTH_OPTIONS} emptyText="Sin meses" />}
+                </form.Field>
               )}
-            </form.Field>
-          </>
-        )}
-      </form.Subscribe>
-      {error && <p role="alert" className="text-[13px] text-alerta">{error}</p>}
-      <Button type="submit" className="min-h-11" disabled={create.isPending || update.isPending}>Guardar</Button>
+              {frequency === 'installments' && (
+                <form.Field name="installmentsTotal">
+                  {(field) => <TextField field={field} label="Número de cuotas" inputMode="numeric" />}
+                </form.Field>
+              )}
+            </>
+          )}
+        </form.Subscribe>
+        <form.Field name="startMonth">
+          {(field) => (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={field.name}>Empieza en</Label>
+              <Input
+                id={field.name}
+                type="month"
+                className={MONTH_INPUT_CLASS}
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                aria-invalid={field.state.meta.errors.length > 0}
+              />
+              <FieldError field={field} />
+            </div>
+          )}
+        </form.Field>
+        <form.Subscribe selector={(s) => s.values.kind}>
+          {(kind) => kind === 'income' && (
+            <>
+              <form.Field name="paydayDay">
+                {(field) => <TextField field={field} label="Día de cobro (opcional)" inputMode="numeric" />}
+              </form.Field>
+              <form.Field name="paydayRule">
+                {(field) => (
+                  <SelectField
+                    field={field}
+                    label="Si cae en fin de semana o festivo"
+                    options={[
+                      { value: 'before', label: 'Se cobra el día hábil anterior' },
+                      { value: 'after', label: 'Se cobra el día hábil siguiente' },
+                    ]}
+                    emptyText="Sin reglas"
+                  />
+                )}
+              </form.Field>
+            </>
+          )}
+        </form.Subscribe>
+      </div>
+      <div className="flex shrink-0 flex-col gap-2 border-t border-line px-4 pt-3 pb-4">
+        {error && <p role="alert" className="text-[13px] text-alerta">{error}</p>}
+        <Button type="submit" className="min-h-11" disabled={create.isPending || update.isPending}>Guardar</Button>
+      </div>
     </form>
   );
 }
@@ -262,8 +270,8 @@ export function RecurringFormDialog({ open, onOpenChange, item, settings }: {
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent className="flex flex-col gap-0 overflow-hidden p-0">
+        <DialogHeader className="shrink-0 border-b border-line py-4 pr-12 pl-4">
           <DialogTitle>{item ? 'Editar partida' : 'Añadir partida'}</DialogTitle>
           <DialogDescription className="sr-only">Datos de la partida recurrente</DialogDescription>
         </DialogHeader>
