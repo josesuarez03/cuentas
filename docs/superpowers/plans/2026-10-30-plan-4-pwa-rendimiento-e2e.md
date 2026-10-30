@@ -1240,7 +1240,7 @@ git add src/features && git commit -m "feat: sin conexión la edición queda des
   - `cents`, `positiveCents`, `optionalNote` viven en `@/features/month/domain/amount-schema` (con `import * as z from 'zod'`); `action-result.ts` queda con `ActionResult` y `toResult`.
   - `WealthChart` se carga con `next/dynamic` (`ssr: false`) y un esqueleto de la misma altura.
 
-- [ ] **Step 1: Línea base**
+- [x] **Step 1: Línea base**
 
 Primero el script, con su test (`scripts/first-load.test.ts`):
 
@@ -1259,7 +1259,7 @@ Run: `pnpm vitest run scripts/first-load.test.ts` → FAIL; implementa `firstLoa
 
 Run (uno detrás de otro): `pnpm build`, `pnpm tsx scripts/first-load.ts | tee /tmp/first-load-antes.txt`. Anota las cifras de `/ajustes`, `/primer-uso`, `/patrimonio`, `/inicio`, `/mes`, `/login` (referencia de la Decisión 9: 515 / 296 / 277 / 227 / 229 / 161 kB).
 
-- [ ] **Step 2: Test de frontera que falla** — `src/test/client-boundary.test.ts`
+- [x] **Step 2: Test de frontera que falla** — `src/test/client-boundary.test.ts`
 
 ```ts
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -1335,14 +1335,14 @@ describe('frontera cliente/servidor', () => {
 Run: `pnpm vitest run src/test/client-boundary.test.ts`
 Expected: FAIL en los tres: `…/recurring-form-dialog.tsx → src/features/month/server/action-result.ts` (y lo que cuelga: `entries`, `months`, `payday`, `src/db/schema.ts`, `date-holidays`, `drizzle-orm`); `onboarding.ts` y `recurring-schema.ts` con `import { z }`; `src/app/(app)/patrimonio/page.tsx` llega a `recharts`.
 
-- [ ] **Step 3: Cortar la cadena hacia el servidor**
+- [x] **Step 3: Cortar la cadena hacia el servidor**
 
 - Crea `src/features/month/domain/amount-schema.ts` con `cents`, `positiveCents` y `optionalNote` (mismas definiciones que hoy en `action-result.ts`), `import * as z from 'zod'`.
 - `action-result.ts`: quita esas tres constantes y el import de zod.
 - Actualiza a sus importadores (`grep -rn "action-result'" src --include=*.ts --include=*.tsx`): `month/server/actions.ts`, `pocket-actions.ts`, `loan-actions.ts` y `settings/domain/recurring-schema.ts` importan las constantes de `@/features/month/domain/amount-schema` (y `toResult`/`ActionResult` siguen de `action-result`).
 - `onboarding/domain/onboarding.ts` y `settings/domain/recurring-schema.ts`: `import * as z from 'zod'`.
 
-- [ ] **Step 4: Gráfico bajo demanda**
+- [x] **Step 4: Gráfico bajo demanda**
 
 En `wealth-screen.tsx`, sustituye el import estático por:
 
@@ -1360,16 +1360,16 @@ const WealthChart = dynamic(() => import('./wealth-chart').then((m) => m.WealthC
 
 (Misma altura que el gráfico: título de 24 px + 8 px + 160 px; sin salto de maquetación.)
 
-- [ ] **Step 5: Ver que pasan**
+- [x] **Step 5: Ver que pasan**
 
 Run (uno detrás de otro): `pnpm vitest run src/test/client-boundary.test.ts` → PASS. `pnpm test` → PASS (la suite entera, sola). `pnpm tsc --noEmit` → sin errores.
 
-- [ ] **Step 6: Medir después**
+- [x] **Step 6: Medir después**
 
 Run (uno detrás de otro): `pnpm build`, `pnpm tsx scripts/first-load.ts | tee /tmp/first-load-despues.txt`, `grep -l "defineLocale\|bank_accounts" .next/static/chunks/*.js` → sin resultados.
 Expected (Decisión 9): `/ajustes` ≤ 300 kB, `/primer-uso` ≤ 240 kB, `/patrimonio` ≤ 185 kB; `/inicio`, `/mes`, `/login` sin subir más de 5 kB. En `/patrimonio` con al menos dos meses de historia, el gráfico aparece tras el esqueleto sin salto.
 
-- [ ] **Step 7: Commit** (pon las cifras antes → después en el cuerpo)
+- [x] **Step 7: Commit** (pon las cifras antes → después en el cuerpo)
 
 ```bash
 git add scripts/first-load.ts scripts/first-load.test.ts src/test/client-boundary.test.ts src/features/month/domain/amount-schema.ts src/features/month/server src/features/settings/domain/recurring-schema.ts src/features/onboarding/domain/onboarding.ts src/features/wealth/components/wealth-screen.tsx && git commit -m "perf: sin código de servidor ni recharts en la carga inicial"
