@@ -127,7 +127,7 @@ export function AddEntrySheet({ open, onOpenChange, ym, catalog }: {
           <SheetDescription>Solo para este mes. Lo que se repite irá en Recurrentes.</SheetDescription>
         </SheetHeader>
         <form
-          className="flex flex-col gap-4 px-4 pb-6"
+          className="flex flex-col gap-4 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
           onSubmit={(e) => {
             e.preventDefault();
             void form.handleSubmit();

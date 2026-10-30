@@ -15,7 +15,7 @@ export function AvailableSummary({ view, onAdd, onOpenMonth }: {
   return (
     <section aria-labelledby="inicio-disponible" className="flex flex-col pt-1 pb-2">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id="inicio-disponible" className="text-[15px] leading-[22px] font-normal text-ink-muted">Disponible para ahorrar</h2>
+        <h2 id="inicio-disponible" tabIndex={-1} className="focus-visible:outline-none text-[15px] leading-[22px] font-normal text-ink-muted">Disponible para ahorrar</h2>
         <Link href="/mes" onClick={onOpenMonth} className="flex min-h-11 items-center text-[15px] font-medium text-tinta">Ver el mes</Link>
       </div>
       <p className={cn('text-[44px] leading-[50px] font-semibold tracking-[-0.02em]', calc.availableCents < 0 && 'text-alerta')}>

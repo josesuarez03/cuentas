@@ -22,7 +22,7 @@ export function AppNav() {
   return (
     <nav
       aria-label="Secciones"
-      className="fixed inset-x-0 bottom-0 z-40 h-(--app-nav-h) border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:inset-y-0 md:right-auto md:h-auto md:w-60 md:border-t-0 md:border-r md:px-3 md:py-6"
+      className="fixed inset-x-0 bottom-0 z-40 h-(--app-nav-h) border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:inset-y-0 md:right-auto md:h-auto md:w-60 md:border-t-0 md:border-r md:pl-[max(0.75rem,env(safe-area-inset-left))] md:pr-3 md:py-6"
     >
       <div className="hidden px-3 pb-6 md:block">
         <span className="text-[22px] leading-7 font-semibold tracking-[-0.02em] text-ink">Kuadrix</span>
