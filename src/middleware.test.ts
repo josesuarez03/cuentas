@@ -7,12 +7,14 @@ const protegida = (path: string) => new RegExp(`^${config.matcher[0]}$`).test(pa
 describe('middleware', () => {
   it('deja pasar sin sesión lo que la PWA pide sin cookies', () => {
     for (const p of ['/manifest.webmanifest', '/icons/icon-192.png', '/icon.png', '/apple-icon.png', '/serwist/sw.js', '/sw.js',
-      '/sin-conexion', '/entrar/listo', '/_vercel/speed-insights/script.js', '/login', '/api/auth/callback/google', '/api/cron/daily']) {
+      '/sin-conexion', '/entrar/listo', '/_vercel/speed-insights/script.js', '/login', '/api/auth/callback/google', '/api/cron/daily',
+      '/api/entrar/vincular', '/api/entrar/recoger']) {
       expect(protegida(p), p).toBe(false);
     }
   });
   it('protege pantallas y API', () => {
-    for (const p of ['/', '/inicio', '/mes/2026-10', '/primer-uso', '/ajustes', '/api/months/2026-10', '/sin-conexionx', '/entrar/listox', '/entrar', '/iconsx']) {
+    for (const p of ['/', '/inicio', '/mes/2026-10', '/primer-uso', '/ajustes', '/api/months/2026-10', '/sin-conexionx', '/entrar/listox', '/entrar', '/iconsx',
+      '/api/entrar', '/api/entrar/recogerx', '/api/entrar/vincular/x']) {
       expect(protegida(p), p).toBe(true);
     }
   });

@@ -19,5 +19,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!login(?:/|$)|sin-conexion(?:/|$)|entrar/listo(?:/|$)|api/auth|api/cron(?:/|$)|serwist/|sw\\.js$|manifest\\.webmanifest$|icons/|icon\\.png$|apple-icon\\.png$|_vercel/|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!login(?:/|$)|sin-conexion(?:/|$)|entrar/listo(?:/|$)|api/auth|api/cron(?:/|$)|api/entrar/(?:vincular|recoger)$|serwist/|sw\\.js$|manifest\\.webmanifest$|icons/|icon\\.png$|apple-icon\\.png$|_vercel/|_next/static|_next/image|favicon.ico).*)'],
 };

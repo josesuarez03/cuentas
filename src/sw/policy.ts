@@ -15,6 +15,8 @@ export function classify(req: { url: string; method: string; headers: Headers },
   if (req.headers.get('RSC') === '1') return 'network-only';
   if (path.startsWith('/_next/static/') || path.startsWith('/icons/')) return 'static';
   if (path.startsWith('/serwist/') || path === '/') return 'network-only';
+  // Lleva en la URL el código de un solo uso para volver a la PWA.
+  if (path === '/entrar/listo') return 'network-only';
   const last = path.split('/').pop() ?? '';
   return last.includes('.') ? 'network-only' : 'page';
 }
