@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { SignedInReturn } from './signed-in-return';
 
@@ -13,27 +13,33 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
-it('avisa a la PWA que la abrió, se cierra y, si no se cierra, vuelve a Kuadrix', () => {
+it('avisa a la PWA que la abrió, se cierra y, si iOS no la deja cerrar, pide tocar ✕ sin cargar la app aquí', () => {
   const opener = { postMessage: vi.fn() };
   vi.stubGlobal('opener', opener);
   render(<SignedInReturn />);
   expect(opener.postMessage).toHaveBeenCalledWith({ type: 'kuadrix:signed-in' }, window.location.origin);
   expect(close).toHaveBeenCalled();
-  vi.advanceTimersByTime(299);
+  act(() => { vi.advanceTimersByTime(300); });
   expect(replace).not.toHaveBeenCalled();
-  vi.advanceTimersByTime(1);
-  expect(replace).toHaveBeenCalledWith('/');
+  expect(screen.getByText(/Toca ✕ arriba para volver a Kuadrix/)).toBeTruthy();
 });
 
-it('si postMessage falla, igual intenta cerrar y vuelve', () => {
+it('si postMessage falla, igual intenta cerrar', () => {
   vi.stubGlobal('opener', { postMessage: () => { throw new Error('cerrada'); } });
   render(<SignedInReturn />);
   expect(close).toHaveBeenCalled();
-  vi.advanceTimersByTime(300);
+});
+
+it('si esta ventana es la propia app instalada, sigue a Kuadrix aquí', () => {
+  vi.stubGlobal('opener', null);
+  vi.stubGlobal('matchMedia', () => ({ matches: true }));
+  render(<SignedInReturn />);
+  act(() => { vi.advanceTimersByTime(300); });
   expect(replace).toHaveBeenCalledWith('/');
 });
 
 it('muestra el aviso y un enlace a Kuadrix', () => {
+  vi.stubGlobal('opener', { postMessage: vi.fn() });
   render(<SignedInReturn />);
   expect(screen.getByText('Has entrado. Volviendo a Kuadrix…')).toBeTruthy();
   expect(screen.getByRole('link', { name: 'Ir a Kuadrix' }).getAttribute('href')).toBe('/');

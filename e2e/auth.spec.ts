@@ -35,9 +35,10 @@ test.describe('vuelta de la ventana de Google (PWA instalada)', () => {
   });
 });
 
-test('sin sesión, /entrar/listo no pide entrar y acaba en /login', async ({ page }) => {
+test('/entrar/listo es pública y, si no se puede cerrar, pide tocar ✕ sin cargar la app', async ({ page }) => {
   await page.goto('/entrar/listo');
-  await expect(page).toHaveURL('/login');
+  await expect(page.getByText('Has entrado. Toca ✕ arriba para volver a Kuadrix.')).toBeVisible();
+  await expect(page).toHaveURL('/entrar/listo');
 });
 
 test.describe('cerrar sesión', () => {
