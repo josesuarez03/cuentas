@@ -29,6 +29,14 @@ const nominaEntry = async () => {
 };
 
 describe('confirmIncome', () => {
+  it('guarda cuándo se confirmó', async () => {
+    const before = Date.now();
+    await confirmIncome(db, f.userId, (await nominaEntry()).id);
+    const at = (await nominaEntry()).confirmedAt;
+    expect(at).toBeInstanceOf(Date);
+    expect(at!.getTime()).toBeGreaterThanOrEqual(before - 1000);
+  });
+
   it('pasa el ingreso a confirmado', async () => {
     await confirmIncome(db, f.userId, (await nominaEntry()).id);
     expect((await nominaEntry()).status).toBe('confirmed');
@@ -75,6 +83,14 @@ describe('updateEntryAmount', () => {
 });
 
 describe('addOneOffEntry', () => {
+  it('un ingreso puntual nace confirmado y con fecha; un gasto sin fecha de confirmación', async () => {
+    const income = await addOneOffEntry(db, f.userId, { yearMonth: '2026-10', kind: 'income', name: 'Bizum', categoryId: f.categories.ingresos, accountId: f.accounts.principal, amountCents: 2000 });
+    const expense = await addOneOffEntry(db, f.userId, { yearMonth: '2026-10', kind: 'expense', name: 'Cena', categoryId: f.categories.piso, accountId: f.accounts.principal, amountCents: 3000 });
+    const rows = await db.select().from(s.entries);
+    expect(rows.find((r) => r.id === income)!.confirmedAt).toBeInstanceOf(Date);
+    expect(rows.find((r) => r.id === expense)!.confirmedAt).toBeNull();
+  });
+
   it('añade una partida puntual al mes', async () => {
     await addOneOffEntry(db, f.userId, {
       yearMonth: '2026-10', kind: 'expense', name: 'Regalo cumpleaños',

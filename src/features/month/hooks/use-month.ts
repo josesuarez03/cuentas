@@ -2,7 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { confirmIncomeAction, updateEntryAmountAction, type ActionResult } from '@/features/month/server/actions';
+import { confirmIncomeAction, updateEntryAmountAction } from '@/features/month/server/actions';
+import type { ActionResult } from '@/features/month/server/action-result';
 import { withEntryAmount, withIncomeConfirmed, type MonthView } from '@/features/month/domain/month-view';
 import type { Upcoming } from '@/features/month/domain/upcoming';
 import type { Catalog } from '@/features/catalog/server/catalog';
@@ -16,7 +17,7 @@ export class MonthFetchError extends Error {
   }
 }
 
-const monthKey = (ym: string) => ['month', ym] as const;
+export const monthKey = (ym: string) => ['month', ym] as const;
 
 async function fetchMonth(ym: string): Promise<MonthResponse> {
   let res: Response;
@@ -39,9 +40,9 @@ export function useMonth(ym: string) {
 }
 
 /** Error con texto ya pensado para el usuario (viene del `ActionResult`). */
-class SaveError extends Error {}
+export class SaveError extends Error {}
 
-async function runAction(action: () => Promise<ActionResult>): Promise<void> {
+export async function runAction(action: () => Promise<ActionResult>): Promise<void> {
   let result: ActionResult;
   try {
     result = await action();
@@ -51,10 +52,11 @@ async function runAction(action: () => Promise<ActionResult>): Promise<void> {
   if (!result.ok) throw new SaveError(result.error);
 }
 
-function useMonthMutation<V>(
+export function useMonthMutation<V>(
   ym: string,
   action: (vars: V) => Promise<ActionResult>,
   apply: (view: MonthView, vars: V) => MonthView,
+  options: { alsoInvalidate?: readonly (readonly unknown[])[] } = {},
 ) {
   const qc = useQueryClient();
   const mutation = useMutation({
@@ -71,7 +73,10 @@ function useMonthMutation<V>(
         action: { label: 'Reintentar', onClick: () => mutation.mutate(vars) },
       });
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: monthKey(ym) }),
+    onSettled: () => Promise.all([
+      qc.invalidateQueries({ queryKey: monthKey(ym) }),
+      ...(options.alsoInvalidate ?? []).map((queryKey) => qc.invalidateQueries({ queryKey })),
+    ]),
   });
   return mutation;
 }

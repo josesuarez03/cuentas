@@ -122,6 +122,7 @@ export const entries = pgTable('entries', {
   amountCents: integer('amount_cents').notNull(),
   installmentNumber: integer('installment_number'),
   status: entryStatus('status'),
+  confirmedAt: timestamp('confirmed_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (t) => [
   index('entries_month').on(t.monthId),
@@ -166,4 +167,32 @@ export const pocketExpenses = pgTable('pocket_expenses', {
   amountCents: integer('amount_cents').notNull(),
   note: text('note'),
   date: timestamp('date').notNull().defaultNow(),
+});
+
+export const balanceSnapshots = pgTable('balance_snapshots', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  accountId: uuid('account_id').notNull().references(() => bankAccounts.id, { onDelete: 'cascade' }),
+  balanceCents: integer('balance_cents').notNull(),
+  date: timestamp('date').notNull().defaultNow(),
+}, (t) => [index('balance_snapshots_account_date').on(t.accountId, t.date)]);
+
+export const loans = pgTable('loans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: userRef(),
+  person: text('person').notNull(),
+  amountCents: integer('amount_cents').notNull(),
+  accountId: uuid('account_id').notNull().references(() => bankAccounts.id),
+  lentMonthId: uuid('lent_month_id').notNull().references(() => months.id, { onDelete: 'cascade' }),
+  repaidMonthId: uuid('repaid_month_id').references(() => months.id, { onDelete: 'set null' }),
+  note: text('note'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (t) => [index('loans_user').on(t.userId)]);
+
+export const userSettings = pgTable('user_settings', {
+  userId: text('user_id').primaryKey().references(() => user.id, { onDelete: 'cascade' }),
+  timezone: text('timezone').notNull().default('Europe/Madrid'),
+  holidayRegion: text('holiday_region').notNull().default('ES-MD'),
+  emailNotifications: boolean('email_notifications').notNull().default(true),
+  pushNotifications: boolean('push_notifications').notNull().default(false),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

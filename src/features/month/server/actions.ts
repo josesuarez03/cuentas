@@ -4,22 +4,10 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { isYearMonth } from '@/lib/year-month';
 import {
-  addOneOffEntry, ClosedMonthError, confirmIncome, NotFoundError, setSavingsSplit, updateEntryAmount, type NewOneOffEntry,
+  addOneOffEntry, confirmIncome, setSavingsSplit, updateEntryAmount, type NewOneOffEntry,
 } from '@/features/month/server/entries';
 import { requireUser } from '@/features/auth/session';
-import { SAVE_ERROR } from '@/features/month/save-error';
-
-export type ActionResult = { ok: true } | { ok: false; error: string };
-
-function toResult(error: unknown): ActionResult {
-  if (error instanceof NotFoundError || error instanceof ClosedMonthError || error instanceof RangeError) {
-    return { ok: false, error: error.message };
-  }
-  console.error(error);
-  return { ok: false, error: SAVE_ERROR };
-}
-
-const cents = z.number().int().min(0).max(100_000_000);
+import { cents, toResult, type ActionResult } from './action-result';
 
 export async function updateEntryAmountAction(entryId: string, amountCents: number): Promise<ActionResult> {
   const user = await requireUser();
