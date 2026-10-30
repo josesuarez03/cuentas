@@ -842,7 +842,7 @@ git add src/db src/test drizzle drizzle.config.ts && git commit -m "feat: esquem
 - Consumes: `diffMonths`, `monthOf`, `YearMonth` (Task 3)
 - Produces: `type Frequency`, `type ItemKind`, `interface TemplateItem { id; name; kind: ItemKind; categoryId; accountId; amountCents; frequency: Frequency; startMonth: YearMonth; anchorMonth: number | null; installmentsTotal: number | null; active: boolean }`, `occursIn(item, ym): { occurs: boolean; installmentNumber: number | null }`, `interface GeneratedEntry { recurringItemId; kind: ItemKind; name; categoryId; accountId; amountCents; installmentNumber: number | null; status: 'pending' | null }`, `generateEntries(items: TemplateItem[], lastAmounts: ReadonlyMap<string, number>, ym): GeneratedEntry[]`
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -905,12 +905,12 @@ describe('generateEntries', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
 Run: `pnpm vitest run src/features/month/domain/generation.test.ts`
 Expected: FAIL «Failed to resolve import "./generation"».
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 ```ts
 import { diffMonths, monthOf, type YearMonth } from '@/lib/year-month';
@@ -994,12 +994,12 @@ export function generateEntries(
 }
 ```
 
-- [ ] **Step 4: Ejecutar y ver que pasa**
+- [x] **Step 4: Ejecutar y ver que pasa**
 
 Run: `pnpm vitest run src/features/month/domain/generation.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/domain/generation.* && git commit -m "feat: reglas de generación de partidas por frecuencia"
