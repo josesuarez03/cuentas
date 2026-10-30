@@ -1305,7 +1305,7 @@ git add src/features/month/domain/month-view.* && git commit -m "feat: vista del
 - Consumes: `Db`, schema (Task 4); `generateEntries` (Task 5); `recomputeView`, `MonthView`, `CategoryGroup` (Task 7)
 - Produces: `findMonth(db, userId, ym): Promise<typeof months.$inferSelect | null>`, `ensureMonth(db, userId, ym): Promise<string>` (id del mes), `getMonthView(db, userId, ym): Promise<MonthView | null>`
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 ```ts
 import { and, eq } from 'drizzle-orm';
@@ -1403,12 +1403,12 @@ describe('getMonthView', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
 Run: `pnpm vitest run src/features/month/server/months.test.ts`
 Expected: FAIL «Failed to resolve import "./months"».
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 ```ts
 import { and, asc, desc, eq, gt, isNotNull, lt, sql } from 'drizzle-orm';
@@ -1598,12 +1598,12 @@ export async function getMonthView(db: Db, userId: string, ym: YearMonth): Promi
 }
 ```
 
-- [ ] **Step 4: Ejecutar y ver que pasa**
+- [x] **Step 4: Ejecutar y ver que pasa**
 
 Run: `pnpm vitest run src/features/month/server/months.test.ts`
 Expected: PASS (7 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/server/months.* && git commit -m "feat: generar mes heredando importes y leer su vista"
