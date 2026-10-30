@@ -14,7 +14,8 @@
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
     "e2e": "playwright test",
     "e2e:db": "docker compose -f e2e/compose.yml up -d --wait",
-    "e2e:build": "node --env-file=e2e/e2e.env node_modules/next/dist/bin/next build --turbopack"
+    "e2e:build": "node --env-file=e2e/e2e.env node_modules/next/dist/bin/next build --turbopack",
+    "lh": "pnpm dlx @lhci/cli@0.15.1 autorun"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

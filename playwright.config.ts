@@ -9,7 +9,7 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  retries: 0, // las E2E no son idempotentes: un reintento parte de datos ya cambiados
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   globalSetup: './e2e/global-setup.ts',
   use: {
