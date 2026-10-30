@@ -4,7 +4,8 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { isYearMonth } from '@/lib/year-month';
 import { requireUser } from '@/features/auth/session';
-import { optionalNote, positiveCents, toResult, type ActionResult } from './action-result';
+import { optionalNote, positiveCents } from '@/features/month/domain/amount-schema';
+import { toResult, type ActionResult } from './action-result';
 import { lendMoney, markLoanRepaid, type NewLoan } from './loans';
 
 const loanSchema = z.object({

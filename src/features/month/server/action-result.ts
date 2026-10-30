@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { SAVE_ERROR } from '@/features/month/save-error';
 import { ClosedMonthError, NotFoundError } from './entries';
 
@@ -11,7 +10,3 @@ export function toResult(error: unknown): ActionResult {
   console.error(error);
   return { ok: false, error: SAVE_ERROR };
 }
-
-export const cents = z.number().int().min(0).max(100_000_000);
-export const positiveCents = z.number().int().min(1).max(100_000_000);
-export const optionalNote = z.string().trim().max(80).nullable().transform((v) => (v ? v : null));

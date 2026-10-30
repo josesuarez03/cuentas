@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { positiveCents } from '@/features/month/server/action-result';
+import * as z from 'zod';
+import { positiveCents } from '@/features/month/domain/amount-schema';
 import { isYearMonth } from '@/lib/year-month';
 
 export const recurringInputSchema = z.object({

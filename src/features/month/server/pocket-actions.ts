@@ -5,7 +5,8 @@ import { db } from '@/db';
 import { isYearMonth } from '@/lib/year-month';
 import { requireUser } from '@/features/auth/session';
 import { addPocketExpense, spendFromFund, type NewFundSpend, type NewPocketExpense } from './pockets';
-import { optionalNote, positiveCents, toResult, type ActionResult } from './action-result';
+import { optionalNote, positiveCents } from '@/features/month/domain/amount-schema';
+import { toResult, type ActionResult } from './action-result';
 
 const yearMonth = z.string().refine(isYearMonth);
 const pocketSchema = z.object({ yearMonth, pocketId: z.uuid(), amountCents: positiveCents, note: optionalNote });
