@@ -88,3 +88,118 @@ it('si getSession falla (sin red), se queda en /login sin romper', async () => {
   expect(replace).not.toHaveBeenCalled();
   expect(screen.getByRole('button', { name: 'Entrar con Google' })).toBeTruthy();
 });
+
+function installedApp(on: boolean) {
+  vi.stubGlobal('matchMedia', (q: string) => ({ matches: on && q === '(display-mode: standalone)', media: q, addEventListener() {}, removeEventListener() {} }));
+}
+
+it('en navegador normal: redirección de siempre, sin ventana aparte', async () => {
+  installedApp(false);
+  const open = vi.spyOn(window, 'open');
+  auth.signIn.social.mockReturnValue(new Promise(() => {}));
+  render(<LoginButton callbackURL="/inicio" />);
+  await userEvent.click(screen.getByRole('button', { name: 'Entrar con Google' }));
+  expect(open).not.toHaveBeenCalled();
+  expect(auth.signIn.social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/inicio', errorCallbackURL: '/login?error=acceso' });
+});
+
+it('instalada: abre la ventana antes de esperar a Better Auth y la lleva a Google', async () => {
+  installedApp(true);
+  const popup = { location: { href: 'about:blank' }, close: vi.fn() };
+  const open = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window);
+  let resolve!: (v: unknown) => void;
+  auth.signIn.social.mockReturnValue(new Promise((r) => { resolve = r; }));
+  render(<LoginButton callbackURL="/inicio" />);
+  await userEvent.click(screen.getByRole('button', { name: 'Entrar con Google' }));
+  expect(open).toHaveBeenCalledWith('about:blank', '_blank');
+  expect(auth.signIn.social).toHaveBeenCalledWith({
+    provider: 'google', callbackURL: '/entrar/listo', errorCallbackURL: '/login?error=acceso', disableRedirect: true,
+  });
+  expect(open.mock.invocationCallOrder[0]).toBeLessThan(auth.signIn.social.mock.invocationCallOrder[0]!);
+  await act(async () => { resolve({ data: { url: 'https://accounts.google.com/o/oauth2/auth?x=1', redirect: false }, error: null }); });
+  expect(popup.location.href).toBe('https://accounts.google.com/o/oauth2/auth?x=1');
+  expect(popup.close).not.toHaveBeenCalled();
+  expect(auth.signIn.social).toHaveBeenCalledTimes(1);
+});
+
+it('instalada, pero el navegador bloquea la ventana: redirección de siempre', async () => {
+  installedApp(true);
+  vi.spyOn(window, 'open').mockReturnValue(null);
+  auth.signIn.social.mockReturnValue(new Promise(() => {}));
+  render(<LoginButton callbackURL="/inicio" />);
+  await userEvent.click(screen.getByRole('button', { name: 'Entrar con Google' }));
+  expect(auth.signIn.social).toHaveBeenCalledTimes(1);
+  expect(auth.signIn.social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/inicio', errorCallbackURL: '/login?error=acceso' });
+});
+
+it('instalada, si Better Auth falla: cierra la ventana y prueba la redirección de siempre', async () => {
+  installedApp(true);
+  const popup = { location: { href: 'about:blank' }, close: vi.fn() };
+  vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window);
+  auth.signIn.social
+    .mockResolvedValueOnce({ data: null, error: { status: 500 } })
+    .mockReturnValueOnce(new Promise(() => {}));
+  render(<LoginButton callbackURL="/inicio" />);
+  await userEvent.click(screen.getByRole('button', { name: 'Entrar con Google' }));
+  await waitFor(() => expect(auth.signIn.social).toHaveBeenCalledTimes(2));
+  expect(popup.close).toHaveBeenCalled();
+  expect(auth.signIn.social).toHaveBeenLastCalledWith({ provider: 'google', callbackURL: '/inicio', errorCallbackURL: '/login?error=acceso' });
+});
+
+it('también cuenta como instalada con navigator.standalone (iOS)', async () => {
+  installedApp(false);
+  vi.stubGlobal('navigator', Object.assign(Object.create(navigator) as Navigator, { standalone: true }));
+  const open = vi.spyOn(window, 'open').mockReturnValue(null);
+  auth.signIn.social.mockReturnValue(new Promise(() => {}));
+  render(<LoginButton callbackURL="/inicio" />);
+  await userEvent.click(screen.getByRole('button', { name: 'Entrar con Google' }));
+  expect(open).toHaveBeenCalledWith('about:blank', '_blank');
+});
+
+function message(data: unknown, origin = window.location.origin) {
+  window.dispatchEvent(new MessageEvent('message', { data, origin }));
+}
+
+it('cuando la ventana avisa de que ya ha entrado, la PWA entra', () => {
+  render(<LoginButton callbackURL="/inicio" />);
+  act(() => message({ type: 'kuadrix:signed-in' }));
+  expect(replace).toHaveBeenCalledWith('/inicio');
+});
+
+it('si la ventana avisa de que el email no tiene acceso, la PWA lo muestra', () => {
+  render(<LoginButton callbackURL="/inicio" />);
+  act(() => message({ type: 'kuadrix:signin-error' }));
+  expect(replace).toHaveBeenCalledWith('/login?error=acceso');
+});
+
+it('ignora mensajes de otro origen o de otro tipo, y deja de escuchar al desmontarse', () => {
+  const { unmount } = render(<LoginButton callbackURL="/inicio" />);
+  act(() => {
+    message({ type: 'kuadrix:signed-in' }, 'https://evil.example');
+    message({ type: 'otra-cosa' });
+    message(null);
+  });
+  expect(replace).not.toHaveBeenCalled();
+  unmount();
+  act(() => message({ type: 'kuadrix:signed-in' }));
+  expect(replace).not.toHaveBeenCalled();
+});
+
+it('abierta como ventana de la PWA con ?error=acceso: avisa a la PWA y se cierra', () => {
+  const opener = { location: { origin: window.location.origin }, postMessage: vi.fn() };
+  const close = vi.fn();
+  vi.stubGlobal('location', { ...window.location, replace, search: '?error=acceso' });
+  vi.stubGlobal('opener', opener);
+  vi.stubGlobal('close', close);
+  render(<LoginButton callbackURL="/" />);
+  expect(opener.postMessage).toHaveBeenCalledWith({ type: 'kuadrix:signin-error' }, window.location.origin);
+  expect(close).toHaveBeenCalled();
+});
+
+it('con ?error=acceso pero sin ventana que la abriera: se queda mostrando el error', () => {
+  const close = vi.fn();
+  vi.stubGlobal('location', { ...window.location, replace, search: '?error=acceso' });
+  vi.stubGlobal('close', close);
+  render(<LoginButton callbackURL="/" />);
+  expect(close).not.toHaveBeenCalled();
+});

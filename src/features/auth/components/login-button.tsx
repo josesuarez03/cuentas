@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { authClient } from '@/features/auth/auth-client';
+import { ERROR_CALLBACK_URL, POPUP_CALLBACK_URL, SIGNED_IN, SIGNIN_ERROR, isInstalledApp, kuadrixOpener } from '@/features/auth/popup-sign-in';
 
 function GoogleMark() {
   return (
@@ -51,16 +52,55 @@ export function LoginButton({ callbackURL }: { callbackURL: string }) {
     };
   }, []);
 
+  // PWA instalada: la ventana de Google avisa al terminar (ver /entrar/listo).
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      const type = (e.data as { type?: unknown } | null)?.type;
+      if (type === SIGNED_IN) window.location.replace(callbackURL);
+      else if (type === SIGNIN_ERROR) window.location.replace(ERROR_CALLBACK_URL);
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [callbackURL]);
+
+  // Esta es la ventana de Google y el email no tiene acceso: que lo muestre la PWA.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('error') !== 'acceso') return;
+    const opener = kuadrixOpener();
+    if (!opener) return;
+    opener.postMessage({ type: SIGNIN_ERROR }, window.location.origin);
+    window.close();
+  }, []);
+
+  async function signIn() {
+    setLoading(true);
+    // window.open tiene que ir antes de cualquier await: Safari bloquea ventanas fuera del toque.
+    const popup = isInstalledApp() ? window.open('about:blank', '_blank') : null;
+    if (popup) {
+      try {
+        const { data, error } = await authClient.signIn.social({
+          provider: 'google', callbackURL: POPUP_CALLBACK_URL, errorCallbackURL: ERROR_CALLBACK_URL, disableRedirect: true,
+        });
+        if (!error && data && 'url' in data && data.url) {
+          popup.location.href = data.url;
+          return;
+        }
+      } catch {
+        // Seguimos con la redirección de siempre.
+      }
+      popup.close();
+    }
+    const { error } = await authClient.signIn.social({ provider: 'google', callbackURL, errorCallbackURL: ERROR_CALLBACK_URL });
+    if (error) setLoading(false);
+  }
+
   return (
     <Button
       variant="outline"
       className="h-12 w-full gap-3 border-ink/30 bg-surface text-base font-medium text-ink hover:bg-surface-sunk hover:text-ink dark:border-ink/30 dark:bg-surface dark:hover:bg-surface-sunk"
       disabled={loading}
-      onClick={async () => {
-        setLoading(true);
-        const { error } = await authClient.signIn.social({ provider: 'google', callbackURL, errorCallbackURL: '/login?error=acceso' });
-        if (error) setLoading(false);
-      }}
+      onClick={() => void signIn()}
     >
       <GoogleMark />
       {loading ? 'Abriendo Google…' : 'Entrar con Google'}

@@ -23,6 +23,23 @@ test.describe('con datos', () => {
   });
 });
 
+test.describe('vuelta de la ventana de Google (PWA instalada)', () => {
+  test.use({ storageState: ANA });
+  test('/entrar/listo avisa a la PWA, se cierra y la PWA entra', async ({ page }) => {
+    await page.goto('/login');
+    const popupOpened = page.waitForEvent('popup');
+    await page.evaluate(() => { window.open('/entrar/listo', '_blank'); });
+    const popup = await popupOpened;
+    await popup.waitForEvent('close');
+    await expect(page).toHaveURL('/inicio');
+  });
+});
+
+test('sin sesión, /entrar/listo no pide entrar y acaba en /login', async ({ page }) => {
+  await page.goto('/entrar/listo');
+  await expect(page).toHaveURL('/login');
+});
+
 test.describe('cerrar sesión', () => {
   test.use({ storageState: ANA_SALIR });
   test('desde Ajustes va a /login y /inicio ya pide entrar', async ({ page }) => {
