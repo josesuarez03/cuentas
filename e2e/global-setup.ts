@@ -10,7 +10,7 @@ import { completeOnboarding } from '@/features/onboarding/server/onboarding';
 import { rollMonth } from '@/features/month/server/lifecycle';
 import { currentYearMonth } from '@/lib/year-month';
 import { assertLocalE2eDatabase } from './support/local-db';
-import { seedSession, signSessionCookie, storageStateFor } from './support/session';
+import { addSession, seedSession, signSessionCookie, storageStateFor } from './support/session';
 
 const BASE_URL = 'http://localhost:3100';
 
@@ -25,6 +25,8 @@ export default async function globalSetup() {
 
     const ana = await seedSession(db as unknown as Db, { email: 'ana@e2e.kuadrix.test', name: 'Ana' });
     const nuevo = await seedSession(db as unknown as Db, { email: 'nuevo@e2e.kuadrix.test', name: 'Nuevo' });
+
+    const anaSalir = await addSession(db as unknown as Db, ana.userId);
 
     const ym = currentYearMonth();
     await completeOnboarding(db as unknown as Db, ana.userId, {
@@ -43,6 +45,7 @@ export default async function globalSetup() {
     mkdirSync('e2e/.auth', { recursive: true });
     const secret = process.env.BETTER_AUTH_SECRET!;
     writeFileSync('e2e/.auth/ana.json', JSON.stringify(storageStateFor(await signSessionCookie(ana.token, secret), BASE_URL)));
+    writeFileSync('e2e/.auth/ana-salir.json', JSON.stringify(storageStateFor(await signSessionCookie(anaSalir, secret), BASE_URL)));
     writeFileSync('e2e/.auth/nuevo.json', JSON.stringify(storageStateFor(await signSessionCookie(nuevo.token, secret), BASE_URL)));
     writeFileSync('e2e/.auth/data.json', JSON.stringify({ ym, nominaEntryId: nomina.id }));
   } finally {

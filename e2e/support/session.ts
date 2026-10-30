@@ -13,10 +13,15 @@ export async function signSessionCookie(token: string, secret: string): Promise<
 
 export async function seedSession(db: Db, who: { email: string; name: string }): Promise<{ userId: string; token: string }> {
   const userId = randomUUID();
-  const token = randomBytes(32).toString('base64url');
   await db.insert(s.user).values({ id: userId, email: who.email, name: who.name, emailVerified: true });
+  return { userId, token: await addSession(db, userId) };
+}
+
+// Otra sesión del mismo usuario (p. ej. para cerrar sesión sin invalidar la compartida).
+export async function addSession(db: Db, userId: string): Promise<string> {
+  const token = randomBytes(32).toString('base64url');
   await db.insert(s.session).values({ id: randomUUID(), userId, token, expiresAt: new Date(Date.now() + WEEK_MS) });
-  return { userId, token };
+  return token;
 }
 
 export type Cookie = {
