@@ -3047,7 +3047,7 @@ git add src && git commit -m "feat: pantalla Mes con lista desplegable, edición
 **Interfaces:**
 - Consumes: `db`, schema (Task 4), `currentYearMonth` (Task 3)
 
-- [ ] **Step 1: Datos semilla**
+- [x] **Step 1: Datos semilla**
 
 `scripts/seed-data.ts`:
 ```ts
