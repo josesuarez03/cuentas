@@ -1,5 +1,6 @@
 import { db } from '@/db';
-import { currentYearMonth, isYearMonth } from '@/lib/year-month';
+import { addMonths, currentYearMonth, isYearMonth } from '@/lib/year-month';
+import { getUpcoming } from '@/features/month/server/upcoming';
 import { getCatalog } from '@/features/catalog/server/catalog';
 import { ensureMonth, getMonthView } from '@/features/month/server/months';
 import { getUserOrNull } from '@/features/auth/session';
@@ -20,5 +21,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ ym:
   const view = await getMonthView(db, user.id, ym);
   if (!view) return Response.json({ error: 'No hay datos de este mes.' }, { status: 404 });
 
-  return Response.json({ view, catalog: await getCatalog(db, user.id) });
+  const upcoming = ym === current ? await getUpcoming(db, user.id, addMonths(ym, 1)) : null;
+  return Response.json({ view, catalog: await getCatalog(db, user.id), upcoming });
 }

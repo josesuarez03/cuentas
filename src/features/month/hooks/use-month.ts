@@ -4,10 +4,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { updateEntryAmountAction } from '@/features/month/server/actions';
 import { withEntryAmount, type MonthView } from '@/features/month/domain/month-view';
+import type { Upcoming } from '@/features/month/domain/upcoming';
 import type { Catalog } from '@/features/catalog/server/catalog';
 import { SAVE_ERROR } from '@/features/month/save-error';
 
-export type MonthResponse = { view: MonthView; catalog: Catalog };
+export type MonthResponse = { view: MonthView; catalog: Catalog; upcoming: Upcoming | null };
 
 export class MonthFetchError extends Error {
   constructor(public status: number, message: string) {
