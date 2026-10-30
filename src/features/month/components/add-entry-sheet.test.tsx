@@ -1,11 +1,15 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import type { ComponentProps } from 'react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { Catalog } from '@/features/catalog/server/catalog';
 import { AddEntrySheet } from './add-entry-sheet';
 
 vi.mock('@/features/month/server/actions', () => ({ addOneOffEntryAction: vi.fn() }));
+vi.mock('@/features/month/server/loan-actions', () => ({ lendMoneyAction: vi.fn() }));
+vi.mock('@/features/month/server/pocket-actions', () => ({ addPocketExpenseAction: vi.fn(), spendFromFundAction: vi.fn() }));
 
 beforeAll(() => {
   window.matchMedia ??= ((query: string) => ({
@@ -22,10 +26,10 @@ beforeAll(() => {
 
 afterEach(cleanup);
 
-function renderSheet(catalog: Catalog) {
+function renderSheet(catalog: Catalog, props: Partial<ComponentProps<typeof AddEntrySheet>> = {}) {
   return render(
     <QueryClientProvider client={new QueryClient()}>
-      <AddEntrySheet open onOpenChange={vi.fn()} ym="2026-10" catalog={catalog} />
+      <AddEntrySheet open onOpenChange={vi.fn()} ym="2026-10" catalog={catalog} {...props} />
     </QueryClientProvider>,
   );
 }
@@ -47,5 +51,36 @@ describe('AddEntrySheet con catálogo', () => {
     expect(screen.queryByText(/Aún no tienes/)).toBeNull();
     expect(screen.queryByRole('status')).toBeNull();
     expect((screen.getByRole('button', { name: 'Añadir' }) as HTMLButtonElement).disabled).toBe(false);
+  });
+});
+
+const fullCatalog: Catalog = {
+  categories: [{ id: 'c1', name: 'Hogar', kind: 'expense' }],
+  accounts: [{ id: 'a1', name: 'Cuenta corriente', type: 'checking' }],
+};
+const pockets = [
+  { id: 'b1', name: 'Ocio', limitCents: 15000, spentCents: 0 },
+  { id: 'b2', name: 'Ropa', limitCents: 5000, spentCents: 0 },
+];
+
+describe('AddEntrySheet modos', () => {
+  it('sin bolsas no ofrece «Gasto de bolsa»', () => {
+    renderSheet(fullCatalog);
+    expect(screen.queryByRole('radio', { name: 'Gasto de bolsa' })).toBeNull();
+    expect(screen.getByRole('radio', { name: 'Préstamo' })).toBeTruthy();
+  });
+
+  it('«Préstamo» pide a quién y el botón dice «Prestar»', async () => {
+    renderSheet(fullCatalog);
+    await userEvent.click(screen.getByRole('radio', { name: 'Préstamo' }));
+    expect(screen.getByLabelText('¿A quién?')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Prestar' })).toBeTruthy();
+  });
+
+  it('abre en «Gasto de bolsa» con la bolsa elegida', () => {
+    renderSheet(fullCatalog, { pockets, initialMode: 'pocket', initialPocketId: 'b2' });
+    expect(screen.getByRole('radio', { name: 'Gasto de bolsa' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('combobox', { name: 'Bolsa' }).textContent).toContain('Ropa');
+    expect(screen.getByRole('button', { name: 'Apuntar gasto' })).toBeTruthy();
   });
 });
