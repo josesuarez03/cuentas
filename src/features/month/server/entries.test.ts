@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it } from 'vitest';
 import * as s from '@/db/schema';
 import type { Db } from '@/db/types';
@@ -29,6 +29,27 @@ const nominaEntry = async () => {
 };
 
 describe('confirmIncome', () => {
+  it('confirma con el neto real y el mes siguiente lo hereda (5.1)', async () => {
+    const monthId = await ensureMonth(db, f.userId, '2026-10');
+    const [nomina] = await db.select().from(s.entries).where(and(eq(s.entries.monthId, monthId), eq(s.entries.recurringItemId, f.items.nomina)));
+    await confirmIncome(db, f.userId, nomina.id, 179000);
+    const [after] = await db.select().from(s.entries).where(eq(s.entries.id, nomina.id));
+    expect(after).toMatchObject({ status: 'confirmed', amountCents: 179000 });
+    expect(after.confirmedAt).toBeInstanceOf(Date);
+    const nov = await ensureMonth(db, f.userId, '2026-11');
+    const [next] = await db.select().from(s.entries).where(and(eq(s.entries.monthId, nov), eq(s.entries.recurringItemId, f.items.nomina)));
+    expect(next).toMatchObject({ status: 'pending', amountCents: 179000 });
+  });
+
+  it('ya confirmada: no cambia el importe; importe no válido: error', async () => {
+    const monthId = await ensureMonth(db, f.userId, '2026-10');
+    const [nomina] = await db.select().from(s.entries).where(and(eq(s.entries.monthId, monthId), eq(s.entries.recurringItemId, f.items.nomina)));
+    await expect(confirmIncome(db, f.userId, nomina.id, -1)).rejects.toBeInstanceOf(RangeError);
+    await confirmIncome(db, f.userId, nomina.id);
+    await confirmIncome(db, f.userId, nomina.id, 100);
+    expect((await db.select().from(s.entries).where(eq(s.entries.id, nomina.id)))[0].amountCents).toBe(187000);
+  });
+
   it('guarda cuándo se confirmó', async () => {
     const before = Date.now();
     await confirmIncome(db, f.userId, (await nominaEntry()).id);

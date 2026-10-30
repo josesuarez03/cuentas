@@ -7,7 +7,7 @@ import {
   addOneOffEntry, confirmIncome, setSavingsSplit, updateEntryAmount, type NewOneOffEntry,
 } from '@/features/month/server/entries';
 import { requireUser } from '@/features/auth/session';
-import { cents, toResult, type ActionResult } from './action-result';
+import { cents, positiveCents, toResult, type ActionResult } from './action-result';
 
 export async function updateEntryAmountAction(entryId: string, amountCents: number): Promise<ActionResult> {
   const user = await requireUser();
@@ -59,12 +59,12 @@ export async function setSavingsSplitAction(
   }
 }
 
-export async function confirmIncomeAction(entryId: string): Promise<ActionResult> {
+export async function confirmIncomeAction(entryId: string, amountCents?: number): Promise<ActionResult> {
   const user = await requireUser();
-  const parsed = z.uuid().safeParse(entryId);
+  const parsed = z.object({ entryId: z.uuid(), amountCents: positiveCents.optional() }).safeParse({ entryId, amountCents });
   if (!parsed.success) return { ok: false, error: 'Ingreso no válido.' };
   try {
-    await confirmIncome(db, user.id, parsed.data);
+    await confirmIncome(db, user.id, parsed.data.entryId, parsed.data.amountCents);
     return { ok: true };
   } catch (error) {
     return toResult(error);

@@ -2,7 +2,9 @@
 
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { todoItems } from '@/features/home/domain/todo';
+import { ConfirmIncomeDialog } from '@/features/month/components/confirm-income-dialog';
 import { AddEntrySheet, type AddMode } from '@/features/month/components/add-entry-sheet';
 import { isMonthEmpty } from '@/features/month/domain/month-view';
 import { MonthFetchError, useConfirmIncome, useMonth } from '@/features/month/hooks/use-month';
@@ -34,6 +36,7 @@ export function HomeScreen() {
   const [addMode, setAddMode] = useState<AddMode>('expense');
   const [balanceFor, setBalanceFor] = useState<AccountBalance | null>(null);
   const [balanceOpen, setBalanceOpen] = useState(false);
+  const [confirmFor, setConfirmFor] = useState<{ id: string; name: string; amountCents: number } | null>(null);
 
   const data = query.data;
   const view = data?.view;
@@ -91,7 +94,10 @@ export function HomeScreen() {
               <AvailableSummary view={view} onAdd={() => openAdd('expense')} onOpenMonth={resetMonth} />
             )}
             <TodoCard items={todos} onAction={(t) => {
-              if (t.kind === 'income') confirm.mutate(t.targetId);
+              if (t.kind === 'income') {
+                const entry = view.categories.flatMap((c) => c.entries).find((e) => e.id === t.targetId);
+                if (entry) setConfirmFor({ id: entry.id, name: entry.name, amountCents: entry.amountCents });
+              }
               else if (t.kind === 'loan') repay.mutate(t.targetId);
               else {
                 const account = wealth.data?.accounts.find((a) => a.accountId === t.targetId);
@@ -107,6 +113,16 @@ export function HomeScreen() {
             </div>
           )}
           <AddEntrySheet open={addOpen} onOpenChange={setAddOpen} ym={ym} catalog={data.catalog} pockets={view.pockets} initialMode={addMode} />
+          <ConfirmIncomeDialog
+            entry={confirmFor}
+            open={confirmFor !== null}
+            onOpenChange={(o) => { if (!o) setConfirmFor(null); }}
+            returnFocusTo={() => document.getElementById('inicio-disponible')}
+            onConfirm={(c) => {
+              confirm.mutate({ entryId: confirmFor!.id, amountCents: c });
+              toast.success(`${confirmFor!.name} confirmada.`);
+            }}
+          />
           <UpdateBalanceSheet
             account={balanceFor}
             open={balanceOpen}

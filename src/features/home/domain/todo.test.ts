@@ -33,7 +33,7 @@ const wealth: WealthView = {
 describe('todoItems', () => {
   it('nómina, préstamos y saldos sin actualizar, en ese orden y con su acción', () => {
     expect(todoItems(recomputeView(base), wealth)).toEqual([
-      { key: 'income:e1', kind: 'income', targetId: 'e1', title: 'Nómina pendiente', note: 'Previsto: +1.870,00 €', actionText: 'Confirmar', actionLabel: 'Confirmar Nómina', doneText: 'Nómina confirmada.' },
+      { key: 'income:e1', kind: 'income', targetId: 'e1', title: 'Nómina pendiente', note: 'Previsto: +1.870,00 €', actionText: 'Confirmar', actionLabel: 'Confirmar Nómina', doneText: null },
       { key: 'loan:l1', kind: 'loan', targetId: 'l1', title: 'Juan te debe 200,00 €', note: 'Desde septiembre · Cena', actionText: 'Cobrado', actionLabel: 'Cobrado el préstamo de Juan', doneText: 'Préstamo de Juan cobrado.' },
       { key: 'balance:p', kind: 'balance', targetId: 'p', title: 'Actualiza el saldo de BBVA principal', note: 'Último saldo: 12 sept', actionText: 'Actualizar', actionLabel: 'Actualizar el saldo de BBVA principal', doneText: null },
     ]);
