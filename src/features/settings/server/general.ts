@@ -30,7 +30,10 @@ export async function updateAccount(
   input: { name: string; bank: string; type: AccountType },
 ): Promise<void> {
   const rows = await db.update(s.bankAccounts)
-    .set({ name: input.name, bank: input.bank, type: input.type })
+    .set({
+      name: input.name, bank: input.bank, type: input.type,
+      ...(SAVINGS_TARGET(input.type) ? {} : { defaultSavingsPercent: 0 }),
+    })
     .where(and(eq(s.bankAccounts.id, id), eq(s.bankAccounts.userId, userId)))
     .returning({ id: s.bankAccounts.id });
   if (rows.length === 0) throw new NotFoundError('Cuenta no encontrada');
@@ -73,6 +76,7 @@ export async function setDefaultSplit(
     throw new RangeError('Porcentaje no válido');
   }
   const parts = split.filter((p) => p.percent > 0);
+  if (new Set(parts.map((p) => p.accountId)).size !== parts.length) throw new RangeError('Reparto no válido');
   if (parts.reduce((acc, p) => acc + p.percent, 0) !== 100) throw new RangeError('El reparto debe sumar 100 %');
 
   const owned = await db.select({ id: s.bankAccounts.id, type: s.bankAccounts.type }).from(s.bankAccounts)
@@ -86,8 +90,7 @@ export async function setDefaultSplit(
       await tx.update(s.bankAccounts).set({ defaultSavingsPercent: p.percent })
         .where(and(eq(s.bankAccounts.id, p.accountId), eq(s.bankAccounts.userId, userId)));
     }
+    const month = await findMonth(tx, userId, ym);
+    if (month && month.status === 'open') await setSavingsSplit(tx, userId, ym, parts);
   });
-
-  const month = await findMonth(db, userId, ym);
-  if (month && month.status === 'open') await setSavingsSplit(db, userId, ym, parts);
 }

@@ -22,7 +22,10 @@ const categorySchema = z.object({
   kind: z.enum(['income', 'expense']),
   parentId: z.uuid().nullable(),
 });
-const splitSchema = z.array(z.object({ accountId: z.uuid(), percent: z.number().int().min(0).max(100) })).min(1);
+const splitSchema = z.array(z.object({ accountId: z.uuid(), percent: z.number().int().min(0).max(100) })).min(1)
+  .refine((parts) => new Set(parts.map((p) => p.accountId)).size === parts.length, {
+    message: 'Cada cuenta solo puede aparecer una vez.',
+  });
 const preferencesSchema = z.object({
   emailNotifications: z.boolean().optional(),
   pushNotifications: z.boolean().optional(),

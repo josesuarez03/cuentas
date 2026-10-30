@@ -55,15 +55,17 @@ export async function updateRecurring(
   db: Db, userId: string, id: string, input: RecurringInput, ym: YearMonth = currentYearMonth(),
 ): Promise<void> {
   await assertRefs(db, userId, input.kind, input.categoryId, input.accountId);
-  const [row] = await db.update(s.recurringItems).set(normalize(input))
-    .where(and(eq(s.recurringItems.id, id), eq(s.recurringItems.userId, userId)))
-    .returning({ id: s.recurringItems.id });
-  if (!row) throw new NotFoundError('Partida no encontrada');
-  const month = await openMonthOrNull(db, userId, ym);
-  if (month) {
-    await db.update(s.entries).set({ amountCents: input.amountCents })
-      .where(and(eq(s.entries.monthId, month.id), eq(s.entries.recurringItemId, id)));
-  }
+  await db.transaction(async (tx) => {
+    const [row] = await tx.update(s.recurringItems).set(normalize(input))
+      .where(and(eq(s.recurringItems.id, id), eq(s.recurringItems.userId, userId)))
+      .returning({ id: s.recurringItems.id });
+    if (!row) throw new NotFoundError('Partida no encontrada');
+    const month = await openMonthOrNull(tx, userId, ym);
+    if (month) {
+      await tx.update(s.entries).set({ amountCents: input.amountCents })
+        .where(and(eq(s.entries.monthId, month.id), eq(s.entries.recurringItemId, id)));
+    }
+  });
 }
 
 export async function setRecurringActive(db: Db, userId: string, id: string, active: boolean): Promise<void> {
@@ -89,15 +91,17 @@ export async function updatePocket(
   db: Db, userId: string, id: string, input: PocketInput, ym: YearMonth = currentYearMonth(),
 ): Promise<void> {
   await assertAccount(db, userId, input.accountId);
-  const [row] = await db.update(s.pockets).set(input)
-    .where(and(eq(s.pockets.id, id), eq(s.pockets.userId, userId)))
-    .returning({ id: s.pockets.id });
-  if (!row) throw new NotFoundError('Bolsa no encontrada');
-  const month = await openMonthOrNull(db, userId, ym);
-  if (month) {
-    await db.insert(s.monthPockets).values({ monthId: month.id, pocketId: id, limitCents: input.monthlyLimitCents })
-      .onConflictDoUpdate({ target: [s.monthPockets.monthId, s.monthPockets.pocketId], set: { limitCents: input.monthlyLimitCents } });
-  }
+  await db.transaction(async (tx) => {
+    const [row] = await tx.update(s.pockets).set(input)
+      .where(and(eq(s.pockets.id, id), eq(s.pockets.userId, userId)))
+      .returning({ id: s.pockets.id });
+    if (!row) throw new NotFoundError('Bolsa no encontrada');
+    const month = await openMonthOrNull(tx, userId, ym);
+    if (month) {
+      await tx.insert(s.monthPockets).values({ monthId: month.id, pocketId: id, limitCents: input.monthlyLimitCents })
+        .onConflictDoUpdate({ target: [s.monthPockets.monthId, s.monthPockets.pocketId], set: { limitCents: input.monthlyLimitCents } });
+    }
+  });
 }
 
 export async function createFund(db: Db, userId: string, input: FundInput): Promise<string> {
