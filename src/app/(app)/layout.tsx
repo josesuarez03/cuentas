@@ -11,7 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="flex min-h-dvh flex-col bg-paper pb-(--app-nav-h) md:pl-60">
         <OfflineBanner />
         {children}
-</div>
+      </div>
     </Providers>
   );
 }
