@@ -55,4 +55,4 @@ __pycache__/
 /.lighthouseci/
 
 # Datos reales del seed (repo público)
-/scripts/seed-data.local.ts
+/scripts/*.local.ts
