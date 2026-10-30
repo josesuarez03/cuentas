@@ -1161,7 +1161,7 @@ git add src/features/month/domain/month-calc.* && git commit -m "feat: cálculo 
 - Consumes: `computeMonth`, `EntryKind`, `MonthCalc` (Task 6)
 - Produces: `EntryView { id; kind: EntryKind; name; note; amountCents; status: 'pending' | 'confirmed' | null }`, `CategoryGroup { id; name; totalCents; entries: EntryView[] }` (total con signo), `PocketView { id; name; limitCents; spentCents }`, `FundView { id; name; allocatedCents; balanceCents }`, `SplitView { accountId; accountName; percent; cents }`, `MonthViewBase { yearMonth; status: 'open' | 'closed'; categories; pockets; funds; split }`, `MonthView extends MonthViewBase { calc: MonthCalc }`, `signOf(kind: EntryKind): 1 | -1`, `recomputeView(base: MonthViewBase): MonthView`, `withEntryAmount(view: MonthView, entryId: string, amountCents: number): MonthView`
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -1205,12 +1205,12 @@ describe('withEntryAmount', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
 Run: `pnpm vitest run src/features/month/domain/month-view.test.ts`
 Expected: FAIL «Failed to resolve import "./month-view"».
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 ```ts
 import { computeMonth, type EntryKind, type MonthCalc } from './month-calc';
@@ -1282,12 +1282,12 @@ export function withEntryAmount(view: MonthView, entryId: string, amountCents: n
 }
 ```
 
-- [ ] **Step 4: Ejecutar y ver que pasa**
+- [x] **Step 4: Ejecutar y ver que pasa**
 
 Run: `pnpm vitest run src/features/month/domain/month-view.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/domain/month-view.* && git commit -m "feat: vista del mes recalculable en cliente y servidor"
