@@ -41,7 +41,7 @@ export async function getSettings(db: Db, userId: string, ym: YearMonth = curren
     categoryId: s.recurringItems.categoryId, accountId: s.recurringItems.accountId, accountName: s.bankAccounts.name,
     amountCents: s.recurringItems.amountCents, frequency: s.recurringItems.frequency, startMonth: s.recurringItems.startMonth,
     anchorMonth: s.recurringItems.anchorMonth, installmentsTotal: s.recurringItems.installmentsTotal,
-    paydayDay: s.recurringItems.paydayDay, active: s.recurringItems.active,
+    paydayDay: s.recurringItems.paydayDay, paydayRule: s.recurringItems.paydayRule, active: s.recurringItems.active,
   }).from(s.recurringItems)
     .innerJoin(s.bankAccounts, eq(s.recurringItems.accountId, s.bankAccounts.id))
     .where(eq(s.recurringItems.userId, userId))

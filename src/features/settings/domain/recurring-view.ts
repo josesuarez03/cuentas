@@ -13,7 +13,7 @@ export function recurringFrequencyNote(r: SettingsRecurring): string {
   switch (r.frequency) {
     case 'monthly':
       return r.kind === 'income' && r.paydayDay !== null
-        ? `${FREQUENCY_LABEL.monthly} · cobro el día ${r.paydayDay}`
+        ? `${FREQUENCY_LABEL.monthly} · cobro el día ${r.paydayDay} o el hábil ${r.paydayRule === 'after' ? 'siguiente' : 'anterior'}`
         : FREQUENCY_LABEL.monthly;
     case 'bimonthly':
       return FREQUENCY_LABEL.bimonthly;

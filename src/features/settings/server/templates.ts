@@ -37,6 +37,7 @@ function normalize(input: RecurringInput) {
     anchorMonth: input.frequency === 'annual' ? input.anchorMonth : null,
     installmentsTotal: input.frequency === 'installments' ? input.installmentsTotal : null,
     paydayDay: input.kind === 'income' ? input.paydayDay : null,
+    paydayRule: input.kind === 'income' ? input.paydayRule : 'before',
   };
 }
 

@@ -8,7 +8,7 @@ export interface SettingsRecurring {
   categoryId: string; categoryLabel: string;   // «Piso › Luz» si es subcategoría
   accountId: string; accountName: string;
   amountCents: number; frequency: Frequency; startMonth: string;
-  anchorMonth: number | null; installmentsTotal: number | null; paydayDay: number | null; active: boolean;
+  anchorMonth: number | null; installmentsTotal: number | null; paydayDay: number | null; paydayRule: 'before' | 'after'; active: boolean;
   currentInstallment: number | null;           // cuota de este mes, si toca
   remainingInstallments: number | null;        // cuotas que faltan después de este mes
 }

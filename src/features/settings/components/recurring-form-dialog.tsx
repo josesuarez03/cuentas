@@ -28,12 +28,13 @@ const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => ({
 interface FormValues {
   kind: Kind; name: string; amount: string; categoryId: string; accountId: string; frequency: Frequency;
   anchorMonth: string; installmentsTotal: string; startMonth: string; paydayDay: string;
+  paydayRule: 'before' | 'after';
 }
 
 const FIELD_OF_PATH: Record<string, keyof FormValues> = {
   name: 'name', kind: 'kind', categoryId: 'categoryId', accountId: 'accountId', amountCents: 'amount',
   frequency: 'frequency', startMonth: 'startMonth', anchorMonth: 'anchorMonth',
-  installmentsTotal: 'installmentsTotal', paydayDay: 'paydayDay',
+  installmentsTotal: 'installmentsTotal', paydayDay: 'paydayDay', paydayRule: 'paydayRule',
 };
 const FIELD_MESSAGE: Partial<Record<keyof FormValues, string>> = {
   name: 'Escribe un nombre.',
@@ -71,6 +72,7 @@ function toInput(v: FormValues): { input: RecurringInput } | { errors: Partial<R
     anchorMonth: v.frequency === 'annual' ? optional(v.anchorMonth, 'anchorMonth') : null,
     installmentsTotal: v.frequency === 'installments' ? optional(v.installmentsTotal, 'installmentsTotal') : null,
     paydayDay: v.kind === 'income' ? optional(v.paydayDay, 'paydayDay') : null,
+    paydayRule: v.kind === 'income' ? v.paydayRule : 'before',
   };
   const parsed = recurringInputSchema.safeParse(candidate);
   if (!parsed.success) {
@@ -100,6 +102,7 @@ function RecurringForm({ item, settings, onDone }: { item: SettingsRecurring | n
       installmentsTotal: item?.installmentsTotal ? String(item.installmentsTotal) : '',
       startMonth: item?.startMonth ?? currentYearMonth(),
       paydayDay: item?.paydayDay ? String(item.paydayDay) : '',
+      paydayRule: item?.paydayRule ?? 'before',
     } as FormValues,
     validators: {
       onSubmit: ({ value }) => {
@@ -225,9 +228,24 @@ function RecurringForm({ item, settings, onDone }: { item: SettingsRecurring | n
       </form.Field>
       <form.Subscribe selector={(s) => s.values.kind}>
         {(kind) => kind === 'income' && (
-          <form.Field name="paydayDay">
-            {(field) => <TextField field={field} label="Día de cobro (opcional)" inputMode="numeric" />}
-          </form.Field>
+          <>
+            <form.Field name="paydayDay">
+              {(field) => <TextField field={field} label="Día de cobro (opcional)" inputMode="numeric" />}
+            </form.Field>
+            <form.Field name="paydayRule">
+              {(field) => (
+                <SelectField
+                  field={field}
+                  label="Si cae en fin de semana o festivo"
+                  options={[
+                    { value: 'before', label: 'Se cobra el día hábil anterior' },
+                    { value: 'after', label: 'Se cobra el día hábil siguiente' },
+                  ]}
+                  emptyText="Sin reglas"
+                />
+              )}
+            </form.Field>
+          </>
         )}
       </form.Subscribe>
       {error && <p role="alert" className="text-[13px] text-alerta">{error}</p>}

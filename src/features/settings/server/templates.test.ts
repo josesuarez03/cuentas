@@ -6,6 +6,7 @@ import { createTestDb } from '@/test/db';
 import { createFixture, type Fixture } from '@/test/fixtures';
 import { NotFoundError } from '@/features/month/server/entries';
 import { ensureMonth, getMonthView } from '@/features/month/server/months';
+import { getSettings } from './settings';
 import type { RecurringInput } from '../domain/recurring-schema';
 import {
   createFund, createPocket, createRecurring, setRecurringActive, updateFund, updatePocket, updateRecurring,
@@ -21,7 +22,7 @@ beforeEach(async () => {
 
 const input = (over: Partial<RecurringInput> = {}): RecurringInput => ({
   name: 'Alquiler', kind: 'expense', categoryId: f.categories.piso, accountId: f.accounts.principal,
-  amountCents: 10000, frequency: 'monthly', startMonth: '2026-10', anchorMonth: null, installmentsTotal: null, paydayDay: null,
+  amountCents: 10000, frequency: 'monthly', startMonth: '2026-10', anchorMonth: null, installmentsTotal: null, paydayDay: null, paydayRule: 'before',
   ...over,
 });
 
@@ -43,6 +44,15 @@ describe('recurrentes', () => {
     await ensureMonth(db, f.userId, '2026-11');
     const nov = (await entriesOf('2026-11')).find((e) => e.name === 'Nómina')!;
     expect(nov.amountCents).toBe(179000);
+  });
+  it('guarda la regla de cobro en ingresos y la ignora en gastos', async () => {
+    await updateRecurring(db, f.userId, f.items.nomina, { ...input(), name: 'Nómina', kind: 'income', categoryId: f.categories.ingresos, amountCents: 187000, paydayDay: 27, paydayRule: 'after' }, '2026-10');
+    const [nomina] = await db.select().from(s.recurringItems).where(eq(s.recurringItems.id, f.items.nomina));
+    expect(nomina.paydayRule).toBe('after');
+    const id = await createRecurring(db, f.userId, { ...input(), name: 'Luz', paydayRule: 'after' });
+    const [luz] = await db.select().from(s.recurringItems).where(eq(s.recurringItems.id, id));
+    expect(luz.paydayRule).toBe('before');
+    expect((await getSettings(db, f.userId, '2026-10')).recurring.find((r) => r.id === f.items.nomina)!.paydayRule).toBe('after');
   });
   it('desactivar deja fuera la partida de los meses nuevos', async () => {
     await setRecurringActive(db, f.userId, f.items.nomina, false);

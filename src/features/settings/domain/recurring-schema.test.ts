@@ -15,4 +15,8 @@ describe('recurringInputSchema', () => {
     expect(recurringInputSchema.safeParse({ ...ok, amountCents: 0 }).success).toBe(false);
     expect(recurringInputSchema.safeParse({ ...ok, startMonth: '2026-13' }).success).toBe(false);
   });
+  it('la regla de cobro es «antes» por defecto y solo admite before/after', () => {
+    expect(recurringInputSchema.parse({ ...ok, kind: 'income', paydayDay: 27 }).paydayRule).toBe('before');
+    expect(recurringInputSchema.safeParse({ ...ok, paydayRule: 'never' }).success).toBe(false);
+  });
 });
