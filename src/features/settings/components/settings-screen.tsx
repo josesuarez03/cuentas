@@ -1,0 +1,47 @@
+'use client';
+
+import { useSettings } from '@/features/settings/hooks/use-settings';
+import { Button } from '@/shared/components/ui/button';
+import { Skeleton } from '@/shared/components/ui/skeleton';
+import { AccountsSection } from './accounts-section';
+import { CategoriesSection } from './categories-section';
+import { NotificationsSection } from './notifications-section';
+import { SettingsSection } from './settings-section';
+import { SplitSection } from './split-section';
+import { ThemeControl } from './theme-control';
+
+export function SettingsScreen() {
+  const { data, error, isPending, refetch } = useSettings();
+
+  return (
+    <main className="mx-auto flex w-full max-w-xl flex-col gap-8 px-4 pt-5 pb-6 md:max-w-2xl md:px-6 md:pt-8 lg:max-w-3xl">
+      <h1 className="text-xl leading-[26px] font-semibold text-ink">Ajustes</h1>
+      {isPending && (
+        <div className="flex flex-col gap-6" aria-busy="true">
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-28 w-full" />
+        </div>
+      )}
+      {error && !data && (
+        <div role="alert" className="flex flex-col items-start gap-3">
+          <p className="text-[15px] text-ink-muted">{error.message}</p>
+          <Button variant="outline" className="min-h-11" onClick={() => void refetch()}>Reintentar</Button>
+        </div>
+      )}
+      {data && (
+        <>
+          {/* Task 16: Recurrentes */}
+          <AccountsSection accounts={data.accounts} />
+          <CategoriesSection categories={data.categories} />
+          {/* Task 16: Bolsas y Huchas */}
+          <SplitSection accounts={data.accounts} />
+          <NotificationsSection preferences={data.preferences} />
+          <SettingsSection id="ajustes-tema" title="Tema">
+            <div className="py-3"><ThemeControl /></div>
+          </SettingsSection>
+        </>
+      )}
+    </main>
+  );
+}
