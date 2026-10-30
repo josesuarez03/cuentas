@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { nextCookies } from 'better-auth/next-js';
+import { oneTimeToken } from 'better-auth/plugins';
 import { db } from '@/db';
 import * as schema from '@/db/schema';
 import { guardNewUser } from './auth-guard';
@@ -17,5 +18,6 @@ export const auth = betterAuth({
     },
   },
   databaseHooks: { user: { create: { before: guardNewUser } } },
-  plugins: [nextCookies()],
+  // oneTimeToken: solo desde el servidor (/api/entrar/*), para volver a la PWA de iPhone.
+  plugins: [oneTimeToken({ disableClientRequest: true, expiresIn: 3, storeToken: 'hashed' }), nextCookies()],
 });
