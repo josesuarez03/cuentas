@@ -13,6 +13,7 @@ export const recurringInputSchema = z.object({
   anchorMonth: z.number().int().min(1).max(12).nullable(),
   installmentsTotal: z.number().int().min(2).max(120).nullable(),
   paydayDay: z.number().int().min(1).max(31).nullable(),
+  paydayRule: z.enum(['before', 'after']).default('before'),
 }).superRefine((v, ctx) => {
   if (v.frequency === 'annual' && v.anchorMonth === null) {
     ctx.addIssue({ code: 'custom', path: ['anchorMonth'], message: 'Elige el mes en que se cobra.' });
