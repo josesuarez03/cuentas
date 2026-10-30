@@ -1,3 +1,4 @@
+import type { IsoDate } from '@/lib/iso-date';
 import { computeMonth, type EntryKind, type MonthCalc } from './month-calc';
 
 export interface EntryView {
@@ -7,6 +8,7 @@ export interface EntryView {
   note: string;
   amountCents: number;
   status: 'pending' | 'confirmed' | null;
+  paydayDate?: IsoDate | null;
 }
 
 export interface CategoryGroup {

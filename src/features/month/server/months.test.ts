@@ -65,6 +65,14 @@ describe('getMonthView', () => {
     expect(await getMonthView(db, f.userId, '2026-10')).toBeNull();
   });
 
+  it('los ingresos pendientes traen su día de cobro; el resto no', async () => {
+    await ensureMonth(db, f.userId, '2026-12');
+    const v = (await getMonthView(db, f.userId, '2026-12'))!;
+    const all = v.categories.flatMap((c) => c.entries);
+    expect(all.find((e) => e.name === 'Nómina')!.paydayDate).toBe('2026-12-24');
+    expect('paydayDate' in all.find((e) => e.name === 'Gas')!).toBe(false);
+  });
+
   it('agrupa, anota y calcula el disponible', async () => {
     await ensureMonth(db, f.userId, '2026-10');
     const v = (await getMonthView(db, f.userId, '2026-10'))!;

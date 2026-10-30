@@ -3,7 +3,9 @@ import * as s from '@/db/schema';
 import type { Db } from '@/db/types';
 import { generateEntries } from '@/features/month/domain/generation';
 import { recomputeView, type CategoryGroup, type MonthView } from '@/features/month/domain/month-view';
+import type { IsoDate } from '@/lib/iso-date';
 import type { YearMonth } from '@/lib/year-month';
+import { getUserCalendar, pendingPaydays } from './payday';
 
 export async function findMonth(db: Db, userId: string, ym: YearMonth) {
   const [m] = await db.select().from(s.months)
@@ -139,11 +141,18 @@ export async function getMonthView(db: Db, userId: string, ym: YearMonth): Promi
     .where(eq(s.entries.monthId, month.id))
     .orderBy(asc(s.entries.createdAt), asc(s.entries.name));
 
+  const paydays = new Map<string, IsoDate>();
+  if (month.status === 'open') {
+    const { holidayRegion } = await getUserCalendar(db, userId);
+    for (const p of await pendingPaydays(db, userId, ym, holidayRegion)) paydays.set(p.entryId, p.paydayDate);
+  }
+
   for (const r of rows) {
     const group = groups.get(topOf.get(r.categoryId) ?? r.categoryId);
     if (!group) continue;
     group.entries.push({
       id: r.id, kind: r.kind, name: r.name, note: noteFor(r), amountCents: r.amountCents, status: r.status,
+      ...(r.kind === 'income' && r.status === 'pending' ? { paydayDate: paydays.get(r.id) ?? null } : {}),
     });
   }
 
