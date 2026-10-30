@@ -92,5 +92,9 @@ export function useUpdateAmount(ym: string) {
 }
 
 export function useConfirmIncome(ym: string) {
-  return useMonthMutation(ym, (entryId: string) => confirmIncomeAction(entryId), withIncomeConfirmed);
+  return useMonthMutation(
+    ym,
+    ({ entryId, amountCents }: { entryId: string; amountCents: number }) => confirmIncomeAction(entryId, amountCents),
+    (view, { entryId, amountCents }) => withIncomeConfirmed(withEntryAmount(view, entryId, amountCents), entryId),
+  );
 }

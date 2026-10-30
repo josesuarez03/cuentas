@@ -33,7 +33,7 @@ export function todoItems(view: MonthView | null, wealth: WealthView | null): To
         note: `Previsto: ${formatEuros(e.amountCents, { sign: true })}`,
         actionText: 'Confirmar',
         actionLabel: `Confirmar ${e.name}`,
-        doneText: `${e.name} confirmada.`,
+        doneText: null,
       }))
     : [];
   const loans: TodoItem[] = (wealth?.loans ?? []).map((l) => ({
