@@ -1,0 +1,24 @@
+import { db } from '@/db';
+import { currentYearMonth, isYearMonth } from '@/lib/year-month';
+import { getCatalog } from '@/features/catalog/server/catalog';
+import { ensureMonth, getMonthView } from '@/features/month/server/months';
+import { getUserOrNull } from '@/features/auth/session';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET(_request: Request, { params }: { params: Promise<{ ym: string }> }) {
+  const user = await getUserOrNull();
+  if (!user) return Response.json({ error: 'Inicia sesión para continuar.' }, { status: 401 });
+
+  const { ym } = await params;
+  if (!isYearMonth(ym)) return Response.json({ error: 'Mes no válido.' }, { status: 400 });
+
+  const current = currentYearMonth();
+  if (ym > current) return Response.json({ error: 'Este mes aún no ha empezado.' }, { status: 404 });
+  if (ym === current) await ensureMonth(db, user.id, ym);
+
+  const view = await getMonthView(db, user.id, ym);
+  if (!view) return Response.json({ error: 'No hay datos de este mes.' }, { status: 404 });
+
+  return Response.json({ view, catalog: await getCatalog(db, user.id) });
+}

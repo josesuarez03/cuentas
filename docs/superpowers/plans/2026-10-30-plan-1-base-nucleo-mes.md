@@ -2072,7 +2072,7 @@ git commit -m "feat: login con Google y lista de emails permitidos"
 - Consumes: `getUserOrNull`, `requireUser` (Task 10); `ensureMonth`, `getMonthView` (Task 8); `updateEntryAmount`, `addOneOffEntry`, `setSavingsSplit`, `getCatalog`, errores (Task 9)
 - Produces: `GET /api/months/[ym]` → `200 { view: MonthView; catalog: Catalog }` | `401|400|404 { error: string }`; `type ActionResult = { ok: true } | { ok: false; error: string }`; `updateEntryAmountAction(entryId: string, amountCents: number)`, `addOneOffEntryAction(input: NewOneOffEntry)`, `setSavingsSplitAction(ym: string, split: { accountId: string; percent: number }[])`, todas `Promise<ActionResult>`; constante `SAVE_ERROR`.
 
-- [ ] **Step 1: Ruta GET**
+- [x] **Step 1: Ruta GET**
 
 `src/app/api/months/[ym]/route.ts`:
 ```ts
@@ -2102,7 +2102,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ ym:
 }
 ```
 
-- [ ] **Step 2: Server Actions**
+- [x] **Step 2: Server Actions**
 
 `src/features/month/server/actions.ts`:
 ```ts
@@ -2181,12 +2181,12 @@ export async function setSavingsSplitAction(
 }
 ```
 
-- [ ] **Step 3: Verificar tipos y tests**
+- [x] **Step 3: Verificar tipos y tests**
 
 Run: `pnpm tsc --noEmit && pnpm test`
 Expected: sin errores de tipos; todos los tests PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/app/api/months src/features/month/server/actions.ts && git commit -m "feat: API del mes y Server Actions"
