@@ -5,7 +5,7 @@ import type { Db } from '@/db/types';
 import { createTestDb } from '@/test/db';
 import { createFixture, type Fixture } from '@/test/fixtures';
 import { getCatalog } from '@/features/catalog/server/catalog';
-import { addOneOffEntry, ClosedMonthError, NotFoundError, setSavingsSplit, updateEntryAmount } from './entries';
+import { addOneOffEntry, ClosedMonthError, confirmIncome, NotFoundError, setSavingsSplit, updateEntryAmount } from './entries';
 import { ensureMonth, getMonthView } from './months';
 
 let db: Db;
@@ -22,6 +22,39 @@ const gasEntry = async () => {
   const rows = await db.select().from(s.entries).where(eq(s.entries.monthId, monthId));
   return rows.find((r) => r.name === 'Gas')!;
 };
+
+const nominaEntry = async () => {
+  const rows = await db.select().from(s.entries).where(eq(s.entries.monthId, monthId));
+  return rows.find((r) => r.name === 'Nómina')!;
+};
+
+describe('confirmIncome', () => {
+  it('pasa el ingreso a confirmado', async () => {
+    await confirmIncome(db, f.userId, (await nominaEntry()).id);
+    expect((await nominaEntry()).status).toBe('confirmed');
+    const v = (await getMonthView(db, f.userId, '2026-10'))!;
+    const nomina = v.categories.flatMap((c) => c.entries).find((e) => e.name === 'Nómina')!;
+    expect(nomina.note.startsWith('Pendiente')).toBe(false);
+  });
+  it('confirmar dos veces no falla', async () => {
+    const id = (await nominaEntry()).id;
+    await confirmIncome(db, f.userId, id);
+    await expect(confirmIncome(db, f.userId, id)).resolves.toBeUndefined();
+    expect((await nominaEntry()).status).toBe('confirmed');
+  });
+  it('no deja confirmar ingresos de otro usuario', async () => {
+    await createFixture(db, 'u2');
+    await expect(confirmIncome(db, 'u2', (await nominaEntry()).id)).rejects.toBeInstanceOf(NotFoundError);
+    expect((await nominaEntry()).status).toBe('pending');
+  });
+  it('no confirma un gasto', async () => {
+    await expect(confirmIncome(db, f.userId, (await gasEntry()).id)).rejects.toBeInstanceOf(NotFoundError);
+  });
+  it('no deja tocar un mes cerrado', async () => {
+    await db.update(s.months).set({ status: 'closed' }).where(eq(s.months.id, monthId));
+    await expect(confirmIncome(db, f.userId, (await nominaEntry()).id)).rejects.toBeInstanceOf(ClosedMonthError);
+  });
+});
 
 describe('updateEntryAmount', () => {
   it('cambia el importe', async () => {

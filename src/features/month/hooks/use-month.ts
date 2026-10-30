@@ -2,8 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { updateEntryAmountAction } from '@/features/month/server/actions';
-import { withEntryAmount, type MonthView } from '@/features/month/domain/month-view';
+import { confirmIncomeAction, updateEntryAmountAction, type ActionResult } from '@/features/month/server/actions';
+import { withEntryAmount, withIncomeConfirmed, type MonthView } from '@/features/month/domain/month-view';
 import type { Upcoming } from '@/features/month/domain/upcoming';
 import type { Catalog } from '@/features/catalog/server/catalog';
 import { SAVE_ERROR } from '@/features/month/save-error';
@@ -41,24 +41,28 @@ export function useMonth(ym: string) {
 /** Error con texto ya pensado para el usuario (viene del `ActionResult`). */
 class SaveError extends Error {}
 
-export function useUpdateAmount(ym: string) {
+async function runAction(action: () => Promise<ActionResult>): Promise<void> {
+  let result: ActionResult;
+  try {
+    result = await action();
+  } catch {
+    throw new SaveError(SAVE_ERROR);
+  }
+  if (!result.ok) throw new SaveError(result.error);
+}
+
+function useMonthMutation<V>(
+  ym: string,
+  action: (vars: V) => Promise<ActionResult>,
+  apply: (view: MonthView, vars: V) => MonthView,
+) {
   const qc = useQueryClient();
   const mutation = useMutation({
-    mutationFn: async ({ entryId, amountCents }: { entryId: string; amountCents: number }) => {
-      let result;
-      try {
-        result = await updateEntryAmountAction(entryId, amountCents);
-      } catch {
-        throw new SaveError(SAVE_ERROR);
-      }
-      if (!result.ok) throw new SaveError(result.error);
-    },
-    onMutate: async ({ entryId, amountCents }) => {
+    mutationFn: (vars: V) => runAction(() => action(vars)),
+    onMutate: async (vars: V) => {
       await qc.cancelQueries({ queryKey: monthKey(ym) });
       const previous = qc.getQueryData<MonthResponse>(monthKey(ym));
-      if (previous) {
-        qc.setQueryData<MonthResponse>(monthKey(ym), { ...previous, view: withEntryAmount(previous.view, entryId, amountCents) });
-      }
+      if (previous) qc.setQueryData<MonthResponse>(monthKey(ym), { ...previous, view: apply(previous.view, vars) });
       return { previous };
     },
     onError: (error, vars, context) => {
@@ -70,4 +74,16 @@ export function useUpdateAmount(ym: string) {
     onSettled: () => qc.invalidateQueries({ queryKey: monthKey(ym) }),
   });
   return mutation;
+}
+
+export function useUpdateAmount(ym: string) {
+  return useMonthMutation(
+    ym,
+    ({ entryId, amountCents }: { entryId: string; amountCents: number }) => updateEntryAmountAction(entryId, amountCents),
+    (view, { entryId, amountCents }) => withEntryAmount(view, entryId, amountCents),
+  );
+}
+
+export function useConfirmIncome(ym: string) {
+  return useMonthMutation(ym, (entryId: string) => confirmIncomeAction(entryId), withIncomeConfirmed);
 }
