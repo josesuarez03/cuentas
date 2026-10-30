@@ -414,7 +414,7 @@ git add src/lib/money.ts src/lib/money.test.ts && git commit -m "feat: parseo y 
 **Interfaces:**
 - Produces: `type YearMonth = string`, `isYearMonth(s: string): boolean`, `addMonths(ym, n): YearMonth`, `diffMonths(a, b): number` (a − b), `monthOf(ym): number` (1–12), `currentYearMonth(now?: Date, timeZone?: string): YearMonth`, `formatMonthName(ym): string` («Noviembre 2026»)
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -447,12 +447,12 @@ describe('year-month', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
 Run: `pnpm vitest run src/lib/year-month.test.ts`
 Expected: FAIL «Failed to resolve import "./year-month"».
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 ```ts
 export type YearMonth = string;
@@ -502,12 +502,12 @@ export function formatMonthName(ym: YearMonth): string {
 }
 ```
 
-- [ ] **Step 4: Ejecutar y ver que pasa**
+- [x] **Step 4: Ejecutar y ver que pasa**
 
 Run: `pnpm vitest run src/lib/year-month.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/year-month.ts src/lib/year-month.test.ts && git commit -m "feat: utilidades de mes YYYY-MM con zona Madrid"
