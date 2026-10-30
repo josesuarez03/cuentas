@@ -164,7 +164,7 @@ src/
   - `type DbDriver = 'neon' | 'pg'`; `dbDriver(env: { DATABASE_DRIVER?: string; VERCEL?: string }): DbDriver`.
   - `db` de `@/db` usa `drizzle-orm/node-postgres` con `new pg.Pool({ connectionString: DATABASE_URL })` cuando `dbDriver(process.env) === 'pg'`.
 
-- [ ] **Step 1: Instalar dependencias**
+- [x] **Step 1: Instalar dependencias**
 
 ```bash
 pnpm add @serwist/turbopack@9.5.13 serwist@9.5.13 esbuild@^0.25.12 pg @vercel/speed-insights
@@ -173,7 +173,7 @@ pnpm add -D @playwright/test@1.64.1 @types/pg sharp@^0.35.5
 
 Expected: `pnpm-lock.yaml` actualizado. Si pnpm avisa de scripts de build ignorados para `sharp` o `@swc/core`, no los añadas a `allowBuilds` salvo que la Task 4 o 5 fallen por ello (los dos usan binarios precompilados).
 
-- [ ] **Step 2: Test que falla** — `src/db/driver.test.ts`
+- [x] **Step 2: Test que falla** — `src/db/driver.test.ts`
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -195,21 +195,21 @@ describe('dbDriver', () => {
 });
 ```
 
-- [ ] **Step 3: Ver que falla**
+- [x] **Step 3: Ver que falla**
 
 Run: `pnpm vitest run src/db/driver.test.ts`
 Expected: FAIL — módulo `./driver` inexistente.
 
-- [ ] **Step 4: Implementación**
+- [x] **Step 4: Implementación**
 
 - `src/db/driver.ts`: `dbDriver` según el test (vacío o ausente → `'neon'`).
 - `src/db/index.ts`: función `connect(): Db`; rama `'pg'` con `import pg from 'pg'` y `drizzle` de `drizzle-orm/node-postgres`; rama Neon exactamente como hoy (pool + `pool.on('error', …)`). `export const db: Db = connect();`. (`pg` ya está en la lista por defecto de `serverExternalPackages` de Next.)
 
-- [ ] **Step 5: Ver que pasa**
+- [x] **Step 5: Ver que pasa**
 
 Run (uno detrás de otro): `pnpm vitest run src/db/driver.test.ts` → PASS. `pnpm tsc --noEmit` → sin errores.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json pnpm-lock.yaml src/db/driver.ts src/db/driver.test.ts src/db/index.ts && git commit -m "chore: dependencias del plan 4 y driver pg solo para E2E"
@@ -230,7 +230,7 @@ git add package.json pnpm-lock.yaml src/db/driver.ts src/db/driver.test.ts src/d
   - `landingPath(s: { signedIn: boolean; denied: boolean; needsOnboarding: boolean }): '/login' | '/login?error=acceso' | '/primer-uso' | '/inicio'`.
   - `getSessionState(): Promise<{ user: User | null; denied: boolean }>` exportada de `session.ts` (el `readSession` de hoy).
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `src/middleware.test.ts`:
 
@@ -279,12 +279,12 @@ it('decide el destino final de / en un solo paso', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/middleware.test.ts src/features/onboarding/domain/landing.test.ts`
 Expected: FAIL — `landing` inexistente y el primer test del middleware falla en `/manifest.webmanifest` (hoy protegido).
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `middleware.ts`: solo cambia el matcher:
 
@@ -305,15 +305,15 @@ export default async function Home() {
 }
 ```
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/middleware.test.ts src/features/onboarding/domain/landing.test.ts` → PASS. Después `pnpm tsc --noEmit` → sin errores.
 
-- [ ] **Step 5: Verificación manual (un salto)**
+- [x] **Step 5: Verificación manual (un salto)**
 
 Con `pnpm dev`, en el navegador con sesión de un usuario sin datos (o Jose con datos): DevTools → Network con «Preserve log», abre `http://localhost:3000/` → **una** respuesta 307 (`/` → `/primer-uso` o `/inicio`) y luego 200. Sin sesión (ventana privada): `/` → 307 `/login` → 200.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/middleware.ts src/middleware.test.ts src/app/page.tsx src/features/auth/session.ts src/features/onboarding/domain/landing.ts src/features/onboarding/domain/landing.test.ts && git commit -m "perf: / decide el destino en un salto y rutas públicas de la PWA"
@@ -335,7 +335,7 @@ git add src/middleware.ts src/middleware.test.ts src/app/page.tsx src/features/a
   - `currentPushHint(): PushHint` — lee `navigator.userAgent`, `navigator.maxTouchPoints`, `matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true`.
   - `PUSH_HINT_TEXT: Record<PushHint, string>` con los tres textos de «Global Constraints».
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `install-hint.test.ts`:
 
@@ -388,21 +388,21 @@ it('sin soporte en otro navegador: lo dice sin hablar de iPhone', async () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/notifications/client/install-hint.test.ts src/features/settings/components/notifications-section.test.tsx`
 Expected: FAIL — `install-hint` inexistente; el texto nuevo no aparece.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `install-hint.ts` (sin `'use client'`): iOS si `/iPhone|iPad|iPod/.test(ua)` o (`/Macintosh/.test(ua)` y `maxTouchPoints > 1`). iOS: `standalone ? 'ios-old' : 'ios-install'`; si no, `'unsupported'`.
 - `notifications-section.tsx`: guarda el resultado en el mismo `useEffect` que ya llama a `pushSupport()` (`setHint(currentPushHint())` solo si es `'unsupported'`, para no leer `navigator` en el render del servidor); la nota para `support === 'unsupported'` pasa a `PUSH_HINT_TEXT[hint]` (con `hint` aún nulo, `PUSH_HINT_TEXT.unsupported`). El resto de la nota no cambia.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/features/notifications/client/install-hint.test.ts src/features/settings/components/notifications-section.test.tsx` → PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/notifications/client/install-hint.ts src/features/notifications/client/install-hint.test.ts src/features/settings/components/notifications-section.tsx src/features/settings/components/notifications-section.test.tsx && git commit -m "feat: Ajustes explica cómo instalar Kuadrix en iPhone para recibir push"
@@ -425,7 +425,7 @@ git add src/features/notifications/client/install-hint.ts src/features/notificat
   - `lightTokenColors(css: string): string[]` (hex en minúscula del primer bloque `:root` de `globals.css`).
   - `makeIcons(root?: string): Promise<void>` (escribe cada `out` relativo a `root`, por defecto `process.cwd()`).
 
-- [ ] **Step 1: Fuentes SVG**
+- [x] **Step 1: Fuentes SVG**
 
 `scripts/icons/kuadrix-mark.svg` (iconos «any» y favicon):
 
@@ -444,7 +444,7 @@ git add src/features/notifications/client/install-hint.ts src/features/notificat
 
 `scripts/icons/kuadrix-maskable.svg`: igual, pero el fondo es `<rect width="512" height="512" fill="#f3f4f6"/>` (sin `rx`, a sangre) y el `<g>` lleva `transform="translate(256 256) scale(0.72) translate(-256 -258)"` (todo cabe en la zona segura del 80 %). Puedes retocar la geometría de la K a ojo; no cambies los colores.
 
-- [ ] **Step 2: Tests que fallan**
+- [x] **Step 2: Tests que fallan**
 
 `scripts/make-icons.test.ts`:
 
@@ -509,12 +509,12 @@ it('instalable: nombre, standalone, /inicio e iconos 192/512/maskable', () => {
 });
 ```
 
-- [ ] **Step 3: Ver que fallan**
+- [x] **Step 3: Ver que fallan**
 
 Run: `pnpm vitest run scripts/make-icons.test.ts src/app/manifest.test.ts`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 4: Implementación**
+- [x] **Step 4: Implementación**
 
 - `scripts/make-icons.ts`: `ICON_TARGETS` en el orden del test (192 y 512 desde `kuadrix-mark.svg`, `opaque: false`; maskable 512 y apple 180 desde `kuadrix-maskable.svg`, `opaque: true`; icon 48 desde `kuadrix-mark.svg`, `opaque: false`). `makeIcons`: `sharp(svg, { density: 384 }).resize(size, size)`, `.flatten({ background: '#f3f4f6' })` si `opaque`, `.png({ compressionLevel: 9 })`, crea el directorio de salida. Al final del archivo, si `process.argv[1]` termina en `make-icons.ts`, `await makeIcons()` (así sirve también como script). `lightTokenColors`: hex del texto entre el primer `:root {` y su `}`.
 - `src/app/manifest.ts`: `export default function manifest(): MetadataRoute.Manifest` con los valores del test, `dir: 'ltr'` y `categories: ['finance']`.
@@ -532,15 +532,15 @@ export const metadata: Metadata = {
 
 (`manifest`, `icon` y `apple-icon` los enlaza Next por convención de archivos; `viewport.themeColor` por modo no se toca.)
 
-- [ ] **Step 5: Generar los PNG y ver que pasan**
+- [x] **Step 5: Generar los PNG y ver que pasan**
 
 Run (uno detrás de otro): `pnpm tsx scripts/make-icons.ts` → crea los 5 PNG. `pnpm vitest run scripts/make-icons.test.ts src/app/manifest.test.ts` → PASS. Abre `public/icons/icon-maskable-512.png` y comprueba a ojo que la K y la doble raya quedan dentro del círculo central.
 
-- [ ] **Step 6: Verificación**
+- [x] **Step 6: Verificación**
 
 Run: `pnpm build` → la tabla de rutas incluye `/manifest.webmanifest`, `/icon.png` y `/apple-icon.png`. Con `pnpm start` y sin sesión: `curl -sI http://localhost:3000/manifest.webmanifest` → `200` `application/manifest+json`; `curl -sI http://localhost:3000/icons/icon-192.png` → `200` `image/png`; `curl -s http://localhost:3000/login | grep -o '<link rel="\(manifest\|apple-touch-icon\|icon\)"[^>]*>'` → las tres; `grep -o 'apple-mobile-web-app-title[^>]*'` → `Kuadrix`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/icons scripts/make-icons.ts scripts/make-icons.test.ts public/icons src/app/icon.png src/app/apple-icon.png src/app/manifest.ts src/app/manifest.test.ts src/app/layout.tsx && git rm src/app/favicon.ico public/file.svg public/globe.svg public/next.svg public/vercel.svg public/window.svg && git commit -m "feat: manifest, iconos y metadatos para instalar Kuadrix"
@@ -569,7 +569,7 @@ git add scripts/icons scripts/make-icons.ts scripts/make-icons.test.ts public/ic
   - `ServiceWorkerRegistrar()` — registra en producción y pide `CACHE_URLS` de cada ruta visitada; montado en `ThemeProvider` (raíz).
   - Página estática `/sin-conexion`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `src/sw/policy.test.ts`:
 
@@ -676,12 +676,12 @@ it('pide al service worker guardar la pantalla visitada', () => {
 
 En `push-client.test.ts`, el test «permiso concedido…» pasa a llamarse «permiso concedido: registra /serwist/sw.js y se suscribe con userVisibleOnly» y espera `register` con `('/serwist/sw.js', { scope: '/' })`.
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/sw src/shared/components/sw-registrar.test.tsx src/features/notifications/client`
 Expected: FAIL — módulos inexistentes; push-client registra `/sw.js`.
 
-- [ ] **Step 3: Implementación de la política y el registro**
+- [x] **Step 3: Implementación de la política y el registro**
 
 - `src/sw/policy.ts` (sin imports, sin globals de SW; lo carga el cliente de tipos normal y el del SW). `classify`, en este orden: no `GET` u otro origen → `network-only`; `/api/auth/` o `/api/cron/` → `network-only`; `^/api/months/\d{4}-\d{2}$`, `/api/wealth`, `/api/settings` → `api-read`; otra `/api/` → `network-only`; cabecera `RSC: 1` → `network-only`; `/_next/static/` o `/icons/` → `static`; `/serwist/` o `/` → `network-only`; último segmento sin `.` → `page`; si no, `network-only`. `cachesToDelete`: empiezan por `kuadrix-` y no son `CACHE.static`. `pushPayload`/`notificationTarget`: la lógica de `public/sw.js` (título por defecto «Kuadrix», `url` por defecto `/inicio`, fuera de origen → misma ruta + query en `origin`).
 - `src/lib/service-worker.ts`: `SW_URL`, `registerServiceWorker`.
@@ -689,11 +689,11 @@ Expected: FAIL — módulos inexistentes; push-client registra `/sw.js`.
 - `sw-registrar.tsx` (`'use client'`, devuelve `null`): efecto `[]` → si `process.env.NODE_ENV === 'production'` y existe `navigator.serviceWorker`, `void registerServiceWorker().catch(() => undefined)`; efecto `[pathname]` (de `usePathname()`) → si `navigator.onLine !== false`, `navigator.serviceWorker?.controller?.postMessage({ type: 'CACHE_URLS', payload: { urlsToCache: [location.pathname + location.search] } })`.
 - `providers.tsx`: `<ServiceWorkerRegistrar />` dentro de `NextThemesProvider`, antes de `{children}`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/sw src/shared/components/sw-registrar.test.tsx src/features/notifications/client src/shared/components/providers.test.tsx` → PASS.
 
-- [ ] **Step 5: Service worker, ruta y página sin conexión**
+- [x] **Step 5: Service worker, ruta y página sin conexión**
 
 `src/sw/sw.ts`:
 
@@ -792,7 +792,7 @@ export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
 
 Borra `public/sw.js`.
 
-- [ ] **Step 6: Verificación (uno detrás de otro)**
+- [x] **Step 6: Verificación (uno detrás de otro)**
 
 - `pnpm tsc --noEmit` → sin errores.
 - `pnpm tsc -p src/sw/tsconfig.json --noEmit` → sin errores.
@@ -802,7 +802,7 @@ Borra `public/sw.js`.
 
 Si el build no genera `/serwist/sw.js` o la precache sale vacía, **para** y avisa (Decisión 1).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/sw src/app/serwist src/app/sin-conexion src/lib/service-worker.ts src/shared/components/sw-registrar.tsx src/shared/components/sw-registrar.test.tsx src/shared/components/providers.tsx src/features/notifications/client next.config.ts tsconfig.json && git rm public/sw.js && git commit -m "feat: service worker con Serwist: precache, lecturas sin conexión y push"
@@ -823,7 +823,7 @@ git add src/sw src/app/serwist src/app/sin-conexion src/lib/service-worker.ts sr
   - `OfflineBanner()` — región `role="status"` siempre presente; sin conexión contiene el texto fijado.
   - `runAction` lanza `SaveError(SAVE_ERROR)` sin llamar a `action` si `navigator.onLine === false`.
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 `use-online.test.ts`:
 
@@ -884,22 +884,22 @@ describe('runAction', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/shared/hooks/use-online.test.ts src/shared/components/offline-banner.test.tsx src/features/month/hooks/use-month.test.tsx`
 Expected: FAIL — módulos inexistentes; `runAction` llama a la acción.
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 - `use-online.ts` (`'use client'`) y `offline-banner.tsx` (`'use client'`): `<div role="status" aria-live="polite" className="sticky top-0 z-30">{!online && <p className="border-b border-line bg-aviso-soft px-4 py-2 text-[13px] leading-[18px] text-ink"><strong className="font-semibold text-aviso">Sin conexión</strong> · Ves los últimos datos guardados en este dispositivo. Para cambiar algo, vuelve a conectarte.</p>}</div>`.
 - `runAction`: primera línea `if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new SaveError(SAVE_ERROR);`.
 - `(app)/layout.tsx`: `<OfflineBanner />` como primer hijo del `div` de contenido. `primer-uso/page.tsx`: `<OfflineBanner />` como primer hijo de `<main>` dentro de `Providers`.
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run: `pnpm vitest run src/shared src/features/month/hooks` → PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/shared/hooks/use-online.ts src/shared/hooks/use-online.test.ts src/shared/components/offline-banner.tsx src/shared/components/offline-banner.test.tsx src/features/month/hooks/use-month.ts src/features/month/hooks/use-month.test.tsx "src/app/(app)/layout.tsx" src/app/primer-uso/page.tsx && git commit -m "feat: aviso «Sin conexión» y guardar falla al momento sin red"
@@ -923,7 +923,7 @@ git add src/shared/hooks/use-online.ts src/shared/hooks/use-online.test.ts src/s
   - `ANA = 'e2e/.auth/ana.json'`, `NUEVO = 'e2e/.auth/nuevo.json'`, `readE2eData(): { ym: string; nominaEntryId: string }`
   - Scripts: `"e2e": "playwright test"`, `"e2e:db": "docker compose -f e2e/compose.yml up -d --wait"`, `"e2e:build": "node --env-file=e2e/e2e.env node_modules/next/dist/bin/next build --turbopack"`.
 
-- [ ] **Step 1: Test que falla** — `e2e/support/session.test.ts`
+- [x] **Step 1: Test que falla** — `e2e/support/session.test.ts`
 
 ```ts
 import { betterAuth } from 'better-auth';
@@ -963,18 +963,18 @@ describe('sesión E2E', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que falla**
+- [x] **Step 2: Ver que falla**
 
 Run: `pnpm vitest run e2e/support/session.test.ts` (tras añadir `'e2e/**/*.test.ts'` al `include` de `vitest.config.mts`)
 Expected: FAIL — `./session` inexistente.
 
-- [ ] **Step 3: Implementación de la sesión**
+- [x] **Step 3: Implementación de la sesión**
 
 `e2e/support/session.ts`: `signSessionCookie` con `crypto.subtle` (`importKey('raw', utf8(secret), { name: 'HMAC', hash: 'SHA-256' })`, `sign`, base64 estándar con `Buffer`), devuelve `encodeURIComponent(\`${token}.${firma}\`)` (Decisión 13). `seedSession`: inserta en `s.user` (`id` y `token` con `crypto.randomUUID()`/32 bytes aleatorios en base64url, `emailVerified: true`) y en `s.session` (`expiresAt` = ahora + 7 días). `storageStateFor`: una cookie con `domain` = `new URL(baseURL).hostname`, `expires` = ahora + 7 días en segundos.
 
 Run: `pnpm vitest run e2e/support/session.test.ts` → PASS.
 
-- [ ] **Step 4: Infraestructura**
+- [x] **Step 4: Infraestructura**
 
 `e2e/compose.yml`:
 
@@ -1055,7 +1055,7 @@ export default defineConfig({
 
 `package.json`: los tres scripts de «Produces».
 
-- [ ] **Step 5: Escenarios**
+- [x] **Step 5: Escenarios**
 
 `e2e/auth.spec.ts`:
 
@@ -1133,7 +1133,7 @@ test('confirmar la nómina desde el enlace con el neto real', async ({ page }) =
 - con `colorScheme: 'light'`: `/login` → `not.toHaveClass(/\bdark\b/)`; `expect(page.locator('meta[name="theme-color"]')).toHaveCount(2)`.
 - con `storageState: ANA` y `colorScheme: 'light'`: `/ajustes` → `getByRole('radio', { name: 'Oscuro' })` (o el rol que tenga el `ToggleGroup` «Tema») → clic → `html` con `dark`; `reload()` → sigue `dark`.
 
-- [ ] **Step 6: Ejecutar (uno detrás de otro)**
+- [x] **Step 6: Ejecutar (uno detrás de otro)**
 
 ```bash
 pnpm e2e:db
@@ -1143,7 +1143,7 @@ pnpm e2e
 
 Expected: los 8 escenarios PASS. Al terminar: `docker compose -f e2e/compose.yml down`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add playwright.config.ts e2e package.json vitest.config.mts .gitignore && git commit -m "test: E2E con Playwright sobre Postgres local y sesión sembrada"
@@ -1389,7 +1389,7 @@ git add scripts/first-load.ts scripts/first-load.test.ts src/test/client-boundar
   - `withoutQuery<T extends { url: string }>(event: T): T` — quita `?…` y `#…` de `url`.
   - `KuadrixSpeedInsights()` (`'use client'`): `<SpeedInsights beforeSend={withoutQuery} />` de `@vercel/speed-insights/next`.
 
-- [ ] **Step 1: Test que falla** — `speed-insights.test.ts`
+- [x] **Step 1: Test que falla** — `speed-insights.test.ts`
 
 ```ts
 import { expect, it } from 'vitest';
@@ -1403,21 +1403,21 @@ it('no manda la query ni el fragmento (los enlaces de confirmar llevan el id de 
 
 Run: `pnpm vitest run src/shared/components/speed-insights.test.ts` → FAIL (módulo inexistente).
 
-- [ ] **Step 2: Implementación**
+- [x] **Step 2: Implementación**
 
 - `speed-insights.tsx` según «Produces».
 - `layout.tsx`: `IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-plex', display: 'swap', preload: true, adjustFontFallback: true, fallback: ['system-ui', 'sans-serif'] })`; dentro de `<body>`, tras `ThemeProvider`: `{process.env.VERCEL === '1' && <KuadrixSpeedInsights />}`.
 
 Run: `pnpm vitest run src/shared/components/speed-insights.test.ts` → PASS.
 
-- [ ] **Step 3: Verificación (uno detrás de otro)**
+- [x] **Step 3: Verificación (uno detrás de otro)**
 
 `pnpm build`, luego `pnpm start` y:
 - `curl -s http://localhost:3000/login | grep -o '<link rel="preload"[^>]*as="font"[^>]*>' | wc -l` → entre 1 y 3 (woff2 de `latin`).
 - `cat .next/static/css/*.css .next/static/chunks/*.css 2>/dev/null | grep -o 'font-display:swap' | head -1` → `font-display:swap`.
 - `curl -s http://localhost:3000/login | grep -c "speed-insights"` → `0` (fuera de Vercel no se pinta).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/app/layout.tsx src/shared/components/speed-insights.tsx src/shared/components/speed-insights.test.ts && git commit -m "perf: fuente con swap explícito y Speed Insights sin query"
