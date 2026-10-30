@@ -11,7 +11,7 @@ function assertAmount(amountCents: number) {
   if (!Number.isInteger(amountCents) || amountCents < 0) throw new RangeError('Importe no válido');
 }
 
-async function openMonth(db: Db, userId: string, ym: YearMonth) {
+export async function openMonth(db: Db, userId: string, ym: YearMonth) {
   const month = await findMonth(db, userId, ym);
   if (!month) throw new NotFoundError('Mes no encontrado');
   if (month.status === 'closed') throw new ClosedMonthError('El mes está cerrado');
@@ -35,7 +35,7 @@ export async function confirmIncome(db: Db, userId: string, entryId: string): Pr
   if (!row || row.kind !== 'income') throw new NotFoundError('Ingreso no encontrado');
   if (row.monthStatus === 'closed') throw new ClosedMonthError('El mes está cerrado');
   if (row.status === 'confirmed') return;
-  await db.update(s.entries).set({ status: 'confirmed' }).where(eq(s.entries.id, entryId));
+  await db.update(s.entries).set({ status: 'confirmed', confirmedAt: new Date() }).where(eq(s.entries.id, entryId));
 }
 
 export interface NewOneOffEntry {
@@ -65,6 +65,7 @@ export async function addOneOffEntry(db: Db, userId: string, input: NewOneOffEnt
     accountId: input.accountId,
     amountCents: input.amountCents,
     status: input.kind === 'income' ? 'confirmed' : null,
+    confirmedAt: input.kind === 'income' ? new Date() : null,
   }).returning({ id: s.entries.id });
   return created.id;
 }
