@@ -102,6 +102,7 @@ export const months = pgTable('months', {
   userId: userRef(),
   yearMonth: char('year_month', { length: 7 }).notNull(),
   status: monthStatus('status').notNull().default('open'),
+  reopenedAt: timestamp('reopened_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (t) => [unique('months_user_ym').on(t.userId, t.yearMonth)]);
 
@@ -195,4 +196,21 @@ export const userSettings = pgTable('user_settings', {
   emailNotifications: boolean('email_notifications').notNull().default(true),
   pushNotifications: boolean('push_notifications').notNull().default(false),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const pushSubscriptions = pgTable('push_subscriptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: userRef(),
+  endpoint: text('endpoint').notNull().unique(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (t) => [index('push_subscriptions_user').on(t.userId)]);
+
+export const notificationsLog = pgTable('notifications_log', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: userRef(),
+  kind: text('kind').notNull(),
+  refKey: text('ref_key').notNull().unique(),
+  sentAt: timestamp('sent_at').notNull().defaultNow(),
 });
