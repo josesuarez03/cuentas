@@ -5,7 +5,7 @@ import { isAllowedEmail } from '@/features/auth/allowlist';
 import { auth } from '@/features/auth/auth';
 import { safeNext } from '@/features/auth/safe-next';
 
-async function readSession() {
+export async function getSessionState() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return { user: null, denied: false };
   if (!isAllowedEmail(session.user.email)) return { user: null, denied: true };
@@ -13,11 +13,11 @@ async function readSession() {
 }
 
 export async function getUserOrNull() {
-  return (await readSession()).user;
+  return (await getSessionState()).user;
 }
 
 export async function requireUser() {
-  const { user, denied } = await readSession();
+  const { user, denied } = await getSessionState();
   if (!user) {
     if (denied) redirect('/login?error=acceso');
     const next = safeNext((await headers()).get('x-next-path'));   // lo fija el middleware
