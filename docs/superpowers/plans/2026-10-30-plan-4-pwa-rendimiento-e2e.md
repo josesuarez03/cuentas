@@ -1168,7 +1168,7 @@ git add playwright.config.ts e2e package.json vitest.config.mts .gitignore && gi
   - `onboarding-wizard.tsx`: «Empezar» con `disabled={submitting || !online}`.
   - Cada componente llama a `useOnline()` él mismo (sin props nuevas).
 
-- [ ] **Step 1: Tests que fallan**
+- [x] **Step 1: Tests que fallan**
 
 En `todo-card.test.tsx`: `const online = vi.hoisted(() => ({ useOnline: vi.fn(() => true) }));` + `vi.mock('@/shared/hooks/use-online', () => online);` y:
 
@@ -1208,18 +1208,18 @@ it('sin conexión, Actualizar está desactivado', () => {
 });
 ```
 
-- [ ] **Step 2: Ver que fallan**
+- [x] **Step 2: Ver que fallan**
 
 Run: `pnpm vitest run src/features/home/components/todo-card.test.tsx src/features/wealth/components/account-list.test.tsx`
 Expected: FAIL — los botones no se deshabilitan.
 
-- [ ] **Step 3: Implementación** — la lista de «Produces».
+- [x] **Step 3: Implementación** — la lista de «Produces».
 
-- [ ] **Step 4: Ver que pasan**
+- [x] **Step 4: Ver que pasan**
 
 Run (uno detrás de otro): `pnpm vitest run src/features` → PASS (el resto de tests de pantallas siguen en verde: `useOnline` devuelve `true` en jsdom). `pnpm tsc --noEmit` → sin errores.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features && git commit -m "feat: sin conexión la edición queda desactivada en todas las pantallas"
