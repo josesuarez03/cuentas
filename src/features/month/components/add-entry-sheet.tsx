@@ -11,6 +11,7 @@ import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/shared/components/ui/toggle-group';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/components/ui/sheet';
+import { DESKTOP_QUERY, useMediaQuery } from '@/shared/hooks/use-media-query';
 import { parseEuros } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import type { Catalog } from '@/features/catalog/server/catalog';
@@ -75,6 +76,7 @@ export function AddEntrySheet({ open, onOpenChange, ym, catalog }: {
 }) {
   const qc = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  const desktop = useMediaQuery(DESKTOP_QUERY);
 
   const form = useForm({
     defaultValues: {
@@ -116,7 +118,10 @@ export function AddEntrySheet({ open, onOpenChange, ym, catalog }: {
         onOpenChange(next);
       }}
     >
-      <SheetContent side="bottom" className="rounded-t-[14px] shadow-sheet">
+      <SheetContent
+        side={desktop ? 'right' : 'bottom'}
+        className={cn('overflow-y-auto shadow-sheet', !desktop && 'max-h-[90dvh] rounded-t-[14px]')}
+      >
         <SheetHeader>
           <SheetTitle>Añadir al mes</SheetTitle>
           <SheetDescription>Solo para este mes. Lo que se repite irá en Recurrentes.</SheetDescription>
