@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { updateEntryAmountAction } from '@/features/month/server/actions';
 import { withEntryAmount, type MonthView } from '@/features/month/domain/month-view';
 import type { Catalog } from '@/features/catalog/server/catalog';
+import { SAVE_ERROR } from '@/features/month/save-error';
 
 export type MonthResponse = { view: MonthView; catalog: Catalog };
 
@@ -33,12 +34,20 @@ export function useMonth(ym: string) {
   });
 }
 
+/** Error con texto ya pensado para el usuario (viene del `ActionResult`). */
+class SaveError extends Error {}
+
 export function useUpdateAmount(ym: string) {
   const qc = useQueryClient();
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async ({ entryId, amountCents }: { entryId: string; amountCents: number }) => {
-      const result = await updateEntryAmountAction(entryId, amountCents);
-      if (!result.ok) throw new Error(result.error);
+      let result;
+      try {
+        result = await updateEntryAmountAction(entryId, amountCents);
+      } catch {
+        throw new SaveError(SAVE_ERROR);
+      }
+      if (!result.ok) throw new SaveError(result.error);
     },
     onMutate: async ({ entryId, amountCents }) => {
       await qc.cancelQueries({ queryKey: monthKey(ym) });
@@ -48,10 +57,13 @@ export function useUpdateAmount(ym: string) {
       }
       return { previous };
     },
-    onError: (error, _vars, context) => {
+    onError: (error, vars, context) => {
       if (context?.previous) qc.setQueryData(monthKey(ym), context.previous);
-      toast.error(error.message);
+      toast.error(error instanceof SaveError ? error.message : SAVE_ERROR, {
+        action: { label: 'Reintentar', onClick: () => mutation.mutate(vars) },
+      });
     },
     onSettled: () => qc.invalidateQueries({ queryKey: monthKey(ym) }),
   });
+  return mutation;
 }

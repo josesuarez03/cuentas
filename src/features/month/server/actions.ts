@@ -7,10 +7,9 @@ import {
   addOneOffEntry, ClosedMonthError, NotFoundError, setSavingsSplit, updateEntryAmount, type NewOneOffEntry,
 } from '@/features/month/server/entries';
 import { requireUser } from '@/features/auth/session';
+import { SAVE_ERROR } from '@/features/month/save-error';
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
-
-const SAVE_ERROR = 'No se ha guardado. Revisa la conexión y vuelve a intentarlo.';
 
 function toResult(error: unknown): ActionResult {
   if (error instanceof NotFoundError || error instanceof ClosedMonthError || error instanceof RangeError) {

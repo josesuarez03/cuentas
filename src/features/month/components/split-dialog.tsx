@@ -1,8 +1,9 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { setSavingsSplitAction } from '@/features/month/server/actions';
+import { SAVE_ERROR } from '@/features/month/save-error';
 import { Button } from '@/shared/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
 import { Input } from '@/shared/components/ui/input';
@@ -23,28 +24,38 @@ export function SplitDialog({ open, onOpenChange, ym, view, accounts }: {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Se lee la última lista vía ref para reiniciar solo al abrir, no cuando cambian las identidades.
+  const latest = useRef({ accounts, split: view.split });
+  latest.current = { accounts, split: view.split };
+
   useEffect(() => {
     if (!open) return;
+    const { accounts: accs, split } = latest.current;
     setError(null);
-    setValues(Object.fromEntries(accounts.map((a) => [a.id, String(view.split.find((s) => s.accountId === a.id)?.percent ?? 0)])));
-  }, [open, accounts, view.split]);
+    setValues(Object.fromEntries(accs.map((a) => [a.id, String(split.find((s) => s.accountId === a.id)?.percent ?? 0)])));
+  }, [open]);
 
   const total = Object.values(values).reduce((acc, v) => acc + (Number.parseInt(v, 10) || 0), 0);
 
   async function save() {
     setSaving(true);
     setError(null);
-    const result = await setSavingsSplitAction(
-      ym,
-      Object.entries(values).map(([accountId, v]) => ({ accountId, percent: Number.parseInt(v, 10) || 0 })),
-    );
-    setSaving(false);
-    if (!result.ok) {
-      setError(result.error);
-      return;
+    try {
+      const result = await setSavingsSplitAction(
+        ym,
+        Object.entries(values).map(([accountId, v]) => ({ accountId, percent: Number.parseInt(v, 10) || 0 })),
+      );
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      await qc.invalidateQueries({ queryKey: ['month', ym] });
+      onOpenChange(false);
+    } catch {
+      setError(SAVE_ERROR);
+    } finally {
+      setSaving(false);
     }
-    await qc.invalidateQueries({ queryKey: ['month', ym] });
-    onOpenChange(false);
   }
 
   return (

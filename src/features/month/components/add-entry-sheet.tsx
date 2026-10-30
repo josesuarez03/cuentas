@@ -4,6 +4,7 @@ import { useForm, type AnyFieldApi } from '@tanstack/react-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { addOneOffEntryAction } from '@/features/month/server/actions';
+import { SAVE_ERROR } from '@/features/month/save-error';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
@@ -85,26 +86,36 @@ export function AddEntrySheet({ open, onOpenChange, ym, catalog }: {
     },
     onSubmit: async ({ value }) => {
       setError(null);
-      const result = await addOneOffEntryAction({
-        yearMonth: ym,
-        kind: value.kind,
-        name: value.name.trim(),
-        categoryId: value.categoryId,
-        accountId: value.accountId,
-        amountCents: parseEuros(value.amount) ?? 0,
-      });
-      if (!result.ok) {
-        setError(result.error);
-        return;
+      try {
+        const result = await addOneOffEntryAction({
+          yearMonth: ym,
+          kind: value.kind,
+          name: value.name.trim(),
+          categoryId: value.categoryId,
+          accountId: value.accountId,
+          amountCents: parseEuros(value.amount) ?? 0,
+        });
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        await qc.invalidateQueries({ queryKey: ['month', ym] });
+        form.reset();
+        onOpenChange(false);
+      } catch {
+        setError(SAVE_ERROR);
       }
-      await qc.invalidateQueries({ queryKey: ['month', ym] });
-      form.reset();
-      onOpenChange(false);
     },
   });
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        setError(null);
+        onOpenChange(next);
+      }}
+    >
       <SheetContent side="bottom" className="rounded-t-[14px] shadow-sheet">
         <SheetHeader>
           <SheetTitle>Añadir al mes</SheetTitle>

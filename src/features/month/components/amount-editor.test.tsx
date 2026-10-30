@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AmountEditor } from './amount-editor';
@@ -23,6 +23,19 @@ describe('AmountEditor', () => {
     await userEvent.clear(input);
     await userEvent.type(input, '55,5{Enter}');
     expect(onSave).toHaveBeenCalledWith(5550);
+  });
+
+  it('Intro seguido de blur guarda una sola vez', async () => {
+    const onSave = vi.fn();
+    render(<AmountEditor cents={5200} label="Luz" sign={-1} onSave={onSave} />);
+    await userEvent.click(screen.getByRole('button'));
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: '55,5' } });
+    act(() => {
+      fireEvent.keyDown(input, { key: 'Enter' });
+      fireEvent.blur(input);
+    });
+    expect(onSave).toHaveBeenCalledTimes(1);
   });
 
   it('Esc cancela sin guardar', async () => {

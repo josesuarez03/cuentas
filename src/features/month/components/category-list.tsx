@@ -37,7 +37,7 @@ function PocketRow({ pocket }: { pocket: PocketView }) {
   const pct = pocket.limitCents > 0 ? Math.min(100, Math.round((pocket.spentCents * 100) / pocket.limitCents)) : 100;
   const rest = pocket.limitCents - pocket.spentCents;
   return (
-    <div className="flex flex-col gap-1.5 border-t border-line py-2.5 pl-7">
+    <div className="flex flex-col gap-1.5 border-t border-line py-2.5">
       <div className="flex justify-between text-[15px]">
         <span>{pocket.name}</span>
         <span className="font-medium">
@@ -75,7 +75,7 @@ export function CategoryList({ view, onAmountChange }: {
             <Summary title={c.name} note={note} noteTone={tone} amount={c.totalCents} />
             <AccordionContent className="pb-0">
               {c.entries.map((e) => (
-                <div key={e.id} className="flex min-h-12 items-center gap-2 border-t border-line py-1 pl-7">
+                <div key={e.id} className="flex min-h-12 items-center gap-2 border-t border-line py-1">
                   <span className="flex-1 text-[15px] leading-[22px]">
                     {e.name}
                     <span className={cn('block text-[13px] leading-[18px]', e.status === 'pending' ? 'text-aviso' : 'text-ink-muted')}>{e.note}</span>
@@ -110,7 +110,7 @@ export function CategoryList({ view, onAmountChange }: {
         <AccordionItem key={f.id} value={`fund-${f.id}`} className="border-b border-line">
           <Summary title={f.name} note={`Hucha: ${formatEuros(f.balanceCents)}`} amount={-f.allocatedCents} />
           <AccordionContent className="pb-0">
-            <p className="border-t border-line py-3 pl-7 text-[15px]">Este mes apartas {formatEuros(f.allocatedCents)}.</p>
+            <p className="border-t border-line py-3 text-[15px]">Este mes apartas {formatEuros(f.allocatedCents)}.</p>
           </AccordionContent>
         </AccordionItem>
       ))}

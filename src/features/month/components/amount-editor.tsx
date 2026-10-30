@@ -32,6 +32,7 @@ export function AmountEditor({ cents, label, sign, onSave }: Props) {
       setError('Escribe un importe, por ejemplo 52,00');
       return;
     }
+    cancelled.current = true;
     setEditing(false);
     if (parsed !== cents) onSave(parsed);
   }
