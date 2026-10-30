@@ -45,7 +45,7 @@ export function HomeScreen() {
       </header>
 
       {query.isPending && <HomeSkeleton />}
-      {query.isError && (
+      {query.isError && !data && (
         <div className="py-10 text-center lg:col-span-2">
           <p className="text-[15px]">{query.error.message}</p>
           {!(query.error instanceof MonthFetchError && query.error.status < 500) && (
@@ -72,7 +72,7 @@ export function HomeScreen() {
             ) : (
               <AvailableSummary view={view} onAdd={() => setAddOpen(true)} onOpenMonth={resetMonth} />
             )}
-            {todos.length > 0 && <TodoCard items={todos} onConfirm={(entryId) => confirm.mutate(entryId)} />}
+            <TodoCard items={todos} onConfirm={(entryId) => confirm.mutate(entryId)} />
           </div>
           {hasAside && (
             <div className="flex flex-col gap-4">

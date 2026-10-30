@@ -28,7 +28,7 @@ export function MonthScreen() {
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col md:max-w-2xl">
       <MonthHeader />
       {query.isPending && <MonthSkeleton />}
-      {query.isError && (
+      {query.isError && !query.data && (
         <div className="px-4 py-10 text-center">
           <p className="text-[15px]">{query.error.message}</p>
           {!(query.error instanceof MonthFetchError && query.error.status < 500) && (

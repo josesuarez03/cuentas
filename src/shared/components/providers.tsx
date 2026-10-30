@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Toaster } from '@/shared/components/ui/sonner';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [client] = useState(() => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000 } } }));
+  const [client] = useState(() => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, networkMode: 'always' }, mutations: { networkMode: 'always' } } }));
   return (
     <QueryClientProvider client={client}>
       {children}
