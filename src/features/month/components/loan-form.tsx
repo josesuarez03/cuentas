@@ -64,7 +64,7 @@ export function LoanForm({ ym, accounts, onDone }: {
         {(field) => <TextField field={field} label="¿A quién?" />}
       </form.Field>
 
-      <form.Field name="amount" validators={{ onSubmit: ({ value }) => (parseEuros(value) === null ? 'Escribe un importe, por ejemplo 52,00.' : undefined) }}>
+      <form.Field name="amount" validators={{ onSubmit: ({ value }) => (parseEuros(value) === null ? 'Escribe un importe, por ejemplo 52,00.' : parseEuros(value)! <= 0 ? 'Escribe un importe mayor que 0.' : undefined) }}>
         {(field) => <TextField field={field} label="Importe (€)" inputMode="decimal" />}
       </form.Field>
 
@@ -80,9 +80,14 @@ export function LoanForm({ ym, accounts, onDone }: {
 
       <form.Subscribe selector={(state) => state.isSubmitting}>
         {(submitting) => (
-          <Button type="submit" className="min-h-12 text-base" disabled={submitting}>
-            {submitting ? 'Prestando…' : 'Prestar'}
-          </Button>
+          <>
+            {accounts.length === 0 && (
+              <p role="status" className="text-[13px] text-ink-muted">Para prestar necesitas al menos una cuenta.</p>
+            )}
+            <Button type="submit" className="min-h-12 text-base" disabled={submitting || accounts.length === 0}>
+              {submitting ? 'Prestando…' : 'Prestar'}
+            </Button>
+          </>
         )}
       </form.Subscribe>
     </form>

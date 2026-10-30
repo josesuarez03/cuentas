@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { PocketView } from '@/features/month/domain/month-view';
 import { ToggleGroup, ToggleGroupItem } from '@/shared/components/ui/toggle-group';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/components/ui/sheet';
@@ -32,11 +32,14 @@ export function AddEntrySheet({ open, onOpenChange, ym, catalog, pockets = [], i
   initialPocketId?: string;
 }) {
   const desktop = useMediaQuery(DESKTOP_QUERY);
-  const [mode, setMode] = useState<AddMode>(initialMode);
-
-  useEffect(() => {
-    if (open) setMode(initialMode);
-  }, [open, initialMode]);
+  const [requested, setRequested] = useState<AddMode>(initialMode);
+  const [wasOpen, setWasOpen] = useState(open);
+  // Al abrir se parte de `initialMode` en el mismo render, sin mostrar un instante el modo anterior.
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setRequested(initialMode);
+  }
+  const mode: AddMode = requested === 'pocket' && pockets.length === 0 ? 'expense' : requested;
 
   const modes: { value: AddMode; label: string }[] = [
     { value: 'expense', label: 'Gasto' },
@@ -64,7 +67,7 @@ export function AddEntrySheet({ open, onOpenChange, ym, catalog, pockets = [], i
           value={mode}
           onValueChange={(value) => {
             // Radix permite deseleccionar (valor vacío): se ignora para que siempre haya un modo.
-            if (isMode(value)) setMode(value);
+            if (isMode(value)) setRequested(value);
           }}
         >
           {modes.map((m) => (

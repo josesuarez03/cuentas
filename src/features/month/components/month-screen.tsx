@@ -44,7 +44,10 @@ export function MonthScreen() {
           <EmptyState
             title="Este mes aún no tiene partidas"
             action={open && (
-              <Button className="min-h-12 w-full gap-2 text-base font-semibold" onClick={() => setAddOpen(true)}>
+              <Button className="min-h-12 w-full gap-2 text-base font-semibold" onClick={() => {
+                setAddMode('expense');
+                setAddOpen(true);
+              }}>
                 <Plus className="size-5" aria-hidden />
                 Añadir al mes
               </Button>
