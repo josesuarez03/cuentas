@@ -1621,7 +1621,7 @@ git add src/features/month/server/months.* && git commit -m "feat: generar mes h
 - Consumes: `findMonth`, `ensureMonth`, `getMonthView` (Task 8)
 - Produces: `class NotFoundError extends Error`, `class ClosedMonthError extends Error`, `updateEntryAmount(db, userId, entryId, amountCents): Promise<void>`, `interface NewOneOffEntry { yearMonth: string; kind: 'income' | 'expense'; name: string; categoryId: string; accountId: string; amountCents: number }`, `addOneOffEntry(db, userId, input): Promise<string>`, `setSavingsSplit(db, userId, ym, split: { accountId: string; percent: number }[]): Promise<void>`, `interface Catalog { categories: { id; name; kind: 'income' | 'expense' }[]; accounts: { id; name; type: 'checking' | 'savings' | 'joint' | 'credit_card' | 'investment' }[] }`, `getCatalog(db, userId): Promise<Catalog>`
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 ```ts
 import { eq } from 'drizzle-orm';
@@ -1711,12 +1711,12 @@ describe('getCatalog', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
 Run: `pnpm vitest run src/features/month/server/entries.test.ts`
 Expected: FAIL «Failed to resolve import "./entries"».
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 `src/features/month/server/entries.ts`:
 ```ts
@@ -1827,12 +1827,12 @@ export async function getCatalog(db: Db, userId: string): Promise<Catalog> {
 }
 ```
 
-- [ ] **Step 4: Ejecutar y ver que pasa**
+- [x] **Step 4: Ejecutar y ver que pasa**
 
 Run: `pnpm vitest run src/features/month/server src/features/catalog/server`
 Expected: PASS (todos los de months y entries).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/server src/features/catalog/server && git commit -m "feat: editar importes, puntuales, reparto y catálogo"
