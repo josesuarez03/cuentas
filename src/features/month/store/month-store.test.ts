@@ -9,4 +9,10 @@ describe('useMonthStore', () => {
     useMonthStore.getState().reset();
     expect(useMonthStore.getState().ym).toBe(currentYearMonth());
   });
+
+  it('goTo fija un mes concreto', () => {
+    useMonthStore.getState().goTo('2026-07');
+    expect(useMonthStore.getState().ym).toBe('2026-07');
+    useMonthStore.getState().reset();
+  });
 });

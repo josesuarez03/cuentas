@@ -1,24 +1,30 @@
 'use client';
 
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { AddEntrySheet, type AddMode } from '@/features/month/components/add-entry-sheet';
 import { FundSpendDialog } from '@/features/month/components/fund-spend-dialog';
+import { ConfirmIncomeDialog } from '@/features/month/components/confirm-income-dialog';
 import { AvailableBar } from '@/features/month/components/available-bar';
 import { CategoryList } from '@/features/month/components/category-list';
 import { MonthHeader } from '@/features/month/components/month-header';
 import { MonthSkeleton } from '@/features/month/components/month-skeleton';
 import { SplitDialog } from '@/features/month/components/split-dialog';
+import { confirmTarget } from '@/features/month/domain/confirm-target';
 import { isMonthEmpty } from '@/features/month/domain/month-view';
 import { EmptyState } from '@/shared/components/empty-state';
 import { Button } from '@/shared/components/ui/button';
-import { MonthFetchError, useMonth, useUpdateAmount } from '@/features/month/hooks/use-month';
+import { MonthFetchError, useConfirmIncome, useMonth, useUpdateAmount } from '@/features/month/hooks/use-month';
 import { useSetMonthStatus } from '@/features/month/hooks/use-month-status';
-import { currentYearMonth } from '@/lib/year-month';
+import { currentYearMonth, type YearMonth } from '@/lib/year-month';
 import { useMonthStore } from '@/features/month/store/month-store';
 
-export function MonthScreen() {
-  const ym = useMonthStore((s) => s.ym);
+export function MonthScreen({ initialYm, confirmEntryId }: { initialYm?: YearMonth; confirmEntryId?: string | null }) {
+  const [pinned, setPinned] = useState(initialYm);
+  const storeYm = useMonthStore((s) => s.ym);
+  const ym = pinned ?? storeYm;
   const query = useMonth(ym);
   const update = useUpdateAmount(ym);
   const status = useSetMonthStatus(ym);
@@ -26,10 +32,33 @@ export function MonthScreen() {
   const [addOpen, setAddOpen] = useState(false);
   const [addMode, setAddMode] = useState<AddMode>('expense');
   const [fundId, setFundId] = useState<string | null>(null);
+  const confirm = useConfirmIncome(ym);
+  const router = useRouter();
+  const handled = useRef(false);
+  const [confirmFor, setConfirmFor] = useState<{ id: string; name: string; amountCents: number } | null>(null);
+
+  useEffect(() => {
+    if (initialYm) {
+      useMonthStore.getState().goTo(initialYm);
+      setPinned(undefined);
+    }
+  }, [initialYm]);
 
   const data = query.data;
   const open = data?.view.status === 'open';
   const past = ym < currentYearMonth();
+
+  useEffect(() => {
+    if (!confirmEntryId || !data || handled.current) return;
+    handled.current = true;
+    const t = confirmTarget(data.view, confirmEntryId);
+    if (t.kind === 'open') {
+      setConfirmFor(t.entry);
+    } else {
+      toast.info(t.text);
+      router.replace('/mes', { scroll: false });
+    }
+  }, [confirmEntryId, data, router]);
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col md:max-w-2xl">
@@ -129,6 +158,20 @@ export function MonthScreen() {
             }}
             ym={ym}
             fund={data.view.funds.find((x) => x.id === fundId) ?? null}
+          />
+          <ConfirmIncomeDialog
+            entry={confirmFor}
+            open={confirmFor !== null}
+            onOpenChange={(o) => {
+              if (!o) {
+                setConfirmFor(null);
+                router.replace('/mes', { scroll: false });
+              }
+            }}
+            onConfirm={(c) => {
+              confirm.mutate({ entryId: confirmFor!.id, amountCents: c });
+              toast.success(`${confirmFor!.name} confirmada.`);
+            }}
           />
         </>
       )}
