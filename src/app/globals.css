@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 /* Plan 4 cambia esto a clase .dark con next-themes; ahora sigue al sistema. */
 @custom-variant dark (@media (prefers-color-scheme: dark));

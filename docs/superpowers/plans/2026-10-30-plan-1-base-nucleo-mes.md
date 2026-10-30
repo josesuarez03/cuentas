@@ -4,7 +4,7 @@
 
 **Goal:** App «Cuentas» desplegada en Vercel + Neon donde Jose entra con Google, el mes actual se genera solo desde la plantilla heredando el último importe, y puede editar importes, añadir partidas puntuales y cambiar el reparto del ahorro.
 
-**Architecture:** Next.js App Router. Lógica de negocio pura en `src/domain` (generación de mes, cálculo, vista) testeada con Vitest. Acceso a datos en `src/server` con Drizzle sobre un tipo `Db` común: Neon en producción, PGlite en tests. Lecturas por `GET /api/months/[ym]`, escrituras por Server Actions; el cliente usa TanStack Query con actualización optimista y Zustand solo para el mes seleccionado.
+**Architecture:** Next.js App Router. Organizado por features en `src/features/<feature>` (`domain`, `server`, `components`, `hooks`, `store`). Lógica de negocio pura en `src/features/month/domain` (generación de mes, cálculo, vista) testeada con Vitest. Acceso a datos en `src/features/*/server` con Drizzle sobre un tipo `Db` común: Neon en producción, PGlite en tests. Lecturas por `GET /api/months/[ym]`, escrituras por Server Actions; el cliente usa TanStack Query con actualización optimista y Zustand solo para el mes seleccionado.
 
 **Tech Stack:** Next.js 15, React 19, TypeScript, Tailwind v4, shadcn/ui, lucide-react, Drizzle ORM + drizzle-kit, Neon (`@neondatabase/serverless`), PGlite (tests), Better Auth (Google), Zod, TanStack Query v5, TanStack Form v1, Zustand v5, Vitest + Testing Library, pnpm.
 
@@ -21,36 +21,42 @@
 - Copy en español, frase en minúscula inicial; botones con su acción. Error de guardado: «No se ha guardado. Revisa la conexión y vuelve a intentarlo.»
 - Objetivos táctiles ≥ 44 px, foco visible, contraste ≥ 4.5:1. Mobile first (390 px), contenedor `max-w-xl` en escritorio.
 - Tokens del sistema de diseño «Cuentas» (IBM Plex Sans, `tabular-nums`, colores de la tarea 1).
+- Arquitectura por features: `src/features/<feature>/{domain,server,components,hooks,store}`; `src/app` solo rutas finas; `src/lib` utilidades compartidas sin dominio. Una feature solo importa de otra su `domain`/tipos, o su `server` desde código de servidor. Sin barrels `index.ts`. Componentes compartidos entre vistas en `src/shared/components` (shadcn en `src/shared/components/ui`).
 - La tabla de cuentas bancarias se llama `bank_accounts` (la spec dice `accounts`) porque Better Auth ya usa `account`.
 
 ## Estructura de archivos
 
 ```
 src/
-  app/
-    layout.tsx                      fuente y html
-    globals.css                     tokens Cuentas + shadcn
-    page.tsx                        redirige a /mes
-    login/page.tsx, login/login-button.tsx
+  app/                              solo rutas finas
+    layout.tsx, globals.css, page.tsx
+    login/page.tsx                  importa LoginButton de @/features/auth/components/login-button
     api/auth/[...all]/route.ts      Better Auth
     api/months/[ym]/route.ts        GET vista del mes
     (app)/layout.tsx                requiere sesión + providers
-    (app)/mes/page.tsx              pantalla Mes
-    (app)/mes/actions.ts            Server Actions
-  components/
-    providers.tsx
-    month/{month-header,category-list,amount-editor,available-bar,split-dialog,add-entry-sheet,month-skeleton}.tsx
+    (app)/mes/page.tsx              solo renderiza <MonthScreen />
+  features/
+    auth/
+      allowlist.ts, auth-guard.ts, auth.ts, auth-client.ts, session.ts (+ allowlist.test.ts)
+      components/login-button.tsx
+    catalog/
+      server/catalog.ts
+    month/
+      domain/{generation,month-calc,month-view}.ts (+ .test.ts)
+      server/{months,entries}.ts (+ tests), actions.ts   Server Actions
+      components/{amount-editor,category-list,available-bar,split-dialog,add-entry-sheet,month-header,month-skeleton,month-screen}.tsx
+      hooks/use-month.ts
+      store/month-store.ts
+  shared/components/ui/*            shadcn
+  shared/components/providers.tsx
+  lib/{money,year-month,utils}.ts (+ tests)   compartido sin dominio
   db/{schema,index,types}.ts
-  domain/{generation,month-calc,month-view}.ts (+ .test.ts)
-  hooks/use-month.ts
-  lib/{money,year-month,allowlist,auth-guard,auth,auth-client,utils}.ts (+ tests)
-  server/{months,entries,catalog,session}.ts (+ tests)
-  stores/month-store.ts
   test/{db,fixtures}.ts
   middleware.ts
 scripts/{seed,seed-data}.ts
 drizzle/                            migraciones generadas
 ```
+
 
 ---
 
@@ -828,8 +834,8 @@ git add src/db src/test drizzle drizzle.config.ts && git commit -m "feat: esquem
 ### Task 5: Generación de partidas del mes (puro)
 
 **Files:**
-- Create: `src/domain/generation.ts`
-- Test: `src/domain/generation.test.ts`
+- Create: `src/features/month/domain/generation.ts`
+- Test: `src/features/month/domain/generation.test.ts`
 
 **Interfaces:**
 - Consumes: `diffMonths`, `monthOf`, `YearMonth` (Task 3)
@@ -900,7 +906,7 @@ describe('generateEntries', () => {
 
 - [ ] **Step 2: Ejecutar y ver que falla**
 
-Run: `pnpm vitest run src/domain/generation.test.ts`
+Run: `pnpm vitest run src/features/month/domain/generation.test.ts`
 Expected: FAIL «Failed to resolve import "./generation"».
 
 - [ ] **Step 3: Implementación**
@@ -989,13 +995,13 @@ export function generateEntries(
 
 - [ ] **Step 4: Ejecutar y ver que pasa**
 
-Run: `pnpm vitest run src/domain/generation.test.ts`
+Run: `pnpm vitest run src/features/month/domain/generation.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/domain/generation.* && git commit -m "feat: reglas de generación de partidas por frecuencia"
+git add src/features/month/domain/generation.* && git commit -m "feat: reglas de generación de partidas por frecuencia"
 ```
 
 ---
@@ -1003,8 +1009,8 @@ git add src/domain/generation.* && git commit -m "feat: reglas de generación de
 ### Task 6: Cálculo del mes y reparto del ahorro (puro)
 
 **Files:**
-- Create: `src/domain/month-calc.ts`
-- Test: `src/domain/month-calc.test.ts`
+- Create: `src/features/month/domain/month-calc.ts`
+- Test: `src/features/month/domain/month-calc.test.ts`
 
 **Interfaces:**
 - Produces: `type EntryKind = 'income' | 'expense' | 'loan_out' | 'loan_repayment'`, `interface CalcInput { status: 'open' | 'closed'; entries: { kind: EntryKind; amountCents: number }[]; fundAllocationsCents: number; pockets: { limitCents: number; spentCents: number }[]; split: { accountId: string; percent: number }[] }`, `interface MonthCalc { incomeCents; expenseCents; fundsCents; pocketsCents; availableCents; savings: { accountId: string; cents: number }[] }`, `computeMonth(input): MonthCalc`, `splitSavings(availableCents, split): { accountId; cents }[]`
@@ -1068,7 +1074,7 @@ describe('splitSavings', () => {
 
 - [ ] **Step 2: Ejecutar y ver que falla**
 
-Run: `pnpm vitest run src/domain/month-calc.test.ts`
+Run: `pnpm vitest run src/features/month/domain/month-calc.test.ts`
 Expected: FAIL «Failed to resolve import "./month-calc"».
 
 - [ ] **Step 3: Implementación**
@@ -1133,13 +1139,13 @@ export function computeMonth(input: CalcInput): MonthCalc {
 
 - [ ] **Step 4: Ejecutar y ver que pasa**
 
-Run: `pnpm vitest run src/domain/month-calc.test.ts`
+Run: `pnpm vitest run src/features/month/domain/month-calc.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/domain/month-calc.* && git commit -m "feat: cálculo del disponible y reparto del ahorro"
+git add src/features/month/domain/month-calc.* && git commit -m "feat: cálculo del disponible y reparto del ahorro"
 ```
 
 ---
@@ -1147,8 +1153,8 @@ git add src/domain/month-calc.* && git commit -m "feat: cálculo del disponible 
 ### Task 7: Vista del mes (puro)
 
 **Files:**
-- Create: `src/domain/month-view.ts`
-- Test: `src/domain/month-view.test.ts`
+- Create: `src/features/month/domain/month-view.ts`
+- Test: `src/features/month/domain/month-view.test.ts`
 
 **Interfaces:**
 - Consumes: `computeMonth`, `EntryKind`, `MonthCalc` (Task 6)
@@ -1200,7 +1206,7 @@ describe('withEntryAmount', () => {
 
 - [ ] **Step 2: Ejecutar y ver que falla**
 
-Run: `pnpm vitest run src/domain/month-view.test.ts`
+Run: `pnpm vitest run src/features/month/domain/month-view.test.ts`
 Expected: FAIL «Failed to resolve import "./month-view"».
 
 - [ ] **Step 3: Implementación**
@@ -1277,13 +1283,13 @@ export function withEntryAmount(view: MonthView, entryId: string, amountCents: n
 
 - [ ] **Step 4: Ejecutar y ver que pasa**
 
-Run: `pnpm vitest run src/domain/month-view.test.ts`
+Run: `pnpm vitest run src/features/month/domain/month-view.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/domain/month-view.* && git commit -m "feat: vista del mes recalculable en cliente y servidor"
+git add src/features/month/domain/month-view.* && git commit -m "feat: vista del mes recalculable en cliente y servidor"
 ```
 
 ---
@@ -1291,8 +1297,8 @@ git add src/domain/month-view.* && git commit -m "feat: vista del mes recalculab
 ### Task 8: Generar y leer un mes desde la base de datos
 
 **Files:**
-- Create: `src/server/months.ts`
-- Test: `src/server/months.test.ts`
+- Create: `src/features/month/server/months.ts`
+- Test: `src/features/month/server/months.test.ts`
 
 **Interfaces:**
 - Consumes: `Db`, schema (Task 4); `generateEntries` (Task 5); `recomputeView`, `MonthView`, `CategoryGroup` (Task 7)
@@ -1398,7 +1404,7 @@ describe('getMonthView', () => {
 
 - [ ] **Step 2: Ejecutar y ver que falla**
 
-Run: `pnpm vitest run src/server/months.test.ts`
+Run: `pnpm vitest run src/features/month/server/months.test.ts`
 Expected: FAIL «Failed to resolve import "./months"».
 
 - [ ] **Step 3: Implementación**
@@ -1407,8 +1413,8 @@ Expected: FAIL «Failed to resolve import "./months"».
 import { and, asc, desc, eq, gt, isNotNull, lt, sql } from 'drizzle-orm';
 import * as s from '@/db/schema';
 import type { Db } from '@/db/types';
-import { generateEntries } from '@/domain/generation';
-import { recomputeView, type CategoryGroup, type MonthView } from '@/domain/month-view';
+import { generateEntries } from '@/features/month/domain/generation';
+import { recomputeView, type CategoryGroup, type MonthView } from '@/features/month/domain/month-view';
 import type { YearMonth } from '@/lib/year-month';
 
 export async function findMonth(db: Db, userId: string, ym: YearMonth) {
@@ -1593,13 +1599,13 @@ export async function getMonthView(db: Db, userId: string, ym: YearMonth): Promi
 
 - [ ] **Step 4: Ejecutar y ver que pasa**
 
-Run: `pnpm vitest run src/server/months.test.ts`
+Run: `pnpm vitest run src/features/month/server/months.test.ts`
 Expected: PASS (7 tests).
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/server/months.* && git commit -m "feat: generar mes heredando importes y leer su vista"
+git add src/features/month/server/months.* && git commit -m "feat: generar mes heredando importes y leer su vista"
 ```
 
 ---
@@ -1607,8 +1613,8 @@ git add src/server/months.* && git commit -m "feat: generar mes heredando import
 ### Task 9: Editar importes, partidas puntuales, reparto y catálogo
 
 **Files:**
-- Create: `src/server/entries.ts`, `src/server/catalog.ts`
-- Test: `src/server/entries.test.ts`
+- Create: `src/features/month/server/entries.ts`, `src/features/catalog/server/catalog.ts`
+- Test: `src/features/month/server/entries.test.ts`
 
 **Interfaces:**
 - Consumes: `findMonth`, `ensureMonth`, `getMonthView` (Task 8)
@@ -1623,7 +1629,7 @@ import * as s from '@/db/schema';
 import type { Db } from '@/db/types';
 import { createTestDb } from '@/test/db';
 import { createFixture, type Fixture } from '@/test/fixtures';
-import { getCatalog } from './catalog';
+import { getCatalog } from '@/features/catalog/server/catalog';
 import { addOneOffEntry, ClosedMonthError, NotFoundError, setSavingsSplit, updateEntryAmount } from './entries';
 import { ensureMonth, getMonthView } from './months';
 
@@ -1706,12 +1712,12 @@ describe('getCatalog', () => {
 
 - [ ] **Step 2: Ejecutar y ver que falla**
 
-Run: `pnpm vitest run src/server/entries.test.ts`
+Run: `pnpm vitest run src/features/month/server/entries.test.ts`
 Expected: FAIL «Failed to resolve import "./entries"».
 
 - [ ] **Step 3: Implementación**
 
-`src/server/entries.ts`:
+`src/features/month/server/entries.ts`:
 ```ts
 import { and, eq, inArray } from 'drizzle-orm';
 import * as s from '@/db/schema';
@@ -1798,7 +1804,7 @@ export async function setSavingsSplit(
 }
 ```
 
-`src/server/catalog.ts`:
+`src/features/catalog/server/catalog.ts`:
 ```ts
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import * as s from '@/db/schema';
@@ -1822,13 +1828,13 @@ export async function getCatalog(db: Db, userId: string): Promise<Catalog> {
 
 - [ ] **Step 4: Ejecutar y ver que pasa**
 
-Run: `pnpm vitest run src/server`
+Run: `pnpm vitest run src/features/month/server src/features/catalog/server`
 Expected: PASS (todos los de months y entries).
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/server && git commit -m "feat: editar importes, puntuales, reparto y catálogo"
+git add src/features/month/server src/features/catalog/server && git commit -m "feat: editar importes, puntuales, reparto y catálogo"
 ```
 
 ---
@@ -1836,15 +1842,15 @@ git add src/server && git commit -m "feat: editar importes, puntuales, reparto y
 ### Task 10: Login con Google y lista de emails permitidos
 
 **Files:**
-- Create: `src/lib/allowlist.ts`, `src/lib/auth-guard.ts`, `src/lib/auth.ts`, `src/lib/auth-client.ts`, `src/server/session.ts`, `src/app/api/auth/[...all]/route.ts`, `src/middleware.ts`, `src/app/login/page.tsx`, `src/app/login/login-button.tsx`, `.env.example`
-- Test: `src/lib/allowlist.test.ts`
+- Create: `src/features/auth/allowlist.ts`, `src/features/auth/auth-guard.ts`, `src/features/auth/auth.ts`, `src/features/auth/auth-client.ts`, `src/features/auth/session.ts`, `src/app/api/auth/[...all]/route.ts`, `src/middleware.ts`, `src/app/login/page.tsx`, `.env.example`
+- Test: `src/features/auth/allowlist.test.ts`
 
 **Interfaces:**
 - Produces: `isAllowedEmail(email, list?): boolean`, `guardNewUser(user)`, `auth`, `authClient`, `getUserOrNull(): Promise<{ id: string; email: string; name: string } | null>`, `requireUser()` (redirige a `/login`)
 
 - [ ] **Step 1: Test que falla**
 
-`src/lib/allowlist.test.ts`:
+`src/features/auth/allowlist.test.ts`:
 ```ts
 import { describe, expect, it } from 'vitest';
 import { isAllowedEmail } from './allowlist';
@@ -1875,12 +1881,12 @@ describe('guardNewUser', () => {
 
 - [ ] **Step 2: Ejecutar y ver que falla**
 
-Run: `pnpm vitest run src/lib/allowlist.test.ts`
+Run: `pnpm vitest run src/features/auth/allowlist.test.ts`
 Expected: FAIL «Failed to resolve import "./allowlist"».
 
 - [ ] **Step 3: Implementación**
 
-`src/lib/allowlist.ts`:
+`src/features/auth/allowlist.ts`:
 ```ts
 export function isAllowedEmail(email: string | null | undefined, list = process.env.ALLOWED_EMAILS ?? ''): boolean {
   if (!email) return false;
@@ -1889,7 +1895,7 @@ export function isAllowedEmail(email: string | null | undefined, list = process.
 }
 ```
 
-`src/lib/auth-guard.ts`:
+`src/features/auth/auth-guard.ts`:
 ```ts
 import { APIError } from 'better-auth/api';
 import { isAllowedEmail } from './allowlist';
@@ -1902,7 +1908,7 @@ export async function guardNewUser<T extends { email: string }>(user: T): Promis
 }
 ```
 
-`src/lib/auth.ts`:
+`src/features/auth/auth.ts`:
 ```ts
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
@@ -1927,20 +1933,20 @@ export const auth = betterAuth({
 });
 ```
 
-`src/lib/auth-client.ts`:
+`src/features/auth/auth-client.ts`:
 ```ts
 import { createAuthClient } from 'better-auth/react';
 
 export const authClient = createAuthClient();
 ```
 
-`src/server/session.ts`:
+`src/features/auth/session.ts`:
 ```ts
 import 'server-only';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { isAllowedEmail } from '@/lib/allowlist';
-import { auth } from '@/lib/auth';
+import { isAllowedEmail } from '@/features/auth/allowlist';
+import { auth } from '@/features/auth/auth';
 
 export async function getUserOrNull() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -1958,7 +1964,7 @@ export async function requireUser() {
 `src/app/api/auth/[...all]/route.ts`:
 ```ts
 import { toNextJsHandler } from 'better-auth/next-js';
-import { auth } from '@/lib/auth';
+import { auth } from '@/features/auth/auth';
 
 export const { GET, POST } = toNextJsHandler(auth);
 ```
@@ -1979,13 +1985,13 @@ export const config = {
 };
 ```
 
-`src/app/login/login-button.tsx`:
+`src/features/auth/components/login-button.tsx`:
 ```tsx
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { authClient } from '@/lib/auth-client';
+import { Button } from '@/shared/components/ui/button';
+import { authClient } from '@/features/auth/auth-client';
 
 export function LoginButton() {
   const [loading, setLoading] = useState(false);
@@ -2006,7 +2012,7 @@ export function LoginButton() {
 
 `src/app/login/page.tsx`:
 ```tsx
-import { LoginButton } from './login-button';
+import { LoginButton } from '@/features/auth/components/login-button';
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
@@ -2042,13 +2048,13 @@ SEED_EMAIL=tu@email.com
 
 - [ ] **Step 4: Ejecutar tests**
 
-Run: `pnpm vitest run src/lib/allowlist.test.ts`
+Run: `pnpm vitest run src/features/auth/allowlist.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/lib src/server/session.ts src/app/api/auth src/middleware.ts src/app/login .env.example
+git add src/features/auth src/app/api/auth src/middleware.ts src/app/login .env.example
 git commit -m "feat: login con Google y lista de emails permitidos"
 ```
 
@@ -2057,7 +2063,7 @@ git commit -m "feat: login con Google y lista de emails permitidos"
 ### Task 11: API de lectura del mes y Server Actions
 
 **Files:**
-- Create: `src/app/api/months/[ym]/route.ts`, `src/app/(app)/mes/actions.ts`
+- Create: `src/app/api/months/[ym]/route.ts`, `src/features/month/server/actions.ts`
 
 **Interfaces:**
 - Consumes: `getUserOrNull`, `requireUser` (Task 10); `ensureMonth`, `getMonthView` (Task 8); `updateEntryAmount`, `addOneOffEntry`, `setSavingsSplit`, `getCatalog`, errores (Task 9)
@@ -2069,9 +2075,9 @@ git commit -m "feat: login con Google y lista de emails permitidos"
 ```ts
 import { db } from '@/db';
 import { currentYearMonth, isYearMonth } from '@/lib/year-month';
-import { getCatalog } from '@/server/catalog';
-import { ensureMonth, getMonthView } from '@/server/months';
-import { getUserOrNull } from '@/server/session';
+import { getCatalog } from '@/features/catalog/server/catalog';
+import { ensureMonth, getMonthView } from '@/features/month/server/months';
+import { getUserOrNull } from '@/features/auth/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -2095,7 +2101,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ ym:
 
 - [ ] **Step 2: Server Actions**
 
-`src/app/(app)/mes/actions.ts`:
+`src/features/month/server/actions.ts`:
 ```ts
 'use server';
 
@@ -2104,8 +2110,8 @@ import { db } from '@/db';
 import { isYearMonth } from '@/lib/year-month';
 import {
   addOneOffEntry, ClosedMonthError, NotFoundError, setSavingsSplit, updateEntryAmount, type NewOneOffEntry,
-} from '@/server/entries';
-import { requireUser } from '@/server/session';
+} from '@/features/month/server/entries';
+import { requireUser } from '@/features/auth/session';
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -2180,7 +2186,7 @@ Expected: sin errores de tipos; todos los tests PASS.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/app/api/months src/app/\(app\)/mes/actions.ts && git commit -m "feat: API del mes y Server Actions"
+git add src/app/api/months src/features/month/server/actions.ts && git commit -m "feat: API del mes y Server Actions"
 ```
 
 ---
@@ -2188,8 +2194,8 @@ git add src/app/api/months src/app/\(app\)/mes/actions.ts && git commit -m "feat
 ### Task 12: Editor de importe en línea
 
 **Files:**
-- Create: `src/components/month/amount-editor.tsx`
-- Test: `src/components/month/amount-editor.test.tsx`
+- Create: `src/features/month/components/amount-editor.tsx`
+- Test: `src/features/month/components/amount-editor.test.tsx`
 
 **Interfaces:**
 - Consumes: `parseEuros`, `formatEuros`, `formatAmountInput` (Task 2)
@@ -2249,7 +2255,7 @@ describe('AmountEditor', () => {
 
 - [ ] **Step 2: Ejecutar y ver que falla**
 
-Run: `pnpm vitest run src/components/month/amount-editor.test.tsx`
+Run: `pnpm vitest run src/features/month/components/amount-editor.test.tsx`
 Expected: FAIL «Failed to resolve import "./amount-editor"».
 
 - [ ] **Step 3: Implementación**
@@ -2335,13 +2341,13 @@ export function AmountEditor({ cents, label, sign, onSave }: Props) {
 
 - [ ] **Step 4: Ejecutar y ver que pasa**
 
-Run: `pnpm vitest run src/components/month/amount-editor.test.tsx`
+Run: `pnpm vitest run src/features/month/components/amount-editor.test.tsx`
 Expected: PASS (4 tests).
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/components/month/amount-editor.* && git commit -m "feat: editor de importe en línea"
+git add src/features/month/components/amount-editor.* && git commit -m "feat: editor de importe en línea"
 ```
 
 ---
@@ -2349,21 +2355,21 @@ git add src/components/month/amount-editor.* && git commit -m "feat: editor de i
 ### Task 13: Pantalla Mes
 
 **Files:**
-- Create: `src/components/providers.tsx`, `src/stores/month-store.ts`, `src/hooks/use-month.ts`, `src/components/month/{month-header,category-list,available-bar,split-dialog,add-entry-sheet,month-skeleton}.tsx`, `src/app/(app)/layout.tsx`, `src/app/(app)/mes/page.tsx`
+- Create: `src/shared/components/providers.tsx`, `src/features/month/store/month-store.ts`, `src/features/month/hooks/use-month.ts`, `src/features/month/components/{month-header,category-list,available-bar,split-dialog,add-entry-sheet,month-skeleton,month-screen}.tsx`, `src/app/(app)/layout.tsx`, `src/app/(app)/mes/page.tsx`
 
 **Interfaces:**
 - Consumes: `MonthView`, `withEntryAmount`, `signOf` (Task 7); `Catalog` (Task 9); actions y `ActionResult` (Task 11); `AmountEditor` (Task 12); `formatEuros`, `parseEuros`, `formatMonthName`, `currentYearMonth`, `addMonths`
-- Produces: `useMonthStore` (`{ ym, shift(n) }`), `useMonth(ym)`, `useUpdateAmount(ym)`, `MonthFetchError`, `type MonthResponse = { view: MonthView; catalog: Catalog }`
+- Produces: `useMonthStore` (`{ ym, shift(n) }`), `useMonth(ym)`, `useUpdateAmount(ym)`, `MonthFetchError`, `type MonthResponse = { view: MonthView; catalog: Catalog }`, `MonthScreen`
 
 - [ ] **Step 1: Providers, store y hooks**
 
-`src/components/providers.tsx`:
+`src/shared/components/providers.tsx`:
 ```tsx
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from '@/shared/components/ui/sonner';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(() => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000 } } }));
@@ -2376,7 +2382,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 }
 ```
 
-`src/stores/month-store.ts`:
+`src/features/month/store/month-store.ts`:
 ```ts
 import { create } from 'zustand';
 import { addMonths, currentYearMonth, type YearMonth } from '@/lib/year-month';
@@ -2392,15 +2398,15 @@ export const useMonthStore = create<MonthState>()((set) => ({
 }));
 ```
 
-`src/hooks/use-month.ts`:
+`src/features/month/hooks/use-month.ts`:
 ```ts
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { updateEntryAmountAction } from '@/app/(app)/mes/actions';
-import { withEntryAmount, type MonthView } from '@/domain/month-view';
-import type { Catalog } from '@/server/catalog';
+import { updateEntryAmountAction } from '@/features/month/server/actions';
+import { withEntryAmount, type MonthView } from '@/features/month/domain/month-view';
+import type { Catalog } from '@/features/catalog/server/catalog';
 
 export type MonthResponse = { view: MonthView; catalog: Catalog };
 
@@ -2455,14 +2461,14 @@ export function useUpdateAmount(ym: string) {
 
 - [ ] **Step 2: Componentes de la pantalla**
 
-`src/components/month/month-header.tsx`:
+`src/features/month/components/month-header.tsx`:
 ```tsx
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/components/ui/button';
 import { currentYearMonth, formatMonthName } from '@/lib/year-month';
-import { useMonthStore } from '@/stores/month-store';
+import { useMonthStore } from '@/features/month/store/month-store';
 
 export function MonthHeader() {
   const ym = useMonthStore((s) => s.ym);
@@ -2482,12 +2488,12 @@ export function MonthHeader() {
 }
 ```
 
-`src/components/month/category-list.tsx`:
+`src/features/month/components/category-list.tsx`:
 ```tsx
 'use client';
 
 import { ChevronRight } from 'lucide-react';
-import { signOf, type CategoryGroup, type MonthView, type PocketView } from '@/domain/month-view';
+import { signOf, type CategoryGroup, type MonthView, type PocketView } from '@/features/month/domain/month-view';
 import { formatEuros } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { AmountEditor } from './amount-editor';
@@ -2595,11 +2601,11 @@ export function CategoryList({ view, onAmountChange }: {
 }
 ```
 
-`src/components/month/available-bar.tsx`:
+`src/features/month/components/available-bar.tsx`:
 ```tsx
 'use client';
 
-import type { MonthView } from '@/domain/month-view';
+import type { MonthView } from '@/features/month/domain/month-view';
 import { formatEuros } from '@/lib/money';
 import { cn } from '@/lib/utils';
 
@@ -2630,20 +2636,20 @@ export function AvailableBar({ view, onEditSplit }: { view: MonthView; onEditSpl
 }
 ```
 
-`src/components/month/split-dialog.tsx`:
+`src/features/month/components/split-dialog.tsx`:
 ```tsx
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { setSavingsSplitAction } from '@/app/(app)/mes/actions';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import type { MonthView } from '@/domain/month-view';
+import { setSavingsSplitAction } from '@/features/month/server/actions';
+import { Button } from '@/shared/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog';
+import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
+import type { MonthView } from '@/features/month/domain/month-view';
 import { cn } from '@/lib/utils';
-import type { Catalog } from '@/server/catalog';
+import type { Catalog } from '@/features/catalog/server/catalog';
 
 export function SplitDialog({ open, onOpenChange, ym, view, accounts }: {
   open: boolean;
@@ -2720,21 +2726,21 @@ export function SplitDialog({ open, onOpenChange, ym, view, accounts }: {
 }
 ```
 
-`src/components/month/add-entry-sheet.tsx`:
+`src/features/month/components/add-entry-sheet.tsx`:
 ```tsx
 'use client';
 
 import { useForm, type AnyFieldApi } from '@tanstack/react-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { addOneOffEntryAction } from '@/app/(app)/mes/actions';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { addOneOffEntryAction } from '@/features/month/server/actions';
+import { Button } from '@/shared/components/ui/button';
+import { Input } from '@/shared/components/ui/input';
+import { Label } from '@/shared/components/ui/label';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/components/ui/sheet';
 import { parseEuros } from '@/lib/money';
 import { cn } from '@/lib/utils';
-import type { Catalog } from '@/server/catalog';
+import type { Catalog } from '@/features/catalog/server/catalog';
 
 function FieldError({ field }: { field: AnyFieldApi }) {
   const [first] = field.state.meta.errors;
@@ -2902,7 +2908,7 @@ export function AddEntrySheet({ open, onOpenChange, ym, catalog }: {
 }
 ```
 
-`src/components/month/month-skeleton.tsx`:
+`src/features/month/components/month-skeleton.tsx`:
 ```tsx
 export function MonthSkeleton() {
   return (
@@ -2919,8 +2925,8 @@ export function MonthSkeleton() {
 
 `src/app/(app)/layout.tsx`:
 ```tsx
-import { Providers } from '@/components/providers';
-import { requireUser } from '@/server/session';
+import { Providers } from '@/shared/components/providers';
+import { requireUser } from '@/features/auth/session';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   await requireUser();
@@ -2932,23 +2938,23 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 }
 ```
 
-`src/app/(app)/mes/page.tsx`:
+`src/features/month/components/month-screen.tsx`:
 ```tsx
 'use client';
 
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import { AddEntrySheet } from '@/components/month/add-entry-sheet';
-import { AvailableBar } from '@/components/month/available-bar';
-import { CategoryList } from '@/components/month/category-list';
-import { MonthHeader } from '@/components/month/month-header';
-import { MonthSkeleton } from '@/components/month/month-skeleton';
-import { SplitDialog } from '@/components/month/split-dialog';
-import { Button } from '@/components/ui/button';
-import { MonthFetchError, useMonth, useUpdateAmount } from '@/hooks/use-month';
-import { useMonthStore } from '@/stores/month-store';
+import { AddEntrySheet } from '@/features/month/components/add-entry-sheet';
+import { AvailableBar } from '@/features/month/components/available-bar';
+import { CategoryList } from '@/features/month/components/category-list';
+import { MonthHeader } from '@/features/month/components/month-header';
+import { MonthSkeleton } from '@/features/month/components/month-skeleton';
+import { SplitDialog } from '@/features/month/components/split-dialog';
+import { Button } from '@/shared/components/ui/button';
+import { MonthFetchError, useMonth, useUpdateAmount } from '@/features/month/hooks/use-month';
+import { useMonthStore } from '@/features/month/store/month-store';
 
-export default function MesPage() {
+export function MonthScreen() {
   const ym = useMonthStore((s) => s.ym);
   const query = useMonth(ym);
   const update = useUpdateAmount(ym);
@@ -2997,6 +3003,15 @@ export default function MesPage() {
       )}
     </>
   );
+}
+```
+
+`src/app/(app)/mes/page.tsx`:
+```tsx
+import { MonthScreen } from '@/features/month/components/month-screen';
+
+export default function MesPage() {
+  return <MonthScreen />;
 }
 ```
 
