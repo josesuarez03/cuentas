@@ -1,7 +1,7 @@
 const THOUSANDS = /^\d{1,3}(\.\d{3})+$/;
 
 export function parseEuros(input: string): number | null {
-  const s = input.replace(/[\s €]/g, '');
+  const s = input.replace(/[\s\u00A0€]/g, '');
   if (!/^\d[\d.,]*$/.test(s)) return null;
 
   let normalized: string;
@@ -29,7 +29,7 @@ const plain = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximum
 
 export function formatEuros(cents: number, opts: { sign?: boolean } = {}): string {
   const abs = currency.format(Math.abs(cents) / 100);
-  if (cents < 0) return `−${abs}`;
+  if (cents < 0) return `\u2212${abs}`;
   return opts.sign ? `+${abs}` : abs;
 }
 

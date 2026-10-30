@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatAmountInput, formatEuros, parseEuros } from './money';
 
-const NBSP = ' ';
+const NBSP = '\u00A0';
 
 describe('parseEuros', () => {
   it.each([
@@ -27,12 +27,12 @@ describe('formatEuros', () => {
     expect(formatEuros(187000)).toBe(`1.870,00${NBSP}€`);
     expect(formatEuros(123456780)).toBe(`1.234.567,80${NBSP}€`);
   });
-  it('con signo usa + y − (U+2212)', () => {
+  it('con signo usa + y \u2212 (U+2212)', () => {
     expect(formatEuros(5250, { sign: true })).toBe(`+52,50${NBSP}€`);
-    expect(formatEuros(-63000, { sign: true })).toBe(`−630,00${NBSP}€`);
+    expect(formatEuros(-63000, { sign: true })).toBe(`\u2212630,00${NBSP}€`);
   });
   it('sin signo solo marca negativos', () => {
-    expect(formatEuros(-1200)).toBe(`−12,00${NBSP}€`);
+    expect(formatEuros(-1200)).toBe(`\u221212,00${NBSP}€`);
   });
 });
 
