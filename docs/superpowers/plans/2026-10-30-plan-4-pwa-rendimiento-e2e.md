@@ -1413,7 +1413,7 @@ Run: `pnpm vitest run src/shared/components/speed-insights.test.ts` → PASS.
 - [x] **Step 3: Verificación (uno detrás de otro)**
 
 `pnpm build`, luego `pnpm start` y:
-- `curl -s http://localhost:3000/login | grep -o '<link rel="preload"[^>]*as="font"[^>]*>' | wc -l` → entre 1 y 3 (woff2 de `latin`).
+- `curl -sI http://localhost:3000/login | grep -i '^link:.*as="font"' | wc -l` → 1 (Next 15.5 manda la precarga del woff2 de `latin` como cabecera `Link`, no como `<link>`).
 - `cat .next/static/css/*.css .next/static/chunks/*.css 2>/dev/null | grep -o 'font-display:swap' | head -1` → `font-display:swap`.
 - `curl -s http://localhost:3000/login | grep -c "speed-insights"` → `0` (fuera de Vercel no se pinta).
 
