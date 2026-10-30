@@ -1851,7 +1851,7 @@ git add src/features/month/server src/features/catalog/server && git commit -m "
 **Interfaces:**
 - Produces: `isAllowedEmail(email, list?): boolean`, `guardNewUser(user)`, `auth`, `authClient`, `getUserOrNull(): Promise<{ id: string; email: string; name: string } | null>`, `requireUser()` (redirige a `/login`)
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 `src/features/auth/allowlist.test.ts`:
 ```ts
@@ -1882,12 +1882,12 @@ describe('guardNewUser', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
 Run: `pnpm vitest run src/features/auth/allowlist.test.ts`
 Expected: FAIL «Failed to resolve import "./allowlist"».
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 `src/features/auth/allowlist.ts`:
 ```ts
@@ -2049,12 +2049,12 @@ ALLOWED_EMAILS=tu@email.com,pareja@email.com
 SEED_EMAIL=tu@email.com
 ```
 
-- [ ] **Step 4: Ejecutar tests**
+- [x] **Step 4: Ejecutar tests**
 
 Run: `pnpm vitest run src/features/auth/allowlist.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/auth src/app/api/auth src/middleware.ts src/app/login .env.example
