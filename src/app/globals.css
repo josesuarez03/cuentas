@@ -1,26 +1,110 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* Plan 4 cambia esto a clase .dark con next-themes; ahora sigue al sistema. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f3f4f6;
+  --surface: #ffffff;
+  --surface-sunk: #e9ebef;
+  --line: #d6dae0;
+  --ink: #14171c;
+  --ink-muted: #58606c;
+  --tinta: #2244c4;
+  --on-tinta: #ffffff;
+  --positivo: #17784a;
+  --alerta: #b3261e;
+  --aviso: #8a5300;
+  --aviso-soft: #fbefdc;
+  --sheet-shadow: 0 8px 24px rgba(20, 23, 28, 0.14);
+
+  --radius: 10px;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--tinta);
+  --primary-foreground: var(--on-tinta);
+  --secondary: var(--surface-sunk);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-sunk);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--surface-sunk);
+  --accent-foreground: var(--ink);
+  --destructive: var(--alerta);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--tinta);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #121519;
+    --surface: #1b1f25;
+    --surface-sunk: #262c35;
+    --line: #353c47;
+    --ink: #eceef1;
+    --ink-muted: #a3abb7;
+    --tinta: #91a8ff;
+    --on-tinta: #0e1530;
+    --positivo: #6bd7a0;
+    --alerta: #ff8f86;
+    --aviso: #f2b866;
+    --aviso-soft: #3a2c14;
+    --sheet-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-sunk: var(--surface-sunk);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-tinta: var(--tinta);
+  --color-positivo: var(--positivo);
+  --color-alerta: var(--alerta);
+  --color-aviso: var(--aviso);
+  --color-aviso-soft: var(--aviso-soft);
+
+  --font-sans: var(--font-plex), system-ui, sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sheet: var(--sheet-shadow);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  body {
+    @apply bg-background text-foreground;
+    font-variant-numeric: tabular-nums;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  ::selection { background: var(--tinta); color: var(--on-tinta); }
+  :focus-visible { outline: 2px solid var(--tinta); outline-offset: 2px; }
 }

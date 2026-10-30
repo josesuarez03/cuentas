@@ -63,7 +63,7 @@ drizzle/                            migraciones generadas
 **Interfaces:**
 - Produces: clases Tailwind `bg-paper`, `bg-surface`, `bg-surface-sunk`, `border-line`, `text-ink`, `text-ink-muted`, `text-tinta`, `text-positivo`, `text-alerta`, `text-aviso`, `bg-aviso-soft`; componentes shadcn `Button`, `Dialog`, `Sheet`, `Input`, `Label`, `Toaster` (sonner); `pnpm test`.
 
-- [ ] **Step 1: Crear el proyecto e instalar dependencias**
+- [x] **Step 1: Crear el proyecto e instalar dependencias**
 
 ```bash
 # El directorio ya tiene docs/ y CLAUDE.md: se genera aparte y se copia sin sobrescribir.
@@ -79,7 +79,7 @@ pnpm dlx shadcn@latest add button dialog sheet input label sonner
 git init && git add -A && git commit -m "chore: scaffold Next.js + shadcn"
 ```
 
-- [ ] **Step 2: Configurar Vitest y scripts**
+- [x] **Step 2: Configurar Vitest y scripts**
 
 `vitest.config.ts`:
 ```ts
@@ -122,7 +122,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 3: Sustituir `src/app/globals.css` por los tokens de Cuentas**
+- [x] **Step 3: Sustituir `src/app/globals.css` por los tokens de Cuentas**
 
 ```css
 @import "tailwindcss";
@@ -237,7 +237,7 @@ export default defineConfig({
 }
 ```
 
-- [ ] **Step 4: Layout con IBM Plex Sans y redirección a /mes**
+- [x] **Step 4: Layout con IBM Plex Sans y redirección a /mes**
 
 `src/app/layout.tsx`:
 ```tsx
@@ -267,12 +267,12 @@ export default function Home() {
 }
 ```
 
-- [ ] **Step 5: Verificar**
+- [x] **Step 5: Verificar**
 
 Run: `pnpm test && pnpm build`
 Expected: Vitest «No test files found, exiting with code 0»; build OK.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A && git commit -m "chore: tokens Cuentas, fuente y Vitest"
