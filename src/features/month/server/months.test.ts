@@ -91,3 +91,33 @@ describe('getMonthView', () => {
     expect(await getMonthView(db, f.userId, '2026-10')).toBeNull();
   });
 });
+
+describe('ensureMonth (herencia y asignaciones entre meses)', () => {
+  it('hereda el importe de la última aparición, no de la primera', async () => {
+    const oct = await ensureMonth(db, f.userId, '2026-10');
+    await db.update(s.entries).set({ amountCents: 179000 })
+      .where(and(eq(s.entries.monthId, oct), eq(s.entries.recurringItemId, f.items.nomina)));
+    const nov = await ensureMonth(db, f.userId, '2026-11');
+    await db.update(s.entries).set({ amountCents: 180000 })
+      .where(and(eq(s.entries.monthId, nov), eq(s.entries.recurringItemId, f.items.nomina)));
+
+    const dec = await entriesOf(await ensureMonth(db, f.userId, '2026-12'));
+    expect(dec.find((r) => r.name === 'Nómina')!.amountCents).toBe(180000);
+  });
+
+  it('copia el límite de bolsa del mes anterior, no el de la plantilla', async () => {
+    const oct = await ensureMonth(db, f.userId, '2026-10');
+    await db.update(s.monthPockets).set({ limitCents: 20000 })
+      .where(and(eq(s.monthPockets.monthId, oct), eq(s.monthPockets.pocketId, f.pocketId)));
+    await ensureMonth(db, f.userId, '2026-11');
+    const v = (await getMonthView(db, f.userId, '2026-11'))!;
+    expect(v.pockets.map((p) => p.limitCents)).toEqual([20000]);
+  });
+
+  it('asigna la hucha cada mes y acumula el saldo', async () => {
+    await ensureMonth(db, f.userId, '2026-10');
+    await ensureMonth(db, f.userId, '2026-11');
+    const v = (await getMonthView(db, f.userId, '2026-11'))!;
+    expect(v.funds).toEqual([{ id: f.fundId, name: 'Regalos', allocatedCents: 5000, balanceCents: 10000 }]);
+  });
+});
