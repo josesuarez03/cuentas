@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { formatEuros, parseEuros } from '@/lib/money';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function FundSpendDialog({ open, onOpenChange, ym, fund }: {
   open: boolean;
@@ -15,6 +16,7 @@ export function FundSpendDialog({ open, onOpenChange, ym, fund }: {
   ym: string;
   fund: FundView | null;
 }) {
+  const online = useOnline();
   const spend = useSpendFromFund(ym);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
@@ -76,7 +78,7 @@ export function FundSpendDialog({ open, onOpenChange, ym, fund }: {
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" className="min-h-11" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" className="min-h-11">Gastar</Button>
+            <Button type="submit" className="min-h-11" disabled={!online}>Gastar</Button>
           </DialogFooter>
         </form>
       </DialogContent>

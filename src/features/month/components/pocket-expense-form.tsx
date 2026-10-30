@@ -6,6 +6,7 @@ import type { PocketView } from '@/features/month/domain/month-view';
 import { Button } from '@/shared/components/ui/button';
 import { parseEuros } from '@/lib/money';
 import { SelectField, TextField } from './form-fields';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function PocketExpenseForm({ ym, pockets, defaultPocketId, onDone }: {
   ym: string;
@@ -13,6 +14,7 @@ export function PocketExpenseForm({ ym, pockets, defaultPocketId, onDone }: {
   defaultPocketId?: string;
   onDone: () => void;
 }) {
+  const online = useOnline();
   const add = useAddPocketExpense(ym);
 
   const form = useForm({
@@ -43,7 +45,7 @@ export function PocketExpenseForm({ ym, pockets, defaultPocketId, onDone }: {
         {(field) => <TextField field={field} label="Nota (opcional)" />}
       </form.Field>
 
-      <Button type="submit" className="min-h-12 text-base">Apuntar gasto</Button>
+      <Button type="submit" className="min-h-12 text-base" disabled={!online}>Apuntar gasto</Button>
     </form>
   );
 }

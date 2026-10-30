@@ -11,12 +11,14 @@ import { Button } from '@/shared/components/ui/button';
 import { parseEuros } from '@/lib/money';
 import type { Catalog } from '@/features/catalog/server/catalog';
 import { SelectField, TextField } from './form-fields';
+import { useOnline } from '@/shared/hooks/use-online';
 
 export function LoanForm({ ym, accounts, onDone }: {
   ym: string;
   accounts: Catalog['accounts'];
   onDone: () => void;
 }) {
+  const online = useOnline();
   const qc = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
@@ -84,7 +86,7 @@ export function LoanForm({ ym, accounts, onDone }: {
             {accounts.length === 0 && (
               <p role="status" className="text-[13px] text-ink-muted">Para prestar necesitas al menos una cuenta.</p>
             )}
-            <Button type="submit" className="min-h-12 text-base" disabled={submitting || accounts.length === 0}>
+            <Button type="submit" className="min-h-12 text-base" disabled={submitting || accounts.length === 0 || !online}>
               {submitting ? 'Prestando…' : 'Prestar'}
             </Button>
           </>

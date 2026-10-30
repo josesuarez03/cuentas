@@ -6,6 +6,8 @@ import { completeOnboardingAction } from '@/features/onboarding/server/actions';
 import { SAVE_ERROR } from '@/features/month/save-error';
 import { OnboardingWizard } from './onboarding-wizard';
 
+const online = vi.hoisted(() => ({ useOnline: vi.fn(() => true) }));
+vi.mock('@/shared/hooks/use-online', () => online);
 const replace = vi.fn();
 vi.mock('@/features/onboarding/server/actions', () => ({ completeOnboardingAction: vi.fn(async () => ({ ok: true })) }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }));
@@ -20,7 +22,7 @@ beforeAll(() => {
     addListener: () => {}, removeListener: () => {}, onchange: null, dispatchEvent: () => false,
   })) as unknown as typeof window.matchMedia;
 });
-afterEach(() => { cleanup(); vi.clearAllMocks(); });
+afterEach(() => { cleanup(); vi.clearAllMocks(); online.useOnline.mockReturnValue(true); });
 
 describe('OnboardingWizard', () => {
   it('cuentas → nómina → partidas y envía lo escrito', async () => {
@@ -162,5 +164,17 @@ describe('OnboardingWizard', () => {
     await userEvent.type(screen.getByLabelText('Nombre de la cuenta'), 'BBVA');
     await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Tu nómina' }));
+  });
+
+  it('sin conexión, «Siguiente» sigue activo y «Empezar» no', async () => {
+    online.useOnline.mockReturnValue(false);
+    render(<OnboardingWizard />);
+    expect((screen.getByRole('button', { name: 'Siguiente' }) as HTMLButtonElement).disabled).toBe(false);
+    await userEvent.type(screen.getByLabelText('Nombre de la cuenta'), 'BBVA principal');
+    await userEvent.type(screen.getByLabelText('Saldo de hoy (€)'), '2.300,00');
+    await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Saltar' }));
+    expect(screen.getByText('Paso 3 de 3')).toBeTruthy();
+    expect((screen.getByRole('button', { name: 'Empezar' }) as HTMLButtonElement).disabled).toBe(true);
   });
 });
