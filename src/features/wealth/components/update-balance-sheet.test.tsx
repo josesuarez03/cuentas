@@ -49,4 +49,30 @@ describe('UpdateBalanceSheet', () => {
     expect(screen.getByRole('alert').textContent).toBe('Escribe un importe, por ejemplo 1.250,00.');
     expect(onSave).not.toHaveBeenCalled();
   });
+  it('cuenta en descubierto: precarga «−500,00» y guarda el negativo', async () => {
+    const onSave = vi.fn();
+    render(<UpdateBalanceSheet account={{ ...checking, estimatedCents: -50000 }} open onOpenChange={vi.fn()} onSave={onSave} />);
+    expect((screen.getByLabelText('Saldo de hoy (€)') as HTMLInputElement).value).toBe('\u2212500,00');
+    await userEvent.click(screen.getByRole('button', { name: 'Actualizar saldo' }));
+    expect(onSave).toHaveBeenCalledWith(-50000);
+  });
+  it('tarjeta con −300 real: precarga «300,00» y «250» guarda −25000', async () => {
+    const onSave = vi.fn();
+    render(<UpdateBalanceSheet account={{ ...card, realCents: -30000, estimatedCents: null }} open onOpenChange={vi.fn()} onSave={onSave} />);
+    const input = screen.getByLabelText('Lo que debes (€)') as HTMLInputElement;
+    expect(input.value).toBe('300,00');
+    await userEvent.clear(input);
+    await userEvent.type(input, '250');
+    await userEvent.click(screen.getByRole('button', { name: 'Actualizar saldo' }));
+    expect(onSave).toHaveBeenCalledWith(-25000);
+  });
+  it('cuenta de ahorro: «-12,5» guarda −1250', async () => {
+    const onSave = vi.fn();
+    render(<UpdateBalanceSheet account={{ ...checking, type: 'savings' }} open onOpenChange={vi.fn()} onSave={onSave} />);
+    const input = screen.getByLabelText('Saldo de hoy (€)');
+    await userEvent.clear(input);
+    await userEvent.type(input, '-12,5');
+    await userEvent.click(screen.getByRole('button', { name: 'Actualizar saldo' }));
+    expect(onSave).toHaveBeenCalledWith(-1250);
+  });
 });
