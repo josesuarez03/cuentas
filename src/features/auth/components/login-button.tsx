@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { authClient } from '@/features/auth/auth-client';
 
@@ -17,6 +17,40 @@ function GoogleMark() {
 
 export function LoginButton({ callbackURL }: { callbackURL: string }) {
   const [loading, setLoading] = useState(false);
+  const checking = useRef(false);
+
+  // PWA de iPhone: Google se abre en una ventana aparte que comparte cookies; al cerrarla,
+  // esta página sigue en /login. Al volver a verla, si ya hay sesión, entramos.
+  useEffect(() => {
+    async function check() {
+      if (checking.current) return;
+      checking.current = true;
+      try {
+        const { data } = await authClient.getSession();
+        if (data?.session) {
+          window.location.replace('/');
+          return;
+        }
+      } catch {
+        // Sin red: seguimos en /login.
+      } finally {
+        checking.current = false;
+      }
+      setLoading(false);
+    }
+    const onVisibility = () => { if (document.visibilityState === 'visible') void check(); };
+    const onPageShow = (e: PageTransitionEvent) => { if (e.persisted) void check(); };
+    const onFocus = () => void check();
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pageshow', onPageShow);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pageshow', onPageShow);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, []);
+
   return (
     <Button
       variant="outline"
