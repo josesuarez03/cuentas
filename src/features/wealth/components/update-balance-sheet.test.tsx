@@ -5,6 +5,9 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { AccountBalance } from '@/features/wealth/domain/types';
 import { UpdateBalanceSheet } from './update-balance-sheet';
 
+const online = vi.hoisted(() => ({ useOnline: vi.fn(() => true) }));
+vi.mock('@/shared/hooks/use-online', () => online);
+
 beforeAll(() => {
   window.matchMedia ??= ((query: string) => ({
     matches: false,
@@ -17,7 +20,7 @@ beforeAll(() => {
     dispatchEvent: () => false,
   })) as unknown as typeof window.matchMedia;
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); online.useOnline.mockReturnValue(true); });
 
 const card: AccountBalance = { accountId: 't', name: 'Tarjeta BBVA', type: 'credit_card', realCents: -40000, realDate: '2026-10-20T00:00:00.000Z', estimatedCents: -40000, diffCents: 0, stale: false };
 const checking: AccountBalance = { ...card, accountId: 'p', name: 'BBVA principal', type: 'checking', realCents: 100000, estimatedCents: 120000 };
@@ -74,5 +77,10 @@ describe('UpdateBalanceSheet', () => {
     await userEvent.type(input, '-12,5');
     await userEvent.click(screen.getByRole('button', { name: 'Actualizar saldo' }));
     expect(onSave).toHaveBeenCalledWith(-1250);
+  });
+  it('sin conexión, Actualizar saldo está desactivado', () => {
+    online.useOnline.mockReturnValue(false);
+    render(<UpdateBalanceSheet account={checking} open onOpenChange={vi.fn()} onSave={vi.fn()} />);
+    expect((screen.getByRole('button', { name: 'Actualizar saldo' }) as HTMLButtonElement).disabled).toBe(true);
   });
 });

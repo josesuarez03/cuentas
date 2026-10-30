@@ -9,6 +9,7 @@ import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/components/ui/sheet';
 import { DESKTOP_QUERY, useMediaQuery } from '@/shared/hooks/use-media-query';
+import { useOnline } from '@/shared/hooks/use-online';
 
 const MINUS = '\u2212';
 
@@ -23,6 +24,7 @@ function BalanceForm({ account, onSave, onDone }: {
   onSave: (balanceCents: number) => void;
   onDone: () => void;
 }) {
+  const online = useOnline();
   const [value, setValue] = useState(() => initialValue(account));
   const [error, setError] = useState<string | null>(null);
   const isCard = account.type === 'credit_card';
@@ -56,7 +58,7 @@ function BalanceForm({ account, onSave, onDone }: {
         {!isCard && <p id="balance-hint" className="text-[13px] text-ink-muted">Si estás en descubierto, empieza con {MINUS}.</p>}
         {error && <p role="alert" className="text-[13px] text-alerta">{error}</p>}
       </div>
-      <Button type="submit" className="min-h-12 text-base">Actualizar saldo</Button>
+      <Button type="submit" className="min-h-12 text-base" disabled={!online}>Actualizar saldo</Button>
     </form>
   );
 }
