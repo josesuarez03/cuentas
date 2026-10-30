@@ -13,6 +13,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton';
 import { AccountList } from './account-list';
 import { LoansList } from './loans-list';
 import { UpdateBalanceSheet } from './update-balance-sheet';
+import { WealthChart } from './wealth-chart';
 
 export function WealthScreen() {
   const query = useWealth();
@@ -60,6 +61,8 @@ export function WealthScreen() {
               </p>
             )}
           </div>
+
+          {view.history.length >= 2 && <WealthChart history={view.history} />}
 
           <section aria-labelledby="patrimonio-cuentas">
             <h2 id="patrimonio-cuentas" className="pb-2 text-[17px] leading-6 font-semibold">Cuentas</h2>
