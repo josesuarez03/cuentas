@@ -1,9 +1,18 @@
 import type { Metadata, Viewport } from 'next';
 import { IBM_Plex_Sans } from 'next/font/google';
 import { ThemeProvider } from '@/shared/components/providers';
+import { KuadrixSpeedInsights } from '@/shared/components/speed-insights';
 import './globals.css';
 
-const plex = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-plex' });
+const plex = IBM_Plex_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-plex',
+  display: 'swap',
+  preload: true,
+  adjustFontFallback: true,
+  fallback: ['system-ui', 'sans-serif'],
+});
 
 export const metadata: Metadata = {
   title: 'Kuadrix',
@@ -24,7 +33,9 @@ export const viewport: Viewport = { width: 'device-width', initialScale: 1, view
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={plex.variable} suppressHydrationWarning>
-      <body className="font-sans antialiased"><ThemeProvider>{children}</ThemeProvider></body>
+      <body className="font-sans antialiased"><ThemeProvider>{children}</ThemeProvider>
+        {process.env.VERCEL === '1' && <KuadrixSpeedInsights />}
+      </body>
     </html>
   );
 }
