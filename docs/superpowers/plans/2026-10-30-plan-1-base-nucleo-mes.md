@@ -1016,7 +1016,7 @@ git add src/features/month/domain/generation.* && git commit -m "feat: reglas de
 **Interfaces:**
 - Produces: `type EntryKind = 'income' | 'expense' | 'loan_out' | 'loan_repayment'`, `interface CalcInput { status: 'open' | 'closed'; entries: { kind: EntryKind; amountCents: number }[]; fundAllocationsCents: number; pockets: { limitCents: number; spentCents: number }[]; split: { accountId: string; percent: number }[] }`, `interface MonthCalc { incomeCents; expenseCents; fundsCents; pocketsCents; availableCents; savings: { accountId: string; cents: number }[] }`, `computeMonth(input): MonthCalc`, `splitSavings(availableCents, split): { accountId; cents }[]`
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -1073,12 +1073,12 @@ describe('splitSavings', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
 Run: `pnpm vitest run src/features/month/domain/month-calc.test.ts`
 Expected: FAIL «Failed to resolve import "./month-calc"».
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 ```ts
 export type EntryKind = 'income' | 'expense' | 'loan_out' | 'loan_repayment';
@@ -1138,12 +1138,12 @@ export function computeMonth(input: CalcInput): MonthCalc {
 }
 ```
 
-- [ ] **Step 4: Ejecutar y ver que pasa**
+- [x] **Step 4: Ejecutar y ver que pasa**
 
 Run: `pnpm vitest run src/features/month/domain/month-calc.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/month/domain/month-calc.* && git commit -m "feat: cálculo del disponible y reparto del ahorro"
