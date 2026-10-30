@@ -295,7 +295,7 @@ git add -A && git commit -m "chore: tokens Cuentas, fuente y Vitest"
 **Interfaces:**
 - Produces: `parseEuros(input: string): number | null`, `formatEuros(cents: number, opts?: { sign?: boolean }): string`, `formatAmountInput(cents: number): string`
 
-- [ ] **Step 1: Test que falla**
+- [x] **Step 1: Test que falla**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -344,12 +344,12 @@ describe('formatAmountInput', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y ver que falla**
+- [x] **Step 2: Ejecutar y ver que falla**
 
 Run: `pnpm vitest run src/lib/money.test.ts`
 Expected: FAIL «Failed to resolve import "./money"».
 
-- [ ] **Step 3: Implementación**
+- [x] **Step 3: Implementación**
 
 ```ts
 const THOUSANDS = /^\d{1,3}(\.\d{3})+$/;
@@ -392,12 +392,12 @@ export function formatAmountInput(cents: number): string {
 }
 ```
 
-- [ ] **Step 4: Ejecutar y ver que pasa**
+- [x] **Step 4: Ejecutar y ver que pasa**
 
 Run: `pnpm vitest run src/lib/money.test.ts`
 Expected: PASS (todos).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/money.ts src/lib/money.test.ts && git commit -m "feat: parseo y formato de euros en céntimos"
